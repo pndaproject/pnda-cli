@@ -357,8 +357,8 @@ def process_errors(errors):
 
 def wait_for_host_connectivity(hosts, cluster):
     for host in hosts:
-        attempts_per_host = 150
-        while attempts_per_host > 0:
+        time_start = MILLI_TIME()
+        while True:
             try:
                 CONSOLE.info('Checking connectivity to %s', host)
                 ssh(['ls ~'], cluster, host)
@@ -366,7 +366,9 @@ def wait_for_host_connectivity(hosts, cluster):
             except:
                 CONSOLE.info('Still waiting for connectivity to %s. See debug log (%s) for details.', host, LOG_FILE_NAME)
                 LOG.info(traceback.format_exc())
-                attempts_per_host -= 1
+                if MILLI_TIME() - time_start > 10 * 60 * 1000:
+                    CONSOLE.error('Giving up waiting for host connectivity')
+                    sys.exit(-1)
                 time.sleep(2)
 
 def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, branch, existing_machines_def_file):
@@ -382,7 +384,8 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
 
     if existing_machines_def_file is None:
         region = PNDA_ENV['ec2_access']['AWS_REGION']
-        cf_parameters = [('keyName', keyname), ('pndaCluster', cluster)]
+        awsAvailabilityZone = PNDA_ENV['ec2_access']['AWS_AVAILABILITY_ZONE']
+        cf_parameters = [('keyName', keyname), ('pndaCluster', cluster), ('awsAvailabilityZone', awsAvailabilityZone)]
         for parameter in PNDA_ENV['cloud_formation_parameters']:
             cf_parameters.append((parameter, PNDA_ENV['cloud_formation_parameters'][parameter]))
 
