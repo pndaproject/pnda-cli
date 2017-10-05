@@ -1,6 +1,6 @@
 #!/bin/bash -v
 
-# This script runs on instances with a node_type tag of "bastion"
+# This script runs on instances with a node_type tag of "build-node"
 # It sets the roles that determine what software is installed
 # on this instance by platform-salt scripts and the minion
 # id and hostname
@@ -17,10 +17,11 @@ roles:
 EOF
 
 cat >> /etc/salt/minion <<EOF
-id: $PNDA_CLUSTER-bastion
+id: $PNDA_CLUSTER-build-node
 EOF
 
-echo $PNDA_CLUSTER-bastion > /etc/hostname
-hostname $PNDA_CLUSTER-bastion
+echo $PNDA_CLUSTER-build-node > /etc/hostname
+hostname $PNDA_CLUSTER-build-node
 
+service salt-master restart
 service salt-minion restart
