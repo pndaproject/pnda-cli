@@ -669,7 +669,7 @@ def node_limit(param_name, value):
 def get_args():
     global VALID_FLAVORS
     cfn_dirs = [dir_name for dir_name in os.listdir('../cloud-formation') if  os.path.isdir(os.path.join('../cloud-formation', dir_name))]
-    bootstap_dirs = [dir_name for dir_name in os.listdir('../cloud-formation') if  os.path.isdir(os.path.join('../cloud-formation', dir_name))]
+    bootstap_dirs = [dir_name for dir_name in os.listdir('../bootstrap-scripts') if  os.path.isdir(os.path.join('../bootstrap-scripts', dir_name))]
     VALID_FLAVORS = list(set(cfn_dirs + bootstap_dirs))
     epilog = """examples:
   - create new cluster, prompting for values:
