@@ -716,7 +716,9 @@ def main():
     existing_machines_def_file = args.x_machines_definition
     no_config_check = args.no_config_check
     dry_run = args.dry_run
-
+    create_infra = existing_machines_def_file is None
+    template_data = None
+    
     if not os.path.basename(os.getcwd()) == "cli":
         print 'Please run from inside the /cli directory'
         sys.exit(1)
@@ -729,8 +731,8 @@ def main():
     with open('pnda_env.yaml', 'r') as infile:
         PNDA_ENV = yaml.load(infile)
 
-        if existing_machines_def_file is not None:
-            CONSOLE.info('Installing to pre-existing machines, defined in %s', existing_machines_def_file)
+        if not create_infra:
+            CONSOLE.info('Installing to existing infra, defined in %s', existing_machines_def_file)
             node_counts = get_current_node_counts(pnda_cluster, existing_machines_def_file)
             datanodes = node_counts['hadoop-dn']
             tsdbnodes = node_counts['opentsdb']
@@ -761,7 +763,7 @@ def main():
     if args.branch is not None:
         branch = args.branch
 
-    if not os.path.isfile('git.pem') and existing_machines_def_file is None:
+    if not os.path.isfile('git.pem') and create_infra:
         with open('git.pem', 'w') as git_key_file:
             git_key_file.write('If authenticated access to the platform-salt git repository is required then' +
                                ' replace this file with a key that grants access to the git server.\n\n' +
@@ -796,13 +798,13 @@ def main():
         keyname = raw_input("Enter a keypair name to use for ssh access to instances: ")
 
     global VALIDATION_RULES
-    if existing_machines_def_file is None:
+    if create_infra:
         validation_file = file('cloud-formation/%s/validation.json' % flavor)
         VALIDATION_RULES = json.load(validation_file)
         validation_file.close()
 
     global NODE_CONFIG
-    if existing_machines_def_file is not None:
+    if not create_infra:
         NODE_CONFIG = {}
         existing_machines_def = file(existing_machines_def_file)
         existing_machines = json.load(existing_machines_def)
@@ -849,11 +851,14 @@ def main():
             elif  kafkanodes > node_counts['kafka']:
                 print "Increasing the number of kafkanodes from %s to %s" % (node_counts['kafka'], kafkanodes)
 
-            template_data = generate_template_file(flavor, datanodes, node_counts['opentsdb'], kafkanodes, node_counts['zk'],
-                                                   es_master_nodes, es_ingest_nodes, es_data_nodes, es_coordinator_nodes,
-                                                   es_multi_nodes, logstash_nodes)
+            if create_infra:
+                template_data = generate_template_file(flavor, datanodes, node_counts['opentsdb'], kafkanodes, node_counts['zk'],
+                                                    es_master_nodes, es_ingest_nodes, es_data_nodes, es_coordinator_nodes,
+                                                    es_multi_nodes, logstash_nodes)
+
             expand(template_data, pnda_cluster, flavor, node_counts['hadoop-dn'], node_counts['kafka'],
                    include_orchestrate, keyname, no_config_check, dry_run, branch)
+
             sys.exit(0)
         else:
             print 'expand command must specify pnda_cluster, e.g.\npnda-cli.py expand -e squirrel-land -f standard -s keyname -n 5'
@@ -939,9 +944,10 @@ def main():
     node_limit("elk-es-multi", es_multi_nodes)
     node_limit("elk-logstash", logstash_nodes)
 
-    template_data = generate_template_file(flavor, datanodes, tsdbnodes, kafkanodes, zknodes,
-                                           es_master_nodes, es_ingest_nodes, es_data_nodes, es_coordinator_nodes,
-                                           es_multi_nodes, logstash_nodes)
+    if create_infra:
+        template_data = generate_template_file(flavor, datanodes, tsdbnodes, kafkanodes, zknodes,
+                                               es_master_nodes, es_ingest_nodes, es_data_nodes, es_coordinator_nodes,
+                                               es_multi_nodes, logstash_nodes)
 
 
     console_dns = create(template_data, pnda_cluster, flavor, keyname, no_config_check, dry_run, branch, existing_machines_def_file)
