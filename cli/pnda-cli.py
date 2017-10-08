@@ -412,7 +412,6 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
 
     keyfile = '%s.pem' % keyname
 
-<<<<<<< HEAD
     if existing_machines_def_file is None:
         region = PNDA_ENV['ec2_access']['AWS_REGION']
         awsAvailabilityZone = PNDA_ENV['ec2_access']['AWS_AVAILABILITY_ZONE']
