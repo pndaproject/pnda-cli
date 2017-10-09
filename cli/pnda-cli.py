@@ -235,7 +235,7 @@ def bootstrap(instance, saltmaster, cluster, flavor, branch, salt_tarball, error
                        '(sudo -E /tmp/package-install.sh 2>&1) | tee -a pnda-bootstrap.log; %s' % THROW_BASH_ERROR,
                        '(sudo -E /tmp/base.sh 2>&1) | tee -a pnda-bootstrap.log; %s' % THROW_BASH_ERROR]
 
-        if node_type == NODE_CONFIG['salt-master-instance']:
+        if node_type == "saltmaster":
             files_to_scp.append('bootstrap-scripts/saltmaster-common.sh')
             cmds_to_run.append('sudo chmod a+x /tmp/saltmaster-common.sh')
             cmds_to_run.append('(sudo -E /tmp/saltmaster-common.sh 2>&1) | tee -a pnda-bootstrap.log; %s' % THROW_BASH_ERROR)
