@@ -148,7 +148,7 @@ def findSaltmaster(instance_map):
         if 'is_saltmaster' in node and node['is_saltmaster'] is True:
             return node
     return None
-    
+
 def get_instance_map(cluster, existing_machines_def_file):
 
     instance_map = {}
@@ -499,7 +499,7 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
     CONSOLE.info('Bootstrapping saltmaster. Expect this to take a few minutes, check the debug log for progress (%s).', LOG_FILE_NAME)
     if existing_machines_def_file is None:
         saltmaster = instance_map[cluster + '-' + NODE_CONFIG['salt-master-instance']]
-    else
+    else:
         saltmaster = findSaltmaster()
     saltmaster_ip = saltmaster['private_ip_address']
     platform_salt_tarball = None
