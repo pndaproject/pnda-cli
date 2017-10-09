@@ -440,7 +440,7 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
     for parameter in PNDA_ENV['cloud_formation_parameters']:
         cf_parameters.append((parameter, PNDA_ENV['cloud_formation_parameters'][parameter]))
 
-    if not no_config_check:
+    if existing_machines_def_file is None:
         check_config(keyname, keyfile, existing_machines_def_file)
 
         CONSOLE.info('Creating Cloud Formation stack')
