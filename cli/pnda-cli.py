@@ -500,7 +500,7 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
     if existing_machines_def_file is None:
         saltmaster = instance_map[cluster + '-' + NODE_CONFIG['salt-master-instance']]
     else:
-        saltmaster = findSaltmaster()
+        saltmaster = findSaltmaster(instance_map)
     saltmaster_ip = saltmaster['private_ip_address']
     platform_salt_tarball = None
     if 'PLATFORM_SALT_LOCAL' in PNDA_ENV['platform_salt']:
