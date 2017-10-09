@@ -856,7 +856,7 @@ def main():
                 print "Bastion is %s" % existing_machines[node]['name']
             if 'is_saltmaster' in existing_machines[node] and existing_machines[node]['is_saltmaster'] is True:
                 NODE_CONFIG['salt-master-instance'] = node
-                print "Saltmaster is %s" % existing_machines[node]['name']
+                print "Saltmaster is %s - %s" % (existing_machines[node]['name'],NODE_CONFIG['salt-master-instance'])
             if 'is_console' in existing_machines[node] and existing_machines[node]['is_console'] is True:
                 NODE_CONFIG['console-instance'] = node
         existing_machines_def.close()
