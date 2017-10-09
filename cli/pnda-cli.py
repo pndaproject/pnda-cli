@@ -143,6 +143,12 @@ def generate_template_file(flavor, datanodes, opentsdbs, kafkas, zookeepers, esm
 
     return json.dumps(template_data)
 
+def findSaltmaster(instance_map):
+    for node in instance_map:
+        if 'is_saltmaster' in node and node['is_saltmaster'] is True:
+            return node
+    return None
+    
 def get_instance_map(cluster, existing_machines_def_file):
 
     instance_map = {}
@@ -159,6 +165,8 @@ def get_instance_map(cluster, existing_machines_def_file):
             else:
                 new_instance['ip_address'] = None
             new_instance['node_type'] = node_detail['node_type']
+            if 'is_saltmaster' in node_detail and node_detail['is_saltmaster'] is True:
+                new_instance['is_saltmaster'] = True
             try:
                 new_instance['node_idx'] = int(node.split('-')[-1])
             except ValueError:
@@ -235,7 +243,7 @@ def bootstrap(instance, saltmaster, cluster, flavor, branch, salt_tarball, error
                        '(sudo -E /tmp/package-install.sh 2>&1) | tee -a pnda-bootstrap.log; %s' % THROW_BASH_ERROR,
                        '(sudo -E /tmp/base.sh 2>&1) | tee -a pnda-bootstrap.log; %s' % THROW_BASH_ERROR]
 
-        if "is_saltmaster" in instance:
+        if node_type == NODE_CONFIG['salt-master-instance'] or "is_saltmaster" in instance:
             files_to_scp.append('bootstrap-scripts/saltmaster-common.sh')
             cmds_to_run.append('sudo chmod a+x /tmp/saltmaster-common.sh')
             cmds_to_run.append('(sudo -E /tmp/saltmaster-common.sh 2>&1) | tee -a pnda-bootstrap.log; %s' % THROW_BASH_ERROR)
@@ -489,7 +497,10 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
     wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], cluster)
 
     CONSOLE.info('Bootstrapping saltmaster. Expect this to take a few minutes, check the debug log for progress (%s).', LOG_FILE_NAME)
-    saltmaster = instance_map[cluster + '-' + NODE_CONFIG['salt-master-instance']]
+    if existing_machines_def_file is None:
+        saltmaster = instance_map[cluster + '-' + NODE_CONFIG['salt-master-instance']]
+    else
+        saltmaster = findSaltmaster()
     saltmaster_ip = saltmaster['private_ip_address']
     platform_salt_tarball = None
     if 'PLATFORM_SALT_LOCAL' in PNDA_ENV['platform_salt']:
