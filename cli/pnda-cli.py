@@ -321,9 +321,9 @@ def check_pnda_mirror():
         raise_error("Failed to connect to PNDA mirror. Verify connection "
                     "to %s, check mirror in pnda_env.yaml and try again." % mirror)
 
-def check_config(keyname, keyfile):
+def check_config(keyname, keyfile, existing_machines_def_file):
     check_aws_connection()
-    check_keypair(keyname, keyfile)
+    check_keypair(keyname, keyfile, existing_machines_def_file)
     check_pnda_mirror()
 
 def write_pnda_env_sh(cluster):
@@ -427,7 +427,7 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
             check_java_mirror()
 
         if not no_config_check:
-            check_config(keyname, keyfile)
+            check_config(keyname, keyfile, existing_machines_def_file)
 
         save_cf_resources('create_%s' % MILLI_TIME(), cluster, cf_parameters, template_data)
         if dry_run:
@@ -441,7 +441,7 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
         cf_parameters.append((parameter, PNDA_ENV['cloud_formation_parameters'][parameter]))
 
     if not no_config_check:
-        check_config(keyname, keyfile)
+        check_config(keyname, keyfile, existing_machines_def_file)
 
         CONSOLE.info('Creating Cloud Formation stack')
         conn = boto.cloudformation.connect_to_region(region)
@@ -534,11 +534,11 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
     
     return instance_map[cluster + '-' + NODE_CONFIG['console-instance']]['private_ip_address']
 
-def expand(template_data, cluster, flavor, old_datanodes, old_kafka, include_orchestrate, keyname, no_config_check, dry_run, branch):
+def expand(template_data, cluster, flavor, old_datanodes, old_kafka, include_orchestrate, keyname, no_config_check, dry_run, branch, existing_machines_def_file):
     keyfile = '%s.pem' % keyname
 
     if not no_config_check:
-        check_config(keyname, keyfile)
+        check_config(keyname, keyfile, existing_machines_def_file)
 
     region = PNDA_ENV['ec2_access']['AWS_REGION']
     cf_parameters = [('keyName', keyname), ('pndaCluster', cluster)]
@@ -893,7 +893,7 @@ def main():
                                                     es_multi_nodes, logstash_nodes)
 
             expand(template_data, pnda_cluster, flavor, node_counts['hadoop-dn'], node_counts['kafka'],
-                   include_orchestrate, keyname, no_config_check, dry_run, branch)
+                   include_orchestrate, keyname, no_config_check, dry_run, branch, existing_machines_def_file)
 
             sys.exit(0)
         else:

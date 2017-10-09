@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - PNDA-3200: socks_proxy script reuses existing ssh-agent instead of launching a new one if possible
 - PNDA-3199: Make socks proxy script executable
+- PNDA-3377: fix issue on check config which required descriptor file
 
 ## [1.3.0] 2017-08-01
 ### Added
