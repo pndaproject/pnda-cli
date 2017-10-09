@@ -221,6 +221,7 @@ def bootstrap(instance, saltmaster, cluster, flavor, branch, salt_tarball, error
         ip_address = instance['private_ip_address']
         CONSOLE.debug('bootstrapping %s', ip_address)
         node_type = instance['node_type']
+        print "Bootstraing node %s" % (node_type)
         type_script = 'bootstrap-scripts/%s/%s.sh' % (flavor, node_type)
         if not os.path.isfile(type_script):
             type_script = 'bootstrap-scripts/%s.sh' % (node_type)
@@ -852,10 +853,10 @@ def main():
         for node in existing_machines:
             if 'is_bastion' in existing_machines[node] and existing_machines[node]['is_bastion'] is True:
                 NODE_CONFIG['bastion-instance'] = node
-                print "Saltmaster is %s" % existing_machines[node]['name']
+                print "Bastion is %s" % existing_machines[node]['name']
             if 'is_saltmaster' in existing_machines[node] and existing_machines[node]['is_saltmaster'] is True:
                 NODE_CONFIG['salt-master-instance'] = node
-                print "Saltmaster is %s" % node['name']
+                print "Saltmaster is %s" % existing_machines[node]['name']
             if 'is_console' in existing_machines[node] and existing_machines[node]['is_console'] is True:
                 NODE_CONFIG['console-instance'] = node
         existing_machines_def.close()
