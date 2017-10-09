@@ -15,7 +15,12 @@ cat >> /etc/salt/grains <<EOF
 roles:
   - kafka_manager
   - platform_testing_general
+  - elk
+  - logserver
+  - kibana_dashboard
 EOF
+
+service salt-master restart
 
 cat >> /etc/salt/minion <<EOF
 id: $PNDA_CLUSTER-tools

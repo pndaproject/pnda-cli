@@ -23,5 +23,4 @@ EOF
 echo $PNDA_CLUSTER-build-node > /etc/hostname
 hostname $PNDA_CLUSTER-build-node
 
-service salt-master restart
 service salt-minion restart

@@ -34,9 +34,6 @@ roles:
   - hdfs_cleaner
   - master_dataset
   - jupyter
-  - elk
-  - logserver
-  - kibana_dashboard
 
 EOF
 
