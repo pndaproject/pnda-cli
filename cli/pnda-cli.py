@@ -143,12 +143,6 @@ def generate_template_file(flavor, datanodes, opentsdbs, kafkas, zookeepers, esm
 
     return json.dumps(template_data)
 
-def findSaltmaster(instance_map):
-    for node in instance_map:
-        if 'is_saltmaster' in node and node['is_saltmaster'] is True:
-            return node
-    return None
-
 def get_instance_map(cluster, existing_machines_def_file):
 
     instance_map = {}
@@ -500,7 +494,7 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
     if existing_machines_def_file is None:
         saltmaster = instance_map[cluster + '-' + NODE_CONFIG['salt-master-instance']]
     else:
-        saltmaster = findSaltmaster(instance_map)
+        saltmaster = NODE_CONFIG['salt-master-instance']
     saltmaster_ip = saltmaster['private_ip_address']
     platform_salt_tarball = None
     if 'PLATFORM_SALT_LOCAL' in PNDA_ENV['platform_salt']:
@@ -858,8 +852,10 @@ def main():
         for node in existing_machines:
             if 'is_bastion' in existing_machines[node] and existing_machines[node]['is_bastion'] is True:
                 NODE_CONFIG['bastion-instance'] = node
+                print "Saltmaster is %s" % existing_machines[node]['name']
             if 'is_saltmaster' in existing_machines[node] and existing_machines[node]['is_saltmaster'] is True:
                 NODE_CONFIG['salt-master-instance'] = node
+                print "Saltmaster is %s" % node['name']
             if 'is_console' in existing_machines[node] and existing_machines[node]['is_console'] is True:
                 NODE_CONFIG['console-instance'] = node
         existing_machines_def.close()
