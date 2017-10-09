@@ -221,7 +221,6 @@ def bootstrap(instance, saltmaster, cluster, flavor, branch, salt_tarball, error
         ip_address = instance['private_ip_address']
         CONSOLE.debug('bootstrapping %s', ip_address)
         node_type = instance['node_type']
-        print "Bootstraing node %s" % (node_type)
         type_script = 'bootstrap-scripts/%s/%s.sh' % (flavor, node_type)
         if not os.path.isfile(type_script):
             type_script = 'bootstrap-scripts/%s.sh' % (node_type)
@@ -492,10 +491,7 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
     wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], cluster)
 
     CONSOLE.info('Bootstrapping saltmaster. Expect this to take a few minutes, check the debug log for progress (%s).', LOG_FILE_NAME)
-    if existing_machines_def_file is None:
-        saltmaster = instance_map[cluster + '-' + NODE_CONFIG['salt-master-instance']]
-    else:
-        saltmaster = instance_map[NODE_CONFIG['salt-master-instance']['name']]
+    saltmaster = instance_map[cluster + '-' + NODE_CONFIG['salt-master-instance']]
     saltmaster_ip = saltmaster['private_ip_address']
     platform_salt_tarball = None
     if 'PLATFORM_SALT_LOCAL' in PNDA_ENV['platform_salt']:
