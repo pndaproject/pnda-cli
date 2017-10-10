@@ -1,0 +1,52 @@
+classes:
+  datanode:
+    volumes:
+      - /data00 xfs
+      - /data01 xfs
+      - /data02 xfs
+      - /data03 xfs
+      - /data04 xfs
+      - /data05 xfs
+      - /data06 xfs
+      - /data07 xfs
+      - /data08 xfs
+      - /data09 xfs
+      - /data10 xfs
+      - /data11 xfs
+      - /data12 xfs
+      - /data13 xfs
+      - /data14 xfs
+      - /data15 xfs
+      - /data16 xfs
+      - /data17 xfs
+      - /data18 xfs
+      - /data19 xfs
+      - /data20 xfs
+      - /data21 xfs
+      - /data22 xfs
+      - /data23 xfs
+      - /data24 xfs
+      - /data25 xfs
+      - /dev/xvdc /var/log/pnda xfs
+
+  generic:
+    volumes:
+      - /dev/xvdc2 /data0 xfs
+      - /dev/xvdc1 /var/log/pnda xfs
+    partitions:
+      - /dev/xvdc msdos /dev/xvdc1 0% 10%
+      - /dev/xvdc msdos /dev/xvdc2 10% 100%
+
+instances:
+  hadoop-dn: datanode
+  bastion: generic
+  hadoop-cm: generic
+  hadoop-edge: generic
+  hadoop-mgr-1: generic
+  hadoop-mgr-2: generic
+  hadoop-mgr-3: generic
+  hadoop-mgr-4: generic
+  kafka: generic
+  opentsdb: generic
+  tools: generic
+  zk: generic
