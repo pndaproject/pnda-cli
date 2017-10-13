@@ -27,15 +27,19 @@ classes:
       - /data23 xfs
       - /data24 xfs
       - /data25 xfs
-      - /dev/xvdc /var/log/pnda xfs
+      - /dev/xvdb2 /mnt xfs
+      - /dev/xvdb1 /var/log/pnda xfs
+    partitions:
+      - /dev/xvdb msdos /dev/xvdb1 0G 10G
+      - /dev/xvdb msdos /dev/xvdb2 10G 100%
 
   generic:
     volumes:
-      - /dev/xvdc2 /data0 xfs
-      - /dev/xvdc1 /var/log/pnda xfs
+      - /dev/xvdb2 /mnt xfs
+      - /dev/xvdb1 /var/log/pnda xfs
     partitions:
-      - /dev/xvdc msdos /dev/xvdc1 0G 10G
-      - /dev/xvdc msdos /dev/xvdc2 10G 100%
+      - /dev/xvdb msdos /dev/xvdb1 0G 10G
+      - /dev/xvdb msdos /dev/xvdb2 10G 100%
 
 instances:
   hadoop-dn: datanode
