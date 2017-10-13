@@ -34,8 +34,8 @@ classes:
       - /dev/xvdc2 /data0 xfs
       - /dev/xvdc1 /var/log/pnda xfs
     partitions:
-      - /dev/xvdc msdos /dev/xvdc1 0% 10%
-      - /dev/xvdc msdos /dev/xvdc2 10% 100%
+      - /dev/xvdc msdos /dev/xvdc1 0G 10G
+      - /dev/xvdc msdos /dev/xvdc2 10G 100%
 
 instances:
   hadoop-dn: datanode
