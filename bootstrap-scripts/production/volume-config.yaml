@@ -25,8 +25,6 @@ classes:
       - /data21 xfs
       - /data22 xfs
       - /data23 xfs
-      - /data24 xfs
-      - /data25 xfs
       - /dev/xvdb2 /mnt xfs
       - /dev/xvdb1 /var/log/pnda xfs
     partitions:
