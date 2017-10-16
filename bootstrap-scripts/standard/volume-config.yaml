@@ -1,0 +1,34 @@
+classes:
+  datanode:
+    volumes:
+      - /data0 xfs
+      - /var/log/pnda xfs
+
+  no_additonal_volumes:
+
+  generic:
+    volumes:
+      - /var/log/pnda xfs
+
+instances:
+  hadoop-dn: datanode
+  bastion: no_additonal_volumes
+  jupyter: no_additonal_volumes
+  saltmaster: no_additonal_volumes
+  tools: no_additonal_volumes
+  kafka: generic
+  logserver: generic
+  zk: generic
+  opentsdb: generic
+  hadoop-edge: generic
+  hadoop-cm: generic
+  hadoop-mgr-1: generic
+  hadoop-mgr-2: generic
+  hadoop-mgr-3: generic
+  hadoop-mgr-4: generic
+  elk-es-master: generic
+  elk-es-ingest: generic
+  elk-es-data: generic
+  elk-es-coordinator: generic
+  elk-es-multi: generic
+  elk-es-logstash: generic

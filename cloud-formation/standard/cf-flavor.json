@@ -263,14 +263,6 @@
           {
               "DeviceName" : "/dev/sdc",
               "Ebs" : { "VolumeSize" : {"Ref": "logVolumeSizeGb"} }
-          },
-          {
-              "DeviceName"  : "/dev/sdd",
-              "VirtualName" : "ephemeral0"
-          },
-          {
-              "DeviceName"  : "/dev/sde",
-              "VirtualName" : "ephemeral1"
           }
         ],
         "NetworkInterfaces": [

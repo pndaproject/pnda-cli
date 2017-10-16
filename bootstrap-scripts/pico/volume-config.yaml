@@ -1,0 +1,18 @@
+classes:
+  datanode:
+    volumes:
+      - /data0 xfs
+      - /var/log/pnda xfs
+
+  no_additonal_volumes:
+
+  generic:
+    volumes:
+      - /var/log/pnda xfs
+
+instances:
+  hadoop-dn: datanode
+  bastion: no_additonal_volumes
+  hadoop-edge: generic
+  hadoop-mgr: generic
+  kafka: generic
