@@ -46,6 +46,8 @@ with open(outfile, 'w') as volume_mappings_file:
             volume_mappings_file.write(' '.join(requested_volume) + '\n')
             available_volumes = [item for item in available_volumes if item[0] != requested_volume[0]]
             to_remove.append(requested_volume[0])
+            if requested_volume[0][-1].isdigit():
+                to_remove.append(''.join([c for c in requested_volume if not c.isdigit()]))
     requested_volumes = [item for item in requested_volumes if item[0] not in to_remove]
 
     # Assign out the remainder in descending size order
