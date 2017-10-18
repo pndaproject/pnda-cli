@@ -39,6 +39,7 @@ print '\nwriting volume mappings to %s' % outfile
 
 with open(outfile, 'w') as volume_mappings_file:
     # First copy any lines across that already specify the device to use
+    all_volume_devices = [volume[0] for volume in available_volumes]
     to_remove = []
     for requested_volume in requested_volumes:
         if len(requested_volume) > 2:
@@ -49,12 +50,11 @@ with open(outfile, 'w') as volume_mappings_file:
 
     # Assign out the remainder in descending size order
     i = 0
-    available_volume_devices = [volume[i] for volume in available_volumes]
     for available_volume in available_volumes:
         if i >= len(requested_volumes):
             break
         requested_volume = requested_volumes[i]
-        if (available_volume[0][-1].isdigit() or '%s%s' % (available_volume[0], 1) not in available_volume_devices) and available_volume[2] != '/':
+        if (available_volume[0][-1].isdigit() or '%s%s' % (available_volume[0], 1) not in all_volume_devices) and available_volume[2] != '/':
             available_volume = [available_volume[0]]
             available_volume.extend(requested_volume)
             volume_mappings_file.write(' '.join(available_volume) + '\n')
