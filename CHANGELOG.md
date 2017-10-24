@@ -6,8 +6,9 @@ All notable changes to this project will be documented in this file.
 - PNDA-1960: Make Kafkat available on nodes as option for Kafka management at CLI
 - PNDA-2955: Add pnda_env.yaml setting for choosing hadoop distro to install
 - PNDA-2389: PNDA automatically reboots instances that need rebooting following kernel updates
-- PNDA-3302: upgrade edge flavor on pico
+- PNDA-3302: Upgrade edge flavor on pico
 - PNDA-3218: Add iprejecter to enable offline env
+- PNDA-3314: Add new flavor 'production' designed for larger, bare metal clusters
 
 ### Changed
 - PNDA-2965: Rename `cloudera_*` role grains to `hadoop_*`
@@ -18,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-3200: socks_proxy script reuses existing ssh-agent instead of launching a new one if possible
 - PNDA-3199: Make socks proxy script executable
 - PNDA-3424: Add a retry to AWS API calls to work around SSL timeout errors
+- PNDA-3377: fix issue on check config which required descriptor file
 
 ## [1.3.0] 2017-08-01
 ### Added
