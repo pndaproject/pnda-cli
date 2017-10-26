@@ -202,11 +202,12 @@ def get_current_node_counts(cluster, existing_machines_def_file):
     CONSOLE.debug('Counting existing instances')
     node_counts = {'zk':0, 'kafka':0, 'hadoop-dn':0, 'opentsdb':0}
     for _, instance in get_instance_map(cluster, existing_machines_def_file).iteritems():
-        if instance['node_type'] in node_counts:
-            current_count = node_counts[instance['node_type']]
-        else:
-            current_count = 0
-        node_counts[instance['node_type']] = current_count + 1
+        if len(instance['node_type']) > 0:
+            if instance['node_type'] in node_counts:
+                current_count = node_counts[instance['node_type']]
+            else:
+                current_count = 0
+            node_counts[instance['node_type']] = current_count + 1
     return node_counts
 
 def scp(files, cluster, host):
@@ -227,10 +228,12 @@ def ssh(cmds, cluster, host):
 
 def get_volume_info(node_type, config_file):
     volumes = None
-    with open(config_file, 'r') as infile:
-        volume_config = yaml.load(infile)
-        volume_class = volume_config['instances'][node_type]
-        return volume_config['classes'][volume_class]
+    if len(node_type) > 0:
+        with open(config_file, 'r') as infile:
+            volume_config = yaml.load(infile)
+            volume_class = volume_config['instances'][node_type]
+            volumes = volume_config['classes'][volume_class]
+    return volumes
 
 def bootstrap(instance, saltmaster, cluster, flavor, branch, salt_tarball, error_queue):
     ret_val = None
@@ -238,6 +241,9 @@ def bootstrap(instance, saltmaster, cluster, flavor, branch, salt_tarball, error
         ip_address = instance['private_ip_address']
         CONSOLE.debug('bootstrapping %s', ip_address)
         node_type = instance['node_type']
+        if len(node_type) <= 0:
+            return
+
         type_script = 'bootstrap-scripts/%s/%s.sh' % (flavor, node_type)
         if not os.path.isfile(type_script):
             type_script = 'bootstrap-scripts/%s.sh' % (node_type)
@@ -612,10 +618,11 @@ def expand(template_data, cluster, flavor, old_datanodes, old_kafka, include_orc
     bootstrap_threads = []
     bootstrap_errors = Queue.Queue()
     for _, instance in instance_map.iteritems():
-        if ((instance['node_type'] == 'hadoop-dn' and int(instance['node_idx']) >= old_datanodes
-             or instance['node_type'] == 'kafka' and int(instance['node_idx']) >= old_kafka)):
-            thread = Thread(target=bootstrap, args=[instance, saltmaster_ip, cluster, flavor, branch, None, bootstrap_errors])
-            bootstrap_threads.append(thread)
+        if len(instance['node_type']) > 0:
+            if ((instance['node_type'] == 'hadoop-dn' and int(instance['node_idx']) >= old_datanodes
+                or instance['node_type'] == 'kafka' and int(instance['node_idx']) >= old_kafka)):
+                thread = Thread(target=bootstrap, args=[instance, saltmaster_ip, cluster, flavor, branch, None, bootstrap_errors])
+                bootstrap_threads.append(thread)
 
     for thread in bootstrap_threads:
         thread.start()
