@@ -65,9 +65,9 @@
         "ip_address": "10.2.1.115",
         "node_type": "cdh-cm"
     },
-    "bastion": {
+    "build": {
         "ip_address": "10.2.1.116",
-        "node_type": "bastion",
+        "node_type": "build",
         "public_ip_address": "10.2.0.101",
         "is_bastion": true
     }
