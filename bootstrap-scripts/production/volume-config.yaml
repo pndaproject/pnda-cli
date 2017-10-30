@@ -41,7 +41,7 @@ classes:
 
 instances:
   hadoop-dn: datanode
-  bastion: generic
+  build: generic
   hadoop-cm: generic
   hadoop-edge: generic
   hadoop-mgr-1: generic
