@@ -28,12 +28,15 @@ iptables -A LOGGING -d  $NTP_SERVERS -j ACCEPT # NTP server
 fi
 iptables -A LOGGING -d  ${vpcCidr} -j ACCEPT # PNDA network
 iptables -A LOGGING -j REJECT
+iptables-save > /etc/iptables.conf
+echo -e '#!/bin/sh\niptables-restore < /etc/iptables.conf' > /etc/rc.local
+chmod +x /etc/rc.d/rc.local | true
 fi
 
 DISTRO=$(cat /etc/*-release|grep ^ID\=|awk -F\= {'print $2'}|sed s/\"//g)
 if [ "x$DISTRO" == "xubuntu" ]; then
   export DEBIAN_FRONTEND=noninteractive
-  # give the local mirror the first priority 
+  # give the local mirror the first priority
   sed -i "1ideb $PNDA_MIRROR/mirror_deb/ ./" /etc/apt/sources.list
   wget -O - $PNDA_MIRROR/mirror_deb/pnda.gpg.key | apt-key add -
 
@@ -50,7 +53,7 @@ if [ "x$ADD_ONLINE_REPOS" == "xYES" ]; then
   RPM_EXTRAS=rhui-REGION-rhel-server-extras
   RPM_OPTIONAL=rhui-REGION-rhel-server-optional
   yum-config-manager --enable $RPM_EXTRAS $RPM_OPTIONAL
-  yum install -y yum-plugin-priorities yum-utils 
+  yum install -y yum-plugin-priorities yum-utils
   PNDA_REPO=${PNDA_MIRROR/http\:\/\//}
   PNDA_REPO=${PNDA_REPO/\//_mirror_rpm}
   yum-config-manager --add-repo $PNDA_MIRROR/mirror_rpm
