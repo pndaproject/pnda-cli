@@ -27,7 +27,7 @@ if [ "x$NTP_SERVERS" != "x" ]; then
 iptables -A LOGGING -d  $NTP_SERVERS -j ACCEPT # NTP server
 fi
 iptables -A LOGGING -d  ${vpcCidr} -j ACCEPT # PNDA network
-iptables -A LOGGING -j REJECT
+iptables -A LOGGING -j REJECT --reject-with icmp-net-unreachable
 iptables-save > /etc/iptables.conf
 echo -e '#!/bin/sh\niptables-restore < /etc/iptables.conf' > /etc/rc.local
 chmod +x /etc/rc.d/rc.local | true
