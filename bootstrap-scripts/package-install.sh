@@ -11,6 +11,8 @@ cat > /etc/rsyslog.d/10-iptables.conf <<EOF
 STOP
 EOF
 sudo service rsyslog restart
+iptables -F LOGGING | true
+iptables -X LOGGING | true
 iptables -N LOGGING
 iptables -A OUTPUT -j LOGGING
 ## Accept all local scope IP packets.
