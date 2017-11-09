@@ -30,6 +30,7 @@ import datetime
 import tarfile
 import ssl
 import Queue
+import socket
 from threading import Thread
 
 import argparse
@@ -379,7 +380,8 @@ def write_ssh_config(cluster, bastion_ip, os_user, keyfile):
         config_file.write('    IdentityFile %s\n' % keyfile)
         config_file.write('    StrictHostKeyChecking no\n')
         config_file.write('    UserKnownHostsFile /dev/null\n')
-        config_file.write('    ProxyCommand ssh -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s@%s exec nc %%h %%p\n'
+        if socket.gethostbyname(socket.gethostname()) != bastion_ip:
+            config_file.write('    ProxyCommand ssh -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s@%s exec nc %%h %%p\n'
                           % (keyfile, os_user, bastion_ip))
 
     socks_file_path = 'cli/socks_proxy-%s' % cluster
@@ -574,36 +576,38 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
 def expand(template_data, cluster, flavor, old_datanodes, old_kafka, include_orchestrate, keyname, no_config_check, dry_run, branch, existing_machines_def_file):
     keyfile = '%s.pem' % keyname
 
-    if not no_config_check:
-        check_config(keyname, keyfile, existing_machines_def_file)
+    if existing_machines_def_file is None:
 
-    region = PNDA_ENV['ec2_access']['AWS_REGION']
-    cf_parameters = [('keyName', keyname), ('pndaCluster', cluster)]
-    for parameter in PNDA_ENV['cloud_formation_parameters']:
-        cf_parameters.append((parameter, PNDA_ENV['cloud_formation_parameters'][parameter]))
+        if not no_config_check:
+            check_config(keyname, keyfile, existing_machines_def_file)
 
-    save_cf_resources('expand_%s' % MILLI_TIME(), cluster, cf_parameters, template_data)
-    if dry_run:
-        CONSOLE.info('Dry run mode completed')
-        sys.exit(0)
+        region = PNDA_ENV['ec2_access']['AWS_REGION']
+        cf_parameters = [('keyName', keyname), ('pndaCluster', cluster)]
+        for parameter in PNDA_ENV['cloud_formation_parameters']:
+            cf_parameters.append((parameter, PNDA_ENV['cloud_formation_parameters'][parameter]))
 
-    CONSOLE.info('Updating Cloud Formation stack')
-    conn = boto.cloudformation.connect_to_region(region)
-    stack_status = 'UPDATING'
-    retry(conn.update_stack, cluster,
-          template_body=template_data,
-          parameters=cf_parameters)
+        save_cf_resources('expand_%s' % MILLI_TIME(), cluster, cf_parameters, template_data)
+        if dry_run:
+            CONSOLE.info('Dry run mode completed')
+            sys.exit(0)
 
-    while stack_status in ['UPDATE_IN_PROGRESS', 'UPDATING', 'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS']:
-        time.sleep(5)
-        CONSOLE.info('Stack is: ' + stack_status)
-        stacks = retry(conn.describe_stacks, cluster)
-        if len(stacks) > 0:
-            stack_status = stacks[0].stack_status
+        CONSOLE.info('Updating Cloud Formation stack')
+        conn = boto.cloudformation.connect_to_region(region)
+        stack_status = 'UPDATING'
+        retry(conn.update_stack, cluster,
+              template_body=template_data,
+              parameters=cf_parameters)
 
-    if stack_status != 'UPDATE_COMPLETE':
-        CONSOLE.error('Stack did not come up, status is: ' + stack_status)
-        sys.exit(1)
+        while stack_status in ['UPDATE_IN_PROGRESS', 'UPDATING', 'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS']:
+            time.sleep(5)
+            CONSOLE.info('Stack is: ' + stack_status)
+            stacks = retry(conn.describe_stacks, cluster)
+            if len(stacks) > 0:
+                stack_status = stacks[0].stack_status
+
+        if stack_status != 'UPDATE_COMPLETE':
+            CONSOLE.error('Stack did not come up, status is: ' + stack_status)
+            sys.exit(1)
 
     instance_map = get_instance_map(cluster, existing_machines_def_file)
     bastion = NODE_CONFIG['bastion-instance']
