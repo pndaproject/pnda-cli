@@ -380,10 +380,12 @@ def write_ssh_config(cluster, bastion_ip, os_user, keyfile):
         config_file.write('    IdentityFile %s\n' % keyfile)
         config_file.write('    StrictHostKeyChecking no\n')
         config_file.write('    UserKnownHostsFile /dev/null\n')
-        if socket.gethostbyname(socket.gethostname()) != bastion_ip:
+        if bastion_ip:
             config_file.write('    ProxyCommand ssh -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s@%s exec nc %%h %%p\n'
                           % (keyfile, os_user, bastion_ip))
-
+    if bastion_ip:
+        return
+        
     socks_file_path = 'cli/socks_proxy-%s' % cluster
     with open(socks_file_path, 'w') as config_file:
         config_file.write('''
@@ -502,28 +504,32 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
 
     instance_map = get_instance_map(cluster, existing_machines_def_file)
 
-    bastion_ip = instance_map[cluster + '-' + bastion]['ip_address']
+    bastion_ip = ''
+    bastion_name = cluster + '-' + bastion
+    if bastion_name in instance_map.keys():
+        bastion_ip = instance_map[cluster + '-' + bastion]['ip_address']
 
     write_ssh_config(cluster, bastion_ip,
                      PNDA_ENV['ec2_access']['OS_USER'], os.path.abspath(keyfile))
     CONSOLE.debug('The PNDA console will come up on: http://%s', instance_map[cluster + '-' + NODE_CONFIG['console-instance']]['private_ip_address'])
 
-    attempts_per_host = 150
-    while attempts_per_host > 0:
-        try:
-            nc_ssh_cmd = 'ssh -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s@%s' % (keyfile,
-                                                                                                          PNDA_ENV['ec2_access']['OS_USER'], bastion_ip)
-            nc_install_cmd = nc_ssh_cmd.split(' ')
-            nc_install_cmd.append('sudo yum install -y nc || echo nc already installed')
-            ret_val = subprocess_to_log.call(nc_install_cmd, LOG, bastion_ip)
-            if ret_val != 0:
-                raise Exception("Error running ssh commands on host %s. See debug log (%s) for details." % (bastion_ip, LOG_FILE_NAME))
-            break
-        except:
-            CONSOLE.info('Still waiting for connectivity to bastion. See debug log (%s) for details.', LOG_FILE_NAME)
-            LOG.info(traceback.format_exc())
-            attempts_per_host -= 1
-            time.sleep(2)
+    if bastion_ip:
+        attempts_per_host = 150
+        while attempts_per_host > 0:
+            try:
+                nc_ssh_cmd = 'ssh -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s@%s' % (keyfile,
+                                                                                                              PNDA_ENV['ec2_access']['OS_USER'], bastion_ip)
+                nc_install_cmd = nc_ssh_cmd.split(' ')
+                nc_install_cmd.append('sudo yum install -y nc || echo nc already installed')
+                ret_val = subprocess_to_log.call(nc_install_cmd, LOG, bastion_ip)
+                if ret_val != 0:
+                    raise Exception("Error running ssh commands on host %s. See debug log (%s) for details." % (bastion_ip, LOG_FILE_NAME))
+                break
+            except:
+                CONSOLE.info('Still waiting for connectivity to bastion. See debug log (%s) for details.', LOG_FILE_NAME)
+                LOG.info(traceback.format_exc())
+                attempts_per_host -= 1
+                time.sleep(2)
 
     wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], cluster)
 
@@ -611,7 +617,10 @@ def expand(template_data, cluster, flavor, old_datanodes, old_kafka, include_orc
 
     instance_map = get_instance_map(cluster, existing_machines_def_file)
     bastion = NODE_CONFIG['bastion-instance']
-    bastion_ip = instance_map[cluster + '-' + bastion]['ip_address']
+    bastion_ip = ''
+    bastion_name = cluster + '-' + bastion
+    if bastion_name in instance_map.keys():
+        bastion_ip = instance_map[cluster + '-' + bastion]['ip_address']
     write_ssh_config(cluster, bastion_ip,
                      PNDA_ENV['ec2_access']['OS_USER'], os.path.abspath(keyfile))
     saltmaster = instance_map[cluster + '-' + NODE_CONFIG['salt-master-instance']]
@@ -883,7 +892,7 @@ def main():
 
     global NODE_CONFIG
     if not create_infra:
-        NODE_CONFIG = {}
+        NODE_CONFIG = {'bastion-instance':''}
         existing_machines_def = file(existing_machines_def_file)
         existing_machines = json.load(existing_machines_def)
         for node in existing_machines:
