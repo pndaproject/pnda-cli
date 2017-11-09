@@ -1,6 +1,6 @@
 #!/bin/bash -v
 
-# This script runs on instances with a node_type tag of "jupyter"
+# This script runs on instances with a node_type tag of "hadoop-edge"
 # It sets the roles that determine what software is installed
 # on this instance by platform-salt scripts and the minion
 # id and hostname
@@ -19,14 +19,28 @@ cat >> /etc/salt/grains <<EOF
 hadoop:
   role: EDGE
 roles:
-  - jupyter
+  - hadoop_edge
+  - console_frontend
+  - console_backend_data_logger
+  - console_backend_data_manager
+  - graphite
+  - gobblin
+  - deployment_manager
+  - package_repository
+  - data_service
+  - impala-shell
+  - yarn-gateway
+  - hbase_opentsdb_tables
+  - hdfs_cleaner
+  - master_dataset
+
 EOF
 
 cat >> /etc/salt/minion <<EOF
-id: $PNDA_CLUSTER-jupyter
+id: $PNDA_CLUSTER-hadoop-edge
 EOF
 
-echo $PNDA_CLUSTER-jupyter > /etc/hostname
-hostname $PNDA_CLUSTER-jupyter
+echo $PNDA_CLUSTER-hadoop-edge > /etc/hostname
+hostname $PNDA_CLUSTER-hadoop-edge
 
 service salt-minion restart

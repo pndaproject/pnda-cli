@@ -13,11 +13,17 @@ DISTRO=$(cat /etc/*-release|grep ^ID\=|awk -F\= {'print $2'}|sed s/\"//g)
 if [ "x$DISTRO" == "xubuntu" ]; then
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get -y install unzip=6.0-9ubuntu1.5 salt-master=2015.8.11+ds-1 git=1:1.9.1-1ubuntu0.4
+apt-get -y install unzip salt-master=2015.8.11+ds-1 git
+HDP_OS=ubuntu14
 fi
 
 if [ "x$DISTRO" == "xrhel" ]; then
-yum -y install unzip-6.0-16.el7 salt-master-2015.8.11-1.el7 git-1.8.3.1-6.el7_2.1
+yum -y install unzip salt-master-2015.8.11-1.el7 git
+#Enable init mode , RHEL not enabled salt-minion by default
+systemctl enable salt-master.service
+HDP_OS=centos7
+#enable boot time startup
+systemctl enable salt-master.service
 fi
 
 cat << EOF > /etc/salt/master
@@ -48,6 +54,10 @@ reactor:
     - salt://reactor/create_bastion_host_entry.sls
   - 'salt/cloud/*/destroying':
     - salt://reactor/delete_bastion_host_entry.sls
+  - 'salt/beacon/*/kernel_reboot_required/*/reboot-required':
+    - salt://reactor/kernel_reboot_entry.sls
+  - 'salt/beacon/*/service_opentsdb/service/opentsdb/status/stop/HBaseUp':
+    - salt://reactor/service_opentsdb_entry.sls
 ## end of specific PNDA saltmaster config
 file_recv: True
 
@@ -57,12 +67,13 @@ EOF
 # Set up platform-salt that contains the scripts the saltmaster runs to install software
 mkdir -p /srv/salt
 cd /srv/salt
+rm -rf platform-salt
 
 if [ "x$PLATFORM_GIT_REPO_URI" != "x" ]; then
   # Set up ssh access to the platform-salt git repo on the package server,
   # if secure access is required this key will be used automatically.
   # This mode is not normally used now the public github is available
-  chmod 400 /tmp/git.pem
+  chmod 400 /tmp/git.pem || true
 
   echo "Host $PLATFORM_GIT_REPO_HOST" >> /root/.ssh/config
   echo "  IdentityFile /tmp/git.pem" >> /root/.ssh/config
@@ -77,6 +88,11 @@ elif [ "x$PLATFORM_SALT_LOCAL" != "x" ]; then
   tar zxf /tmp/$PLATFORM_SALT_TARBALL -C /srv/salt
 else
   exit 2
+fi
+
+MINE_FUNCTIONS_NETWORK_INTERFACE="eth0"
+if [ "x$MINE_FUNCTIONS_NETWORK_IP_ADDRS_NIC" != "x" ]; then
+  MINE_FUNCTIONS_NETWORK_INTERFACE="$MINE_FUNCTIONS_NETWORK_IP_ADDRS_NIC"
 fi
 
 # Push pillar config into platform-salt for environment specific config
@@ -98,12 +114,12 @@ aws.archive_secret: '$PNDA_ARCHIVE_SECRET_ACCESS_KEY'
 pnda.archive_container: '$PNDA_ARCHIVE_CONTAINER'
 pnda.archive_type: 's3a'
 pnda.archive_service: ''
-EOF
+hadoop.distro: '$HADOOP_DISTRO'
 
-cat << EOF >> /srv/salt/platform-salt/pillar/env_parameters.sls
 pnda_mirror:
   base_url: '$PNDA_MIRROR'
   misc_packages_path: /mirror_misc/
+  app_packages_path: /mirror_apps/
 
 cloudera:
   parcel_repo: '$PNDA_MIRROR/mirror_cloudera'
@@ -117,7 +133,22 @@ pip:
 
 packages_server:
   base_uri: '$PNDA_MIRROR'
+
+hdp:
+  hdp_core_stack_repo: '$PNDA_MIRROR/mirror_hdp/HDP/$HDP_OS/'
+  hdp_utils_stack_repo: '$PNDA_MIRROR/mirror_hdp/HDP-UTILS-1.1.0.21/repos/$HDP_OS/'
+mine_functions:
+  network.ip_addrs: [$MINE_FUNCTIONS_NETWORK_INTERFACE]
+  grains.items: []
 EOF
+
+if [ "x$NTP_SERVERS" != "x" ] ; then
+cat << EOF >> /srv/salt/platform-salt/pillar/env_parameters.sls
+ntp:
+  servers:
+    - "$NTP_SERVERS"
+EOF
+fi
 
 if [ "$PR_FS_TYPE" == "swift" ] ; then
 cat << EOF >> /srv/salt/platform-salt/pillar/env_parameters.sls

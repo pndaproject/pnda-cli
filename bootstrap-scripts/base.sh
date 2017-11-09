@@ -9,69 +9,37 @@
 
 set -e
 
+/tmp/package-install.sh
 DISTRO=$(cat /etc/*-release|grep ^ID\=|awk -F\= {'print $2'}|sed s/\"//g)
 
 if [ "x$DISTRO" == "xubuntu" ]; then
 export DEBIAN_FRONTEND=noninteractive
-apt-get -y install xfsprogs=3.1.9ubuntu2 salt-minion=2015.8.11+ds-1
+apt-get -y install xfsprogs salt-minion=2015.8.11+ds-1
 elif [ "x$DISTRO" == "xrhel" ]; then
-yum -y install xfsprogs-4.5.0-9.el7_3 wget-1.14-13.el7 salt-minion-2015.8.11-1.el7
+yum -y install xfsprogs wget salt-minion-2015.8.11-1.el7
+#enable boot time startup
+systemctl enable salt-minion.service
 fi
-
-# Mount the log volume, this is always xvdc
-if [ -b /dev/xvdc ];
-then
-   echo "Mounting xvdc for logs"
-   umount /dev/xvdc || echo 'not mounted'
-   mkfs.xfs -f /dev/xvdc
-   mkdir -p /var/log/pnda
-   sed -i "/xvdc/d" /etc/fstab
-   echo "/dev/xvdc /var/log/pnda auto defaults 0 2" >> /etc/fstab
-fi
-# Mount the other volumes if they exist, up to 3 more may be mounted but this list could be extended if required
-DISKS="xvdd xvde xvdf"
-DISK_IDX=0
-for DISK in $DISKS; do
-   echo $DISK
-   if [ -b /dev/$DISK ];
-   then
-      echo "Mounting $DISK"
-      umount /dev/$DISK || echo 'not mounted'
-      mkfs.xfs -f /dev/$DISK
-      mkdir -p /data$DISK_IDX
-      sed -i "/$DISK/d" /etc/fstab
-      echo "/dev/$DISK /data$DISK_IDX auto defaults 0 2" >> /etc/fstab
-      DISK_IDX=$((DISK_IDX+1))
-   fi
-done
-cat /etc/fstab
-mount -a
 
 # Set the master address the minion will register itself with
 cat > /etc/salt/minion <<EOF
 master: $PNDA_SALTMASTER_IP
 EOF
 
+cat >> /etc/salt/minion.d/beacons.conf <<EOF
+beacons:
+  kernel_reboot_required:
+    interval: $PLATFORM_SALT_BEACON_TIMEOUT
+    disable_during_state_run: True
+EOF
+
 # Set the grains common to all minions
 cat >> /etc/salt/grains <<EOF
 pnda:
   flavor: $PNDA_FLAVOR
+  is_new_node: True
 
-pnda_cluster: $PNDA_CLUSTER 
-EOF
-
-PIP_INDEX_URL="$PNDA_MIRROR/mirror_python/simple"
-TRUSTED_HOST=$(echo $PIP_INDEX_URL | awk -F'[/:]' '/http:\/\//{print $4}')
-cat << EOF > /etc/pip.conf
-[global]
-index-url=$PIP_INDEX_URL
-trusted-host=$TRUSTED_HOST
-extra-index-url=https://pypi.python.org/simple/
-EOF
-cat << EOF > /root/.pydistutils.cfg
-[easy_install]
-index_url=$PIP_INDEX_URL
-find_links=https://pypi.python.org/simple/
+pnda_cluster: $PNDA_CLUSTER
 EOF
 
 if [ "x$DISTRO" == "xrhel" ]; then
@@ -79,3 +47,5 @@ cat >> /etc/cloud/cloud.cfg <<EOF
 preserve_hostname: true
 EOF
 fi
+
+/tmp/volume-mappings.sh /etc/pnda/disk-config/requested-volumes /etc/pnda/disk-config/volume-mappings

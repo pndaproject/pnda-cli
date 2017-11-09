@@ -2,17 +2,58 @@
 All notable changes to this project will be documented in this file.
 
 ## Unreleased
+### Added
+- PNDA-1960: Make Kafkat available on nodes as option for Kafka management at CLI
+- PNDA-2955: Add pnda_env.yaml setting for choosing hadoop distro to install
+- PNDA-2389: PNDA automatically reboots instances that need rebooting following kernel updates
+- PNDA-3302: Upgrade edge flavor on pico
+- PNDA-3218: Add iprejecter to enable offline env
+- PNDA-3314: Add new flavor 'production' designed for larger, bare metal clusters
 
 ### Changed
-- PNDA-2809: Update m3 instance type defaults to use the latest m4 family instead.
-
-### Added
-- PNDA-2676: Support for redhat 7 in the bootstrap scripts. To use redhat set `OS_USER` to `ec2_user` and `imageId` to a redhat 7 AMI in pnda_env.yaml.
-- PNDA-2776. Wait on connectivity to cloud instances before trying to use them.
-- PNDA-2375: Isolate PNDA from breaking dependency changes
+- PNDA-2965: Rename `cloudera_*` role grains to `hadoop_*`
+- PNDA-3215: Remove EPEL repository
+- PNDA-3180: When expanding a cluster limit the operations to strictly required steps on specific nodes
+- PNDA-3444: Disallow uppercase letters in the cluster names due to AMBARI-22361 affecting HDP.
 
 ### Fixed
-- PNDA-2851: Check for ec2 grains before running salt commands as sometimes the ec2 grain wasn't available when running highstate, but was when checked later on.
+- PNDA-3200: socks_proxy script reuses existing ssh-agent instead of launching a new one if possible
+- PNDA-3199: Make socks proxy script executable
+- PNDA-3424: Add a retry to AWS API calls to work around SSL timeout errors
+- PNDA-3377: fix issue on check config which required descriptor file
+
+## [1.3.0] 2017-08-01
+### Added
+- PNDA-2375: Isolate PNDA from breaking dependency change
+- PNDA-2676: Support for redhat 7 in the bootstrap scripts. To use redhat set `OS_USER` to `ec2_user` and `imageId` to a redhat 7 AMI in pnda_env.yaml
+- PNDA-2680: adding extra index url in pip configuration
+- PNDA-2691: Add GPG key for nodejs repo
+- PNDA-2706: Refactor template generation
+- PNDA-2708: enable offline installation for python
+- PNDA-2709: Use PNDA_MIRROR for RPMS, DEBS and misc files
+- PNDA-2776: Wait on connectivity to cloud instances before trying to use them
+- PNDA-2842: Add key based access to platform-salt git
+- PNDA-2851: Add script to wait for ec2 grains
+- PNDA-3147: Add dry-run option to CLI that can be used to dry-run the changes to the Cloud Formation stack for create and expand operations.
+- Add online fallback for yum
+
+### Changed
+- PNDA-2446: Place PNDA packages in root of PNDA_MIRROR
+- PNDA-2717: Rename mirror paths
+- PNDA-2802: Refactor saltmaster bootstrap code
+- PNDA-2809: Update m3 instance type defaults to use the latest m4 family instead
+- PNDA-2849: Limit how long we wait for host connectivity
+- Remove minion install from salt-master script
+- Include time and log level in console output
+- Update git version in order to be align with deb mirror script
+- Prioritize local mirror over original repo
+
+### Fixed
+- PNDA-2758: Fix bootstrap for expand
+- PNDA-2803: Remove duplicate salt-master restart commands
+- PNDA-2851: Check for ec2 grains before running salt commands as sometimes the ec2 grain wasn't available when running highstate, but was when checked later on
+- Fix pylint violations
+- Fix issue on easy install configuration
 
 ## [1.2.0] 2017-01-20
 ### Fixed
