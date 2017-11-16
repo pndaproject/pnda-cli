@@ -49,7 +49,7 @@ if [ "x$ADD_ONLINE_REPOS" == "xYES" ]; then
 fi
   apt-get update
 
-elif [ "x$DISTRO" == "xrhel" ]; then
+elif [ "x$DISTRO" == "xrhel"  -o "x$DISTRO" == "xcentos" ]; then
 
 if [ "x$ADD_ONLINE_REPOS" == "xYES" ]; then
   RPM_EXTRAS=rhui-REGION-rhel-server-extras
@@ -65,7 +65,9 @@ else
   mv /etc/yum.repos.d/* /etc/yum.repos.d.backup/
   yum-config-manager --add-repo $PNDA_MIRROR/mirror_rpm
 fi
-  rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-redhat-release
+  if [ "x$DISTRO" == "xrhel" ]; then
+    rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-redhat-release
+  fi
   rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-mysql
   rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-cloudera
   rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-EPEL-7
