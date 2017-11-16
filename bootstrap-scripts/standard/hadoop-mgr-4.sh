@@ -17,7 +17,6 @@ hadoop:
 roles:
   - oozie_database
   - mysql_connector
-  - hue
 EOF
 
 cat >> /etc/salt/minion <<EOF
