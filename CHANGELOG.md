@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-3302: Upgrade edge flavor on pico
 - PNDA-3218: Add iprejecter to enable offline env
 - PNDA-3314: Add new flavor 'production' designed for larger, bare metal clusters
+- PNDA-3484: Add CentOS support
 
 ### Changed
 - PNDA-2965: Rename `cloudera_*` role grains to `hadoop_*`
