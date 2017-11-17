@@ -20,7 +20,6 @@ hadoop:
 roles:
   - oozie_database
   - mysql_connector
-  - hue
   - opentsdb
   - grafana
 
