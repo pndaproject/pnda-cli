@@ -24,11 +24,13 @@ print '\nrequested volumes:'
 print requested_volumes
 
 # Find out what volumes are available
-out = subprocess.check_output(['lsblk', '-branp', '-o', 'NAME,SIZE,MOUNTPOINT'])
+out = subprocess.check_output(['lsblk', '-brn', '-o', 'NAME,SIZE,MOUNTPOINT'])
 available_volumes = []
 for line in out.splitlines():
-   fields = line.split(' ')
-   available_volumes.append(fields)
+    fields = line.split(' ')
+    if len(fields) > 0:
+      fields[0] = "/dev/%s" % fields[0]
+      available_volumes.append(fields)
 
 # Sort by size and name
 available_volumes.sort(key=lambda x: (-int(x[1]), x[2]))

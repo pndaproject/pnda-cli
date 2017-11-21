@@ -461,14 +461,7 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
             cf_parameters.append((parameter, PNDA_ENV['cloud_formation_parameters'][parameter]))
 
         if not no_config_check:
-            if existing_machines_def_file is None:
-                check_aws_connection()
-            check_keypair(keyname, keyfile, existing_machines_def_file)
-            check_package_server()
-            check_java_mirror()
-
-        if not no_config_check:
-            check_config(keyname, keyfile, existing_machines_def_file)
+            check_config(keyname, keyfile, None)
 
         save_cf_resources('create_%s' % MILLI_TIME(), cluster, cf_parameters, template_data)
         if dry_run:
