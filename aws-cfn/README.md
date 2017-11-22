@@ -57,4 +57,4 @@ This repository contains resources for launching PNDA on [Amazon Web Services](h
 
 The cloud formation templates for PNDA can be edited directly to make modications as required.
 
-The organisation and contents of the cloud formation templates is described [here](cloud-formation/README.md).
+The organisation and contents of the cloud formation templates is described [here](../cloud-formation/README.md).
