@@ -15,4 +15,4 @@ The operational tasks that are fully automated today are -
 - Expanding PNDA
 - Deleting PNDA
 
-Replacement of failed nodes is also supported through a combination of manual steps and use of the 'expand' functionality.
+Replacement of failed nodes is supported through a combination of manual steps and use of the 'expand' verb.
