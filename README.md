@@ -6,8 +6,8 @@ The vision for this sub-project is that it eventually replaces all the individua
 
 At present, the PNDA CLI supports two back ends -
 
-- Creating PNDA on AWS using CloudFormation
-- Creating PNDA on a physical server cluster
+- [Creating PNDA on AWS using CloudFormation](aws-cfn/README.md)
+- [Creating PNDA on an existing server cluster](existing-machines/README.md)
 
 The operational tasks that are fully automated today are -
 
