@@ -1,0 +1,18 @@
+# PNDA CLI
+
+The PNDA CLI is the interface used to execute operational tasks on PNDA clusters. 
+
+The vision for this sub-project is that it eventually replaces all the individual 'template' repositories in PNDA with one common code base, presenting the end user with a unified interface to several different 'back ends'.
+
+At present, the PNDA CLI supports two back ends -
+
+- Creating PNDA on AWS using CloudFormation
+- Creating PNDA on a physical server cluster
+
+The operational tasks that are fully automated today are -
+
+- Creating PNDA
+- Expanding PNDA
+- Deleting PNDA
+
+Replacement of failed nodes is also supported through a combination of manual steps and use of the 'expand' functionality.
