@@ -26,6 +26,7 @@ if [ "x$CLIENT_IP" != "x" ]; then
 iptables -A LOGGING -d  $CLIENT_IP/32 -j ACCEPT # PNDA client
 fi
 if [ "x$NTP_SERVERS" != "x" ]; then
+NTP_SERVERS=$(echo "$NTP_SERVERS" | sed -e 's|[]"'\''\[ ]||g')
 iptables -A LOGGING -d  $NTP_SERVERS -j ACCEPT # NTP server
 fi
 iptables -A LOGGING -d  ${vpcCidr} -j ACCEPT # PNDA network

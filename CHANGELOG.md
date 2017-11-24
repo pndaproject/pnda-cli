@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-3218: Add iprejecter to enable offline env
 - PNDA-3314: Add new flavor 'production' designed for larger, bare metal clusters
 - PNDA-3484: Add CentOS support
+- PNDA-3299: Support multiple NTP servers properly
 
 ### Changed
 - PNDA-3186: Refactored code into CLI for creating PNDAs on many platforms (pnda-cli)

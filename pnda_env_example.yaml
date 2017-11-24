@@ -111,16 +111,14 @@ ntp:
   # Optional ntp servers. Use this if the standard NTP servers on the Internet cannot be reached
   # and a local NTP server has been configured. PNDA will not work without NTP.
   # example format: 'xxx.ntp.org'
-  NTP_SERVERS: ''
+  #For REJECT_OUTBOUND="YES" then NTP server/s must.
+  NTP_SERVERS:
+    - ntp.ubuntu.com
+  # - 91.189.89.199
 
 mirrors:
   # Mirror of resources required for provisioning PNDA, see PNDA guide for instructions on how to set this up
   PNDA_MIRROR: http://x.x.x.x
-
-ntp:
-  # Optional ntp servers. Use this if the standard Ubuntu NTP servers on the Internet cannot be reached
-  # and a local NTP server has been configured. PNDA will not work without NTP.
-  NTP_SERVERS: ''
 
 hadoop:
   # Hadoop distribution to install
@@ -147,11 +145,11 @@ elk-cluster:
 
 connectivity:
   # Deploy an iptables ruleset to every node preventing outbound access to all hosts except the PNDA_MIRROR, NTP_SERVER and specified CLIENT_IP. Specify YES to enable.
-  REJECT_OUTBOUND: YES
+  REJECT_OUTBOUND: "YES"
   # If using REJECT_OUTBOUND, the IP address of the client that created PNDA
   CLIENT_IP: 1.1.1.1
   # Add online repositories for yum, apt-get, pip, etc alongside PNDA mirror
-  ADD_ONLINE_REPOS: NO
+  ADD_ONLINE_REPOS: "NO"
 
 mine_functions:
   MINE_FUNCTIONS_NETWORK_IP_ADDRS_NIC: eth0
