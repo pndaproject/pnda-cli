@@ -54,10 +54,6 @@ reactor:
     - salt://reactor/create_bastion_host_entry.sls
   - 'salt/cloud/*/destroying':
     - salt://reactor/delete_bastion_host_entry.sls
-  - 'salt/beacon/*/kernel_reboot_required/*/reboot-required':
-    - salt://reactor/kernel_reboot_entry.sls
-  - 'salt/beacon/*/service_opentsdb/service/opentsdb/status/stop/HBaseUp':
-    - salt://reactor/service_opentsdb_entry.sls
 ## end of specific PNDA saltmaster config
 file_recv: True
 
