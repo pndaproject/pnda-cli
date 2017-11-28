@@ -172,17 +172,19 @@ class UserInputValidator(object):
             hint = self._field_validator_hint(field)
             while val is None:
                 suffix = " and be in range [%s]" % rule if rule is not None else ""
-                val = raw_input("Enter a value for %s (%s%s): " % (field, hint, suffix))
                 try:
+                    val = raw_input("Enter a value for %s (%s%s): " % (field, hint, suffix))
                     val = self._field_validator_func(field)(val)
                     if self._range_validate_field(field, val):
                         self._field_validator_action(field)(val)
                     else:
                         print "'%s' not in valid range (%s)" % (val, rule)
                         val = None
-                except ArgumentTypeError:
+                except ArgumentTypeError: # field validator raises this if problem with format
                     print "'%s' %s" % (field, hint)
                     val = None
+                except EOFError: # raw_input raises this if no stdin e.g. automation environment
+                    raise ArgumentTypeError("%s: must be specified on command line" % field)
             return val
 
         # build field validation list (filtered by command and ordered by required)
