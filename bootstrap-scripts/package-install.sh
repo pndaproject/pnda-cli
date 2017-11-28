@@ -12,6 +12,7 @@ STOP
 EOF
 sudo service rsyslog restart
 iptables -F LOGGING | true
+iptables -F OUTPUT | true
 iptables -X LOGGING | true
 iptables -N LOGGING
 iptables -A OUTPUT -j LOGGING

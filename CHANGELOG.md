@@ -26,7 +26,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-3424: Add a retry to AWS API calls to work around SSL timeout errors
 - PNDA-3377: fix issue on check config which required descriptor file
 - PNDA-3524: remove beacons logic
-
+- PNDA-3534: Make iptables injection script idempotent.
 ## [1.3.0] 2017-08-01
 ### Added
 - PNDA-2375: Isolate PNDA from breaking dependency change
