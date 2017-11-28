@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-3180: When expanding a cluster limit the operations to strictly required steps on specific nodes
 - PNDA-3444: Disallow uppercase letters in the cluster names due to AMBARI-22361 affecting HDP.
 - PNDA-3530: Ambari version 2.6.0.0 and HDP version 2.6.3.0
+- PNDA-3487: /tmp is now tmpfs for production
 
 ### Fixed
 - PNDA-3499: Cleanup CHANGELOG with missing release info.
