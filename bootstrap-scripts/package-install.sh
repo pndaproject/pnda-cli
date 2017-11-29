@@ -41,6 +41,7 @@ DISTRO=$(cat /etc/*-release|grep ^ID\=|awk -F\= {'print $2'}|sed s/\"//g)
 if [ "x$DISTRO" == "xubuntu" ]; then
   export DEBIAN_FRONTEND=noninteractive
   wget -O - $PNDA_MIRROR/mirror_deb/pnda.gpg.key | apt-key add -
+  wget -O - $PNDA_MIRROR/mirror_hdp/hdp.gpg.key | apt-key add -
 
 if [ "x$ADD_ONLINE_REPOS" == "xYES" ]; then
   # Give local mirror priority
