@@ -1,6 +1,6 @@
 #!/bin/bash -v
 
-# This script runs on instances with a node_type tag of "opentsdb"
+# This script runs on instances with a node_type tag of "hadoop-mgr-2"
 # It sets the roles that determine what software is installed
 # on this instance by platform-salt scripts and the minion
 # id and hostname
@@ -9,26 +9,20 @@
 # be run prior to running this script to define various environment
 # variables
 
-# Parameters:
-#  $1 - node index for this opentsdb node - as this node type may be horizontally scaled, should start at 0.
-
 set -e
 
 cat >> /etc/salt/grains <<EOF
+hadoop:
+  role: MGR02
 roles:
-  - opentsdb
+  - mysql_connector
 EOF
-if [ $1 = 0 ]; then
-cat >> /etc/salt/grains <<EOF
-  - grafana
-EOF
-fi
 
 cat >> /etc/salt/minion <<EOF
-id: $PNDA_CLUSTER-opentsdb-$1
+id: $PNDA_CLUSTER-hadoop-mgr-2
 EOF
 
-echo $PNDA_CLUSTER-opentsdb-$1 > /etc/hostname
-hostname $PNDA_CLUSTER-opentsdb-$1
+echo $PNDA_CLUSTER-hadoop-mgr-2 > /etc/hostname
+hostname $PNDA_CLUSTER-hadoop-mgr-2
 
 service salt-minion restart

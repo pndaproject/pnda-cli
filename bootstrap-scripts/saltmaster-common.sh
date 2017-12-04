@@ -17,7 +17,7 @@ apt-get -y install unzip salt-master=2015.8.11+ds-1 git
 HDP_OS=ubuntu14
 fi
 
-if [ "x$DISTRO" == "xrhel" ]; then
+if [ "x$DISTRO" == "xrhel"  -o "x$DISTRO" == "xcentos" ]; then
 yum -y install unzip salt-master-2015.8.11-1.el7 git
 #Enable init mode , RHEL not enabled salt-minion by default
 systemctl enable salt-master.service
@@ -54,10 +54,6 @@ reactor:
     - salt://reactor/create_bastion_host_entry.sls
   - 'salt/cloud/*/destroying':
     - salt://reactor/delete_bastion_host_entry.sls
-  - 'salt/beacon/*/kernel_reboot_required/*/reboot-required':
-    - salt://reactor/kernel_reboot_entry.sls
-  - 'salt/beacon/*/service_opentsdb/service/opentsdb/status/stop/HBaseUp':
-    - salt://reactor/service_opentsdb_entry.sls
 ## end of specific PNDA saltmaster config
 file_recv: True
 
@@ -119,6 +115,7 @@ hadoop.distro: '$HADOOP_DISTRO'
 pnda_mirror:
   base_url: '$PNDA_MIRROR'
   misc_packages_path: /mirror_misc/
+  app_packages_path: /mirror_apps/
 
 cloudera:
   parcel_repo: '$PNDA_MIRROR/mirror_cloudera'
