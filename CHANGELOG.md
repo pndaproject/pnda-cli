@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 ### Fixed
 - PNDA-3534: Make iptables injection script idempotent.
+- PNDA-3552: Creation time improvements for large clusters when there is no bastion.
 
 ## [1.0.0] 2017-11-24
 ### Added

@@ -64,14 +64,14 @@ MILLI_TIME = lambda: int(round(time.time() * 1000))
 class PNDAConfigException(Exception):
     pass
 
-def retry(fn, *args, **kwargs):
+def retry(do_func, *args, **kwargs):
     ret = None
-    for retry_count in xrange(3):
+    for _ in xrange(3):
         try:
-            ret = fn(*args, **kwargs)
+            ret = do_func(*args, **kwargs)
             break
         except ssl.SSLError, exception:
-            pass
+            LOG.warning(exception)
     return ret
 
 def init_runfile(cluster):
@@ -186,10 +186,10 @@ def get_instance_map(cluster, existing_machines_def_file):
                 if 'pnda_cluster' in instance.tags and instance.tags['pnda_cluster'] == cluster and instance.state == 'running':
                     CONSOLE.debug(instance.private_ip_address, ' ', instance.tags['Name'])
                     instance_map[instance.tags['Name']] = {
-                    "public_dns": instance.public_dns_name,
+                        "public_dns": instance.public_dns_name,
                         "ip_address": instance.ip_address,
                         "private_ip_address":instance.private_ip_address,
-                    		"name": instance.tags['Name'],
+                    		  "name": instance.tags['Name'],
                         "node_idx": instance.tags['node_idx'],
                         "node_type": instance.tags['node_type']
                     }
@@ -249,7 +249,7 @@ def bootstrap(instance, saltmaster, cluster, flavor, branch, salt_tarball, error
                         'bootstrap-scripts/package-install.sh',
                         'bootstrap-scripts/base.sh',
                         'bootstrap-scripts/volume-mappings.sh',
-                         type_script]
+                        type_script]
 
         requested_volumes = get_volume_info(node_type, 'bootstrap-scripts/%s/%s' % (flavor, 'volume-config.yaml'))
         cmds_to_run = ['source /tmp/pnda_env_%s.sh' % cluster,
@@ -263,9 +263,11 @@ def bootstrap(instance, saltmaster, cluster, flavor, branch, salt_tarball, error
                        'sudo chmod a+x /tmp/volume-mappings.sh']
 
         if requested_volumes is not None and 'partitions' in requested_volumes:
-            cmds_to_run.append('sudo mkdir -p /etc/pnda/disk-config && echo \'%s\' | sudo tee /etc/pnda/disk-config/partitions' % '\n'.join(requested_volumes['partitions']))
+            cmds_to_run.append('sudo mkdir -p /etc/pnda/disk-config && echo \'%s\' | sudo tee /etc/pnda/disk-config/partitions' % '\n'.join(
+                requested_volumes['partitions']))
         if requested_volumes is not None and 'volumes' in requested_volumes:
-            cmds_to_run.append('sudo mkdir -p /etc/pnda/disk-config && echo \'%s\' | sudo tee /etc/pnda/disk-config/requested-volumes' % '\n'.join(requested_volumes['volumes']))
+            cmds_to_run.append('sudo mkdir -p /etc/pnda/disk-config && echo \'%s\' | sudo tee /etc/pnda/disk-config/requested-volumes' % '\n'.join(
+                requested_volumes['volumes']))
 
         cmds_to_run.append('(sudo -E /tmp/base.sh 2>&1) | tee -a pnda-bootstrap.log; %s' % THROW_BASH_ERROR)
 
@@ -378,10 +380,10 @@ def write_ssh_config(cluster, bastion_ip, os_user, keyfile):
         config_file.write('    UserKnownHostsFile /dev/null\n')
         if bastion_ip:
             config_file.write('    ProxyCommand ssh -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s@%s exec nc %%h %%p\n'
-                          % (keyfile, os_user, bastion_ip))
+                              % (keyfile, os_user, bastion_ip))
     if not bastion_ip:
         return
-        
+
     socks_file_path = 'cli/socks_proxy-%s' % cluster
     with open(socks_file_path, 'w') as config_file:
         config_file.write('''
@@ -417,13 +419,35 @@ fi\n''')
     mode = os.stat(socks_file_path).st_mode
     os.chmod(socks_file_path, mode | (mode & 292) >> 2)
 
-def process_errors(errors):
+def process_thread_errors(action, errors):
     while not errors.empty():
         error_message = errors.get()
-        raise Exception("Error bootstrapping host, error msg: %s. See debug log (%s) for details." % (error_message, LOG_FILE_NAME))
+        raise Exception("Error %s, error msg: %s. See debug log (%s) for details." % (action, error_message, LOG_FILE_NAME))
 
-def wait_for_host_connectivity(hosts, cluster):
-    for host in hosts:
+def wait_on_host_operations(action, thread_list, bastion_ip, errors):
+    # Run the threads in thread_list in sets, waiting for each set to
+    # complete before moving onto the next.
+    thread_set_size = PNDA_ENV['cli']['MAX_SIMULATANEOUS_OUTBOUND_CONNECTIONS']
+    thread_sets = [thread_list[x:x+thread_set_size] for x in xrange(0, len(thread_list), thread_set_size)]
+    for thread_set in thread_sets:
+        for thread in thread_set:
+            thread.start()
+            if bastion_ip:
+                # If there is no bastion, start all threads at once. Otherwise leave a gap
+                # between starting each one to avoid overloading the bastion with too many
+                # inbound connections and possibly having one rejected.
+                time.sleep(2)
+
+        for thread in thread_set:
+            thread.join()
+
+    process_thread_errors(action, errors)
+
+def wait_for_host_connectivity(hosts, cluster, bastion_ip):
+    wait_threads = []
+    wait_errors = Queue.Queue()
+
+    def do_wait(host, cluster, wait_errors):
         time_start = MILLI_TIME()
         while True:
             try:
@@ -431,12 +455,20 @@ def wait_for_host_connectivity(hosts, cluster):
                 ssh(['ls ~'], cluster, host)
                 break
             except:
-                CONSOLE.info('Still waiting for connectivity to %s. See debug log (%s) for details.', host, LOG_FILE_NAME)
+                LOG.debug('Still waiting for connectivity to %s.', host)
                 LOG.info(traceback.format_exc())
                 if MILLI_TIME() - time_start > 10 * 60 * 1000:
-                    CONSOLE.error('Giving up waiting for host connectivity')
-                    sys.exit(-1)
+                    ret_val = 'Giving up waiting for connectivity to %s' % host
+                    wait_errors.put(ret_val)
+                    CONSOLE.error(ret_val)
+                    break
                 time.sleep(2)
+
+    for host in hosts:
+        thread = Thread(target=do_wait, args=[host, cluster, wait_errors])
+        wait_threads.append(thread)
+
+    wait_on_host_operations('waiting for host connectivity', wait_threads, bastion_ip, wait_errors)
 
 def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, branch, existing_machines_def_file):
 
@@ -451,8 +483,8 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
 
     if existing_machines_def_file is None:
         region = PNDA_ENV['ec2_access']['AWS_REGION']
-        awsAvailabilityZone = PNDA_ENV['ec2_access']['AWS_AVAILABILITY_ZONE']
-        cf_parameters = [('keyName', keyname), ('pndaCluster', cluster), ('awsAvailabilityZone', awsAvailabilityZone)]
+        aws_availability_zone = PNDA_ENV['ec2_access']['AWS_AVAILABILITY_ZONE']
+        cf_parameters = [('keyName', keyname), ('pndaCluster', cluster), ('awsAvailabilityZone', aws_availability_zone)]
         for parameter in PNDA_ENV['cloud_formation_parameters']:
             cf_parameters.append((parameter, PNDA_ENV['cloud_formation_parameters'][parameter]))
 
@@ -464,12 +496,6 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
             CONSOLE.info('Dry run mode completed')
             sys.exit(0)
 
-    region = PNDA_ENV['ec2_access']['AWS_REGION']
-    awsAvailabilityZone = PNDA_ENV['ec2_access']['AWS_AVAILABILITY_ZONE']
-    cf_parameters = [('keyName', keyname), ('pndaCluster', cluster), ('awsAvailabilityZone', awsAvailabilityZone)]
-    for parameter in PNDA_ENV['cloud_formation_parameters']:
-        cf_parameters.append((parameter, PNDA_ENV['cloud_formation_parameters'][parameter]))
-
     if existing_machines_def_file is None:
         check_config(keyname, keyfile, existing_machines_def_file)
 
@@ -477,8 +503,8 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
         conn = boto.cloudformation.connect_to_region(region)
         stack_status = 'CREATING'
         conn.create_stack(cluster,
-                        template_body=template_data,
-                        parameters=cf_parameters)
+                          template_body=template_data,
+                          parameters=cf_parameters)
 
         while stack_status in ['CREATE_IN_PROGRESS', 'CREATING']:
             time.sleep(5)
@@ -503,8 +529,8 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
     CONSOLE.debug('The PNDA console will come up on: http://%s', instance_map[cluster + '-' + NODE_CONFIG['console-instance']]['private_ip_address'])
 
     if bastion_ip:
-        attempts_per_host = 150
-        while attempts_per_host > 0:
+        time_start = MILLI_TIME()
+        while True:
             try:
                 nc_ssh_cmd = 'ssh -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s@%s' % (keyfile,
                                                                                                               PNDA_ENV['ec2_access']['OS_USER'], bastion_ip)
@@ -517,10 +543,12 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
             except:
                 CONSOLE.info('Still waiting for connectivity to bastion. See debug log (%s) for details.', LOG_FILE_NAME)
                 LOG.info(traceback.format_exc())
-                attempts_per_host -= 1
+                if MILLI_TIME() - time_start > 10 * 60 * 1000:
+                    CONSOLE.error('Giving up waiting for connectivity to %s', bastion_ip)
+                    sys.exit(-1)
                 time.sleep(2)
 
-    wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], cluster)
+    wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], cluster, bastion_ip)
 
     CONSOLE.info('Bootstrapping saltmaster. Expect this to take a few minutes, check the debug log for progress (%s).', LOG_FILE_NAME)
     saltmaster = instance_map[cluster + '-' + NODE_CONFIG['salt-master-instance']]
@@ -537,7 +565,7 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
     bootstrap_threads = []
     bootstrap_errors = Queue.Queue()
     bootstrap(saltmaster, saltmaster_ip, cluster, flavor, branch, platform_salt_tarball, bootstrap_errors)
-    process_errors(bootstrap_errors)
+    process_thread_errors('bootstrapping saltmaster', bootstrap_errors)
 
     CONSOLE.info('Bootstrapping other instances. Expect this to take a few minutes, check the debug log for progress (%s).', LOG_FILE_NAME)
     for key, instance in instance_map.iteritems():
@@ -546,26 +574,22 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
                                                     cluster, flavor, branch, platform_salt_tarball, bootstrap_errors])
             bootstrap_threads.append(thread)
 
-    for thread in bootstrap_threads:
-        thread.start()
-        time.sleep(2)
-
-    for thread in bootstrap_threads:
-        ret_val = thread.join()
-
-    process_errors(bootstrap_errors)
+    wait_on_host_operations('bootstrapping host', bootstrap_threads, bastion_ip, bootstrap_errors)
 
     time.sleep(30)
 
     CONSOLE.info('Running salt to install software. Expect this to take 45 minutes or more, check the debug log for progress (%s).', LOG_FILE_NAME)
     bastion = NODE_CONFIG['bastion-instance']
-    ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" state.highstate queue=True 2>&1) | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR,
-         '(sudo CLUSTER=%s salt-run --log-level=debug state.orchestrate orchestrate.pnda 2>&1) | tee -a pnda-salt.log; %s' % (cluster, THROW_BASH_ERROR),
-         '(sudo salt "*%s" state.sls hostsfile 2>&1) | tee -a pnda-salt.log; %s' % (bastion, THROW_BASH_ERROR)], cluster, saltmaster_ip)
-    
+    ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" state.highstate queue=True 2>&1) | tee -a pnda-salt.log; %s'
+         % THROW_BASH_ERROR,
+         '(sudo CLUSTER=%s salt-run --log-level=debug state.orchestrate orchestrate.pnda 2>&1) | tee -a pnda-salt.log; %s'
+         % (cluster, THROW_BASH_ERROR),
+         '(sudo salt "*%s" state.sls hostsfile 2>&1) | tee -a pnda-salt.log; %s'
+         % (bastion, THROW_BASH_ERROR)], cluster, saltmaster_ip)
+
     return instance_map[cluster + '-' + NODE_CONFIG['console-instance']]['private_ip_address']
 
-def expand(template_data, cluster, flavor, old_datanodes, old_kafka, include_orchestrate, keyname, no_config_check, dry_run, branch, existing_machines_def_file):
+def expand(template_data, cluster, flavor, old_datanodes, old_kafka, do_orchestrate, keyname, no_config_check, dry_run, branch, existing_machines_def_file):
     keyfile = '%s.pem' % keyname
 
     if existing_machines_def_file is None:
@@ -612,27 +636,18 @@ def expand(template_data, cluster, flavor, old_datanodes, old_kafka, include_orc
     saltmaster = instance_map[cluster + '-' + NODE_CONFIG['salt-master-instance']]
     saltmaster_ip = saltmaster['private_ip_address']
 
-    wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], cluster)
+    wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], cluster, bastion_ip)
     CONSOLE.info('Bootstrapping new instances. Expect this to take a few minutes, check the debug log for progress. (%s)', LOG_FILE_NAME)
     bootstrap_threads = []
     bootstrap_errors = Queue.Queue()
     for _, instance in instance_map.iteritems():
         if len(instance['node_type']) > 0:
             if ((instance['node_type'] == 'hadoop-dn' and int(instance['node_idx']) >= old_datanodes
-                or instance['node_type'] == 'kafka' and int(instance['node_idx']) >= old_kafka)):
+                 or instance['node_type'] == 'kafka' and int(instance['node_idx']) >= old_kafka)):
                 thread = Thread(target=bootstrap, args=[instance, saltmaster_ip, cluster, flavor, branch, None, bootstrap_errors])
                 bootstrap_threads.append(thread)
 
-    for thread in bootstrap_threads:
-        thread.start()
-        time.sleep(2)
-
-    for thread in bootstrap_threads:
-        ret_val = thread.join()
-
-    while not bootstrap_errors.empty():
-        ret_val = bootstrap_errors.get()
-        raise Exception("Error bootstrapping host, error msg: %s. See debug log (%s) for details." % (ret_val, LOG_FILE_NAME))
+    wait_on_host_operations('bootstrapping host', bootstrap_threads, bastion_ip, bootstrap_errors)
 
     time.sleep(30)
 
@@ -642,7 +657,7 @@ def expand(template_data, cluster, flavor, old_datanodes, old_kafka, include_orc
                        ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR,
                        '(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed -C "G@pnda:is_new_node" state.highstate queue=True 2>&1)' +
                        ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR]
-    if include_orchestrate:
+    if do_orchestrate:
         CONSOLE.info('Including orchestrate because new Hadoop datanodes are being added')
         expand_commands.append('(sudo CLUSTER=%s salt-run --log-level=debug state.orchestrate orchestrate.pnda-expand 2>&1)' % cluster +
                                ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR)
@@ -686,7 +701,7 @@ def destroy(cluster, existing_machines_def_file):
 def valid_flavors():
     cfn_dirs = [dir_name for dir_name in os.listdir('../cloud-formation') if  os.path.isdir(os.path.join('../cloud-formation', dir_name))]
     bootstap_dirs = [dir_name for dir_name in os.listdir('../bootstrap-scripts') if  os.path.isdir(os.path.join('../bootstrap-scripts', dir_name))]
-    
+
     return list(set(cfn_dirs + bootstap_dirs))
 
 def main():
@@ -696,9 +711,9 @@ def main():
         print 'Please run from inside the /cli directory'
         sys.exit(1)
 
-    '''
-    Process user input
-    '''
+    ###
+    # Process user input
+    ###
     input_validator = UserInputValidator(valid_flavors())
     fields = input_validator.parse_user_input()
 
@@ -706,10 +721,10 @@ def main():
 
     os.chdir('../')
 
-    '''
-    Process & validate YAML configuration
-    TODO: refactor out in a similar way to user input validation and share common code
-    '''
+    ###
+    # Process & validate YAML configuration
+    # TODO: refactor out in a similar way to user input validation and share common code
+    ###
 
     global PNDA_ENV
     check_config_file()
@@ -788,21 +803,21 @@ def main():
             NODE_CONFIG = json.load(node_config_file)
             node_config_file.close()
 
-    include_orchestrate = False
+    do_orchestrate = False
     template_data = None
 
     write_pnda_env_sh(fields['pnda_cluster'])
 
-    '''
-    Handle destroy command
-    '''
+    ###
+    # Handle destroy command
+    ###
     if fields['command'] == 'destroy':
         destroy(fields['pnda_cluster'], fields['x_machines_definition'])
         sys.exit(0)
 
-    '''
-    Handle expand command
-    '''
+    ###
+    # Handle expand command
+    ###
     if fields['command'] == 'expand':
         node_counts = get_current_node_counts(fields['pnda_cluster'], fields['x_machines_definition'])
 
@@ -811,7 +826,7 @@ def main():
             sys.exit(1)
         elif fields['datanodes'] > node_counts['hadoop-dn']:
             print "Increasing the number of datanodes from %s to %s" % (node_counts['hadoop-dn'], fields['datanodes'])
-            include_orchestrate = True
+            do_orchestrate = True
         if fields['kafka_nodes'] < node_counts['kafka']:
             print "You cannot shrink the cluster using this CLI, existing number of kafkanodes is: %s" % node_counts['kafka']
             sys.exit(1)
@@ -820,28 +835,31 @@ def main():
 
         if create_cloud_infra:
             template_data = generate_template_file(fields['flavor'], fields['datanodes'], node_counts['opentsdb'], fields['kafka_nodes'], node_counts['zk'],
-                                                es_fields['elk_es_master'], es_fields['elk_es_ingest'], es_fields['elk_es_data'], es_fields['elk_es_coordinator'],
-                                                es_fields['elk_es_multi'], es_fields['elk_logstash'])
+                                                   es_fields['elk_es_master'], es_fields['elk_es_ingest'], es_fields['elk_es_data'],
+                                                   es_fields['elk_es_coordinator'], es_fields['elk_es_multi'], es_fields['elk_logstash'])
 
         expand(template_data, fields['pnda_cluster'], fields['flavor'], node_counts['hadoop-dn'], node_counts['kafka'],
-                include_orchestrate, fields['keyname'], fields["no_config_check"], fields['dry_run'], branch, fields['x_machines_definition'])
+               do_orchestrate, fields['keyname'], fields["no_config_check"], fields['dry_run'], branch, fields['x_machines_definition'])
 
         sys.exit(0)
 
-    '''
-    Handle create command
-    '''
+    ###
+    # Handle create command
+    ###
     if fields['command'] == 'create':
         if create_cloud_infra:
             template_data = generate_template_file(fields['flavor'], fields['datanodes'], fields['opentsdb_nodes'], fields['kafka_nodes'], fields['zk_nodes'],
-                                                es_fields['elk_es_master'], es_fields['elk_es_ingest'], es_fields['elk_es_data'], es_fields['elk_es_coordinator'],
-                                                es_fields['elk_es_multi'], es_fields['elk_logstash'])
+                                                   es_fields['elk_es_master'], es_fields['elk_es_ingest'], es_fields['elk_es_data'],
+                                                   es_fields['elk_es_coordinator'], es_fields['elk_es_multi'], es_fields['elk_logstash'])
 
-        console_dns = create(template_data, fields['pnda_cluster'], fields['flavor'], fields['keyname'], fields["no_config_check"], fields['dry_run'], branch, fields['x_machines_definition'])
+        console_dns = create(template_data, fields['pnda_cluster'], fields['flavor'],
+                             fields['keyname'], fields["no_config_check"], fields['dry_run'],
+                             branch, fields['x_machines_definition'])
 
         CONSOLE.info('Use the PNDA console to get started: http://%s', console_dns)
         CONSOLE.info(' Access hints:')
-        CONSOLE.info('  - The script ./socks_proxy-%s sets up port forwarding to the PNDA cluster with SSH acting as a SOCKS server listening on localhost:9999', fields['pnda_cluster'])
+        CONSOLE.info('  - The script ./socks_proxy-%s sets up port forwarding to the PNDA cluster with SSH acting as a SOCKS server on localhost:9999',
+                     fields['pnda_cluster'])
         CONSOLE.info('  - Please review ./socks_proxy-%s and ensure it complies with your local security policies before use', fields['pnda_cluster'])
         CONSOLE.info('  - Set up a socks proxy with: chmod +x socks_proxy-%s; ./socks_proxy-%s', fields['pnda_cluster'], fields['pnda_cluster'])
         CONSOLE.info('  - SSH to a node with: ssh -F ssh_config-%s <private_ip>', fields['pnda_cluster'])
