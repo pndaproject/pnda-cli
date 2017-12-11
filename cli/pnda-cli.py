@@ -427,7 +427,7 @@ def process_thread_errors(action, errors):
 def wait_on_host_operations(action, thread_list, bastion_ip, errors):
     # Run the threads in thread_list in sets, waiting for each set to
     # complete before moving onto the next.
-    thread_set_size = PNDA_ENV['cli']['MAX_SIMULATANEOUS_OUTBOUND_CONNECTIONS']
+    thread_set_size = PNDA_ENV['cli']['MAX_SIMULTANEOUS_OUTBOUND_CONNECTIONS']
     thread_sets = [thread_list[x:x+thread_set_size] for x in xrange(0, len(thread_list), thread_set_size)]
     for thread_set in thread_sets:
         for thread in thread_set:
