@@ -160,4 +160,4 @@ cli:
   # Maximum number of outbound connections that the CLI will attempt to open at once
   # Consider increasing this when creating clusters with more than 100 nodes to speed
   # up PNDA creation time.
-  MAX_SIMULATANEOUS_OUTBOUND_CONNECTIONS: 100
+  MAX_SIMULTANEOUS_OUTBOUND_CONNECTIONS: 100
