@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Changed
+- PNDA-3583: hadoop distro is now part of grains
+
 ### Fixed
 - PNDA-3534: Make iptables injection script idempotent.
 - PNDA-3552: Creation time improvements for large clusters when there is no bastion.
