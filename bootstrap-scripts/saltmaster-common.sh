@@ -110,7 +110,6 @@ aws.archive_secret: '$PNDA_ARCHIVE_SECRET_ACCESS_KEY'
 pnda.archive_container: '$PNDA_ARCHIVE_CONTAINER'
 pnda.archive_type: 's3a'
 pnda.archive_service: ''
-hadoop.distro: '$HADOOP_DISTRO'
 
 pnda_mirror:
   base_url: '$PNDA_MIRROR'

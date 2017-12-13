@@ -31,6 +31,7 @@ cat >> /etc/salt/grains <<EOF
 pnda:
   flavor: $PNDA_FLAVOR
   is_new_node: True
+hadoop.distro: '$HADOOP_DISTRO'
 
 pnda_cluster: $PNDA_CLUSTER
 EOF
