@@ -1,19 +1,19 @@
 {
-    "cdh-mgr-1": {
+    "hadoop-mgr-1": {
         "ip_address": "10.2.1.101",
-        "node_type": "cdh-mgr-1"
+        "node_type": "hadoop-mgr-1"
     },
-    "cdh-mgr-2": {
+    "hadoop-mgr-2": {
         "ip_address": "10.2.1.102",
-        "node_type": "cdh-mgr-2"
+        "node_type": "hadoop-mgr-2"
     },
-    "cdh-mgr-3": {
+    "hadoop-mgr-3": {
         "ip_address": "10.2.1.102",
-        "node_type": "cdh-mgr-3"
+        "node_type": "hadoop-mgr-3"
     },
-    "cdh-mgr-4": {
+    "hadoop-mgr-4": {
         "ip_address": "10.2.1.103",
-        "node_type": "cdh-mgr-4"
+        "node_type": "hadoop-mgr-4"
     },
     "jupyter": {
         "ip_address": "10.2.1.104",
@@ -35,21 +35,21 @@
         "ip_address": "10.2.1.108",
         "node_type": "tools"
     },
-    "cdh-dn-0": {
+    "hadoop-dn-0": {
         "ip_address": "10.2.1.109",
-        "node_type": "cdh-dn"
+        "node_type": "hadoop-dn"
     },
-    "cdh-dn-2": {
+    "hadoop-dn-2": {
         "ip_address": "10.2.1.110",
-        "node_type": "cdh-dn"
+        "node_type": "hadoop-dn"
     },
-    "cdh-dn-3": {
+    "hadoop-dn-3": {
         "ip_address": "10.2.1.111",
-        "node_type": "cdh-dn"
+        "node_type": "hadoop-dn"
     },
-    "cdh-edge": {
+    "hadoop-edge": {
         "ip_address": "10.2.1.112",
-        "node_type": "cdh-edge",
+        "node_type": "hadoop-edge",
         "is_console": true
     },
     "opentsdb-0": {
@@ -61,9 +61,9 @@
         "node_type": "saltmaster",
         "is_saltmaster": true        
     },
-    "cdh-cm": {
+    "hadoop-cm": {
         "ip_address": "10.2.1.115",
-        "node_type": "cdh-cm"
+        "node_type": "hadoop-cm"
     },
     "bastion": {
         "ip_address": "10.2.1.116",
