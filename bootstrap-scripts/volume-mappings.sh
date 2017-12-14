@@ -22,6 +22,7 @@ with open(infile) as requested_volumes_file:
 
 print '\nrequested volumes:'
 print requested_volumes
+requested_volumes_count = len(requested_volumes)
 
 # Find out what volumes are available
 out = subprocess.check_output(['lsblk', '-brn', '-o', 'NAME,SIZE,MOUNTPOINT'])
@@ -38,7 +39,7 @@ print '\navailable volumes:'
 print available_volumes
 
 print '\nwriting volume mappings to %s' % outfile
-
+mappings_count = 0
 with open(outfile, 'w') as volume_mappings_file:
     # First copy any lines across that already specify the device to use
     all_volume_devices = [volume[0] for volume in available_volumes]
@@ -46,6 +47,7 @@ with open(outfile, 'w') as volume_mappings_file:
     for requested_volume in requested_volumes:
         if len(requested_volume) > 2:
             volume_mappings_file.write(' '.join(requested_volume) + '\n')
+            mappings_count += 1
             available_volumes = [item for item in available_volumes if item[0] != requested_volume[0]]
             to_remove.append(requested_volume[0])
             if requested_volume[0][-1].isdigit():
@@ -63,4 +65,10 @@ with open(outfile, 'w') as volume_mappings_file:
             available_volume = [available_volume[0]]
             available_volume.extend(requested_volume)
             volume_mappings_file.write(' '.join(available_volume) + '\n')
+            mappings_count += 1
             i += 1
+
+# Check that each requested volume has a line in the mappings file
+if mappings_count != requested_volumes_count:
+    print 'ERROR: %s volumes requested but only managed to assign volumes for %s of them' % (requested_volumes_count, mappings_count)
+    sys.exit(-1)
