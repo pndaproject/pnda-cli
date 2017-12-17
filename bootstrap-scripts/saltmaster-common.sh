@@ -135,6 +135,7 @@ hdp:
 mine_functions:
   network.ip_addrs: [$MINE_FUNCTIONS_NETWORK_INTERFACE]
   grains.items: []
+  network.privateSubnetCidr: '$privateSubnetCidr'
 EOF
 
 if [ "x$NTP_SERVERS" != "x" ] ; then
