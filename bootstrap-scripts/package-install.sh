@@ -58,6 +58,7 @@ fi
 apt-get update
 
 elif [ "x$DISTRO" == "xrhel" -o "x$DISTRO" == "xcentos" ]; then
+setenforce 0
 
 if [ "x$ADD_ONLINE_REPOS" == "xYES" ]; then
   RPM_EXTRAS=rhui-REGION-rhel-server-extras
