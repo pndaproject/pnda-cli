@@ -54,10 +54,6 @@ reactor:
     - salt://reactor/create_bastion_host_entry.sls
   - 'salt/cloud/*/destroying':
     - salt://reactor/delete_bastion_host_entry.sls
-  - 'salt/beacon/*/kernel_reboot_required/*/reboot-required':
-    - salt://reactor/kernel_reboot_entry.sls
-  - 'salt/beacon/*/service_opentsdb/service/opentsdb/status/stop/HBaseUp':
-    - salt://reactor/service_opentsdb_entry.sls
 ## end of specific PNDA saltmaster config
 file_recv: True
 
@@ -114,7 +110,6 @@ aws.archive_secret: '$PNDA_ARCHIVE_SECRET_ACCESS_KEY'
 pnda.archive_container: '$PNDA_ARCHIVE_CONTAINER'
 pnda.archive_type: 's3a'
 pnda.archive_service: ''
-hadoop.distro: '$HADOOP_DISTRO'
 
 pnda_mirror:
   base_url: '$PNDA_MIRROR'
@@ -135,7 +130,7 @@ packages_server:
   base_uri: '$PNDA_MIRROR'
 
 hdp:
-  hdp_core_stack_repo: '$PNDA_MIRROR/mirror_hdp/HDP/$HDP_OS/'
+  hdp_core_stack_repo: '$PNDA_MIRROR/mirror_hdp/HDP/$HDP_OS/2.6.3.0-235/'
   hdp_utils_stack_repo: '$PNDA_MIRROR/mirror_hdp/HDP-UTILS-1.1.0.21/repos/$HDP_OS/'
 mine_functions:
   network.ip_addrs: [$MINE_FUNCTIONS_NETWORK_INTERFACE]

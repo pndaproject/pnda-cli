@@ -7,7 +7,7 @@ ec2_access:
   # AWS region to create PNDA ec2 instances in
   AWS_REGION: eu-west-1
   AWS_AVAILABILITY_ZONE: eu-west-1a
-  
+
   # The user name to use when logging into the AWS ec2 instances
   # Ubuntu: ubuntu
   # Redhat: ec2-user
@@ -19,7 +19,7 @@ cloud_formation_parameters:
   # creating the cloud formation template. The cloud formation template must
   # define a matching input parameter for each value listed here.
 
-  # Base image to use, use the default AWS Ubuntu/Redhat image for the AWS region 
+  # Base image to use, use the default AWS Ubuntu/Redhat image for the AWS region
   # Ubuntu: 64-bit Ubuntu 14.04
   # Redhat: Red Hat Enterprise Linux 7
   imageId: ami-f95ef58a
@@ -61,10 +61,6 @@ platform_salt:
   # Local path to folder containing a clone of the platform salt repository
   # PLATFORM_SALT_LOCAL: /path/to/platform-salt
 
-  # Beacon timeout to check system reboot 
-  PLATFORM_SALT_BEACON_TIMEOUT: 30
-
-
 pnda_application_repo:
   # Type of storage to use for PNDA application packages
   #   s3     - AWS S3. Also set PNDA_APPS_CONTAINER, PNDA_APPS_FOLDER, PNDA_APPS_REGION, PNDA_APPS_ACCESS_KEY_ID, PNDA_APPS_SECRET_ACCESS_KEY
@@ -72,7 +68,7 @@ pnda_application_repo:
   #   local  - local filesystem on the package repository service server. Also set PR_FS_LOCATION_PATH.
   PR_FS_TYPE: s3
 
-  # S3 container to use for PNDA application packages 
+  # S3 container to use for PNDA application packages
   PNDA_APPS_CONTAINER: pnda-apps
 
   # Name of folder within PNDA_APPS_CONTAINER that contains the PNDA application packages
@@ -88,8 +84,8 @@ pnda_application_repo:
 
   # Path on file system if PR_FS_TYPE is 'local' or 'sshfs'
   PR_FS_LOCATION_PATH: /opt/pnda/packages
-    
-  # SSH accessed file system to use for PNDA application packages 
+
+  # SSH accessed file system to use for PNDA application packages
   PR_SSHFS_USER: ubuntu
   PR_SSHFS_HOST: 127.0.0.1
   PR_SSHFS_PATH: /mnt/packages
@@ -153,7 +149,13 @@ connectivity:
 
 mine_functions:
   MINE_FUNCTIONS_NETWORK_IP_ADDRS_NIC: eth0
-  
+
 network_interfaces:
   PNDA_INTERNAL_NETWORK: eth0
   PNDA_INGEST_NETWORK: eth1
+
+cli:
+  # Maximum number of outbound connections that the CLI will attempt to open at once
+  # Consider increasing this when creating clusters with more than 100 nodes to speed
+  # up PNDA creation time.
+  MAX_SIMULTANEOUS_OUTBOUND_CONNECTIONS: 100

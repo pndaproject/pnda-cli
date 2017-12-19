@@ -27,6 +27,7 @@ classes:
       - /data23 xfs
       - /dev/xvdb2 /mnt xfs
       - /dev/xvdb1 /var/log/pnda xfs
+      - tmpfs /tmp tmpfs nodev,nosuid
     partitions:
       - /dev/xvdb msdos /dev/xvdb1 0GB 120GB
       - /dev/xvdb msdos /dev/xvdb2 120GB 100%
@@ -35,6 +36,7 @@ classes:
     volumes:
       - /dev/xvdb2 /mnt xfs
       - /dev/xvdb1 /var/log/pnda xfs
+      - tmpfs /tmp tmpfs nodev,nosuid
     partitions:
       - /dev/xvdb msdos /dev/xvdb1 0GB 120GB
       - /dev/xvdb msdos /dev/xvdb2 120GB 100%
