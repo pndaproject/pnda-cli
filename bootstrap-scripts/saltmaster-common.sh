@@ -141,7 +141,7 @@ if [ "x$NTP_SERVERS" != "x" ] ; then
 cat << EOF >> /srv/salt/platform-salt/pillar/env_parameters.sls
 ntp:
   servers:
-    - "$NTP_SERVERS"
+    "$NTP_SERVERS"
 EOF
 fi
 
