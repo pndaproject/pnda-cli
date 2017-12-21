@@ -37,9 +37,11 @@ pnda_cluster: $PNDA_CLUSTER
 EOF
 
 if [ "x$DISTRO" == "xrhel"  -o "x$DISTRO" == "xcentos" ]; then
+if [ -d "/etc/cloud" ]; then
 cat >> /etc/cloud/cloud.cfg <<EOF
 preserve_hostname: true
 EOF
+fi
 fi
 
 /tmp/volume-mappings.sh /etc/pnda/disk-config/requested-volumes /etc/pnda/disk-config/volume-mappings

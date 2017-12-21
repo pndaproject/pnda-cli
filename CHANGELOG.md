@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-3199: Make socks proxy script executable
 - PNDA-3424: Add a retry to AWS API calls to work around SSL timeout errors
 - PNDA-3377: fix issue on check config which required descriptor file
+- Fork: Fixed issue with missing /etc/cloud directory failing install on baremetal
 
 ## [FORK]
 - Applied annotation tag where pndaproject/pnda-aws-templates has been forked.
