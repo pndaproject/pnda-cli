@@ -2,13 +2,19 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Added
+- PNDA-3299: Support multiple NTP servers properly
+
 ### Changed
 - PNDA-3583: hadoop distro is now part of grains
 - PNDA-3365: remove unnecessary explicit hostfile setup on bastion
+- PNDA-3530: Ambari version 2.6.0.0 and HDP version 2.6.3.0
+- PNDA-3487: /tmp is now tmpfs for production
 
 ### Fixed
 - PNDA-3534: Make iptables injection script idempotent.
 - PNDA-3552: Creation time improvements for large clusters when there is no bastion.
+- Fork: Fixed issue with missing /etc/cloud directory failing install on baremetal
 
 ## [1.0.0] 2017-11-24
 ### Added
@@ -19,7 +25,6 @@ All notable changes to this project will be documented in this file.
 - PNDA-3218: Add iprejecter to enable offline env
 - PNDA-3314: Add new flavor 'production' designed for larger, bare metal clusters
 - PNDA-3484: Add CentOS support
-- PNDA-3299: Support multiple NTP servers properly
 
 ### Changed
 - PNDA-3186: Refactored code into CLI for creating PNDAs on many platforms (pnda-cli)
@@ -27,8 +32,6 @@ All notable changes to this project will be documented in this file.
 - PNDA-3215: Remove EPEL repository
 - PNDA-3180: When expanding a cluster limit the operations to strictly required steps on specific nodes
 - PNDA-3444: Disallow uppercase letters in the cluster names due to AMBARI-22361 affecting HDP.
-- PNDA-3530: Ambari version 2.6.0.0 and HDP version 2.6.3.0
-- PNDA-3487: /tmp is now tmpfs for production
 
 ### Fixed
 - PNDA-3499: Cleanup CHANGELOG with missing release info.
@@ -36,7 +39,6 @@ All notable changes to this project will be documented in this file.
 - PNDA-3199: Make socks proxy script executable
 - PNDA-3424: Add a retry to AWS API calls to work around SSL timeout errors
 - PNDA-3377: fix issue on check config which required descriptor file
-- Fork: Fixed issue with missing /etc/cloud directory failing install on baremetal
 
 ## [FORK]
 - Applied annotation tag where pndaproject/pnda-aws-templates has been forked.
