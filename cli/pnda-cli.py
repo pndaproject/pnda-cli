@@ -470,6 +470,21 @@ def wait_for_host_connectivity(hosts, cluster, bastion_ip):
 
     wait_on_host_operations('waiting for host connectivity', wait_threads, bastion_ip, wait_errors)
 
+def fetch_stack_events(cfn_cnxn, stack_name):
+    page_token = True
+    while (page_token is not None):
+        event_page = cfn_cnxn.describe_stack_events(stack_name, page_token)
+        for event in event_page:
+            resource_id = event.logical_resource_id
+            status = event.resource_status
+            reason = event.resource_status_reason
+            message = "%s: %s%s" % (resource_id, status, '' if reason is None else ' - %s' % reason)
+            if status in ['CREATE_FAILED', 'UPDATE_FAILED'] and reason != 'Resource creation cancelled':
+                CONSOLE.error(message)
+            else:
+                LOG.debug(message)
+        page_token = event_page.next_token
+
 def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, branch, existing_machines_def_file):
 
     init_runfile(cluster)
@@ -515,6 +530,7 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
 
         if stack_status != 'CREATE_COMPLETE':
             CONSOLE.error('Stack did not come up, status is: ' + stack_status)
+            fetch_stack_events(conn, cluster)
             sys.exit(1)
 
     instance_map = get_instance_map(cluster, existing_machines_def_file)
@@ -621,6 +637,7 @@ def expand(template_data, cluster, flavor, old_datanodes, old_kafka, do_orchestr
 
         if stack_status != 'UPDATE_COMPLETE':
             CONSOLE.error('Stack did not come up, status is: ' + stack_status)
+            fetch_stack_events(conn, cluster)
             sys.exit(1)
 
     instance_map = get_instance_map(cluster, existing_machines_def_file)
