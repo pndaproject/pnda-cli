@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 ### Added
 - PNDA-3299: Support multiple NTP servers properly
+- PNDA-3598: Add a pre-check to validate the AWS region
 
 ### Changed
 - PNDA-3583: hadoop distro is now part of grains
