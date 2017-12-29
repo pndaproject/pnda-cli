@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 ### Added
 - PNDA-3299: Support multiple NTP servers properly
+- PNDA-3599: Console output indicating any cloud formation stack errors
 - PNDA-3598: Add a pre-check to validate the AWS region
 
 ### Changed
