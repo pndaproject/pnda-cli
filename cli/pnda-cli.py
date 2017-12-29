@@ -319,6 +319,13 @@ def check_keypair(keyname, keyfile, existing_machines_def_file):
 
 def check_aws_connection():
     region = PNDA_ENV['ec2_access']['AWS_REGION']
+
+    valid_regions = [valid_region.name for valid_region in boto.ec2.regions()]
+    if region not in valid_regions:
+        CONSOLE.info('AWS connection... ERROR')
+        CONSOLE.error('Failed to connect to cloud formation API, ec2 region "%s" was not valid. Valid options are %s', region, json.dumps(valid_regions))
+        sys.exit(1)
+
     conn = boto.cloudformation.connect_to_region(region)
     if conn is None:
         CONSOLE.info('AWS connection... ERROR')
