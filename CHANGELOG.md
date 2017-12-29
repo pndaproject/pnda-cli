@@ -5,12 +5,14 @@ All notable changes to this project will be documented in this file.
 ### Added
 - PNDA-3299: Support multiple NTP servers properly
 - PNDA-3599: Console output indicating any cloud formation stack errors
+- PNDA-3598: Add a pre-check to validate the AWS region
 
 ### Changed
 - PNDA-3583: hadoop distro is now part of grains
 - PNDA-3365: remove unnecessary explicit hostfile setup on bastion
 - PNDA-3530: Ambari version 2.6.0.0 and HDP version 2.6.3.0
 - PNDA-3487: /tmp is now tmpfs for production
+- PNDA-3602: Update boto requirement to 2.48.0 for updated ec2 region support
 
 ### Fixed
 - PNDA-3534: Make iptables injection script idempotent.
