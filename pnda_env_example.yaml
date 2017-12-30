@@ -165,3 +165,14 @@ features:
   # Set to "NO", omit setting or omit features section entirely to turn off experimental features
   EXPERIMENTAL_FEATURES: "NO"
 
+dataset_compaction:
+  # Enable/Disable compaction on datasets.
+  # "YES" to enable.
+  # "NO" to disable.
+  COMPACTION: "NO"
+  # If compaction is enabled, PATTERN sets the frequency of compaction.
+  # H - hourly compaction.
+  # d - daily compaction.
+  # M - monthly compaction.
+  # Y - yearly compaction.
+  PATTERN: d
