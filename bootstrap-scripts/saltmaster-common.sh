@@ -172,3 +172,17 @@ package_repository:
   fs_location_path: "$PR_FS_LOCATION_PATH"
 EOF
 fi
+
+if [ "$COMPACTION" == "YES" ] ; then
+cat << EOF >> /srv/salt/platform-salt/pillar/env_parameters.sls
+dataset_compaction:
+  compaction: $COMPACTION
+  pattern: '$PATTERN'
+EOF
+else
+cat << EOF >> /srv/salt/platform-salt/pillar/env_parameters.sls
+dataset_compaction:
+  compaction: NO
+  pattern: '$PATTERN'
+EOF
+fi
