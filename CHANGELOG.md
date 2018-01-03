@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-3299: Support multiple NTP servers properly
 - PNDA-3599: Console output indicating any cloud formation stack errors
 - PNDA-3598: Add a pre-check to validate the AWS region
+- PNDA-3511: Export a bundle of resources used during provisioning to `cli/logs/<cluster>_<time>_bootstrap-resources.tar.gz` to help an operator with later operations tasks such as a recreating a failed node.
 
 ### Changed
 - PNDA-3583: hadoop distro is now part of grains

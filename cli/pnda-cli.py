@@ -29,6 +29,7 @@ import datetime
 import tarfile
 import ssl
 import Queue
+import StringIO
 
 from threading import Thread
 
@@ -232,7 +233,17 @@ def get_volume_info(node_type, config_file):
             volumes = volume_config['classes'][volume_class]
     return volumes
 
-def bootstrap(instance, saltmaster, cluster, flavor, branch, salt_tarball, error_queue):
+def export_bootstrap_resources(cluster, files, commands):
+    with tarfile.open('cli/logs/%s_%s_bootstrap-resources.tar.gz' % (cluster, MILLI_TIME()), "w:gz") as tar:
+        map(tar.add, files)
+        command_text = StringIO.StringIO()
+        command_text.write('\n'.join([command for command in commands if command.startswith('export')]))
+        command_text.seek(0)
+        command_info = tarfile.TarInfo(name="cli/additional_exports.sh")
+        command_info.size = len(command_text.buf)
+        tar.addfile(tarinfo=command_info, fileobj=command_text)
+
+def bootstrap(instance, saltmaster, cluster, flavor, branch, salt_tarball, error_queue, bootstrap_files=None, bootstrap_commands=None):
     ret_val = None
     try:
         ip_address = instance['private_ip_address']
@@ -251,7 +262,8 @@ def bootstrap(instance, saltmaster, cluster, flavor, branch, salt_tarball, error
                         'bootstrap-scripts/volume-mappings.sh',
                         type_script]
 
-        requested_volumes = get_volume_info(node_type, 'bootstrap-scripts/%s/%s' % (flavor, 'volume-config.yaml'))
+        volume_config = 'bootstrap-scripts/%s/%s' % (flavor, 'volume-config.yaml')
+        requested_volumes = get_volume_info(node_type, volume_config)
         cmds_to_run = ['source /tmp/pnda_env_%s.sh' % cluster,
                        'export PNDA_SALTMASTER_IP=%s' % saltmaster,
                        'export PNDA_CLUSTER=%s' % cluster,
@@ -283,6 +295,13 @@ def bootstrap(instance, saltmaster, cluster, flavor, branch, salt_tarball, error
 
         scp(files_to_scp, cluster, ip_address)
         ssh(cmds_to_run, cluster, ip_address)
+
+        if bootstrap_files is not None:
+            map(bootstrap_files.put, files_to_scp)
+            bootstrap_files.put(volume_config)
+        if bootstrap_commands is not None:
+            map(bootstrap_commands.put, cmds_to_run)
+
     except:
         ret_val = 'Error for host %s. %s' % (instance['name'], traceback.format_exc())
         CONSOLE.error(ret_val)
@@ -479,7 +498,7 @@ def wait_for_host_connectivity(hosts, cluster, bastion_ip):
 
 def fetch_stack_events(cfn_cnxn, stack_name):
     page_token = True
-    while (page_token is not None):
+    while page_token is not None:
         event_page = cfn_cnxn.describe_stack_events(stack_name, page_token)
         for event in event_page:
             resource_id = event.logical_resource_id
@@ -587,18 +606,24 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
 
     bootstrap_threads = []
     bootstrap_errors = Queue.Queue()
-    bootstrap(saltmaster, saltmaster_ip, cluster, flavor, branch, platform_salt_tarball, bootstrap_errors)
+    bootstrap_files = Queue.Queue()
+    bootstrap_commands = Queue.Queue()
+
+    bootstrap(saltmaster, saltmaster_ip, cluster, flavor, branch, platform_salt_tarball, bootstrap_errors, bootstrap_files, bootstrap_commands)
     process_thread_errors('bootstrapping saltmaster', bootstrap_errors)
 
     CONSOLE.info('Bootstrapping other instances. Expect this to take a few minutes, check the debug log for progress (%s).', LOG_FILE_NAME)
     for key, instance in instance_map.iteritems():
         if '-' + NODE_CONFIG['salt-master-instance'] not in key:
             thread = Thread(target=bootstrap, args=[instance, saltmaster_ip,
-                                                    cluster, flavor, branch, platform_salt_tarball, bootstrap_errors])
+                                                    cluster, flavor, branch,
+                                                    platform_salt_tarball, bootstrap_errors,
+                                                    bootstrap_files, bootstrap_commands])
             bootstrap_threads.append(thread)
 
     wait_on_host_operations('bootstrapping host', bootstrap_threads, bastion_ip, bootstrap_errors)
 
+    export_bootstrap_resources(cluster, list(set(bootstrap_files.queue)), list(set(bootstrap_commands.queue)))
     time.sleep(30)
 
     CONSOLE.info('Running salt to install software. Expect this to take 45 minutes or more, check the debug log for progress (%s).', LOG_FILE_NAME)
