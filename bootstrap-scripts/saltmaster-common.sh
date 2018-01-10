@@ -54,6 +54,8 @@ reactor:
     - salt://reactor/create_bastion_host_entry.sls
   - 'salt/cloud/*/destroying':
     - salt://reactor/delete_bastion_host_entry.sls
+  - 'fqdn/updated/jupyter':
+    - salt://reactor/fqdn_update.sls
 ## end of specific PNDA saltmaster config
 file_recv: True
 
@@ -84,6 +86,36 @@ elif [ "x$PLATFORM_SALT_LOCAL" != "x" ]; then
   tar zxf /tmp/$PLATFORM_SALT_TARBALL -C /srv/salt
 else
   exit 2
+fi
+
+if [ "x$SECURITY_CERTS_TARBALL" != "x" ]; then
+  SECURITY_CERTS_TARBALL_HASH=`md5sum /tmp/$SECURITY_CERTS_TARBALL | awk '{ print $1 }'`
+  if [ ! -e /srv/security-certs/.${SECURITY_CERTS_TARBALL_HASH} ]; then
+    if [ -d /srv/security-certs ]; then rm -rf /srv/security-certs; fi
+    mkdir /srv/security-certs
+    tar zxf /tmp/$SECURITY_CERTS_TARBALL --strip-components=1 -C /srv/security-certs 
+    touch /srv/security-certs/.${SECURITY_CERTS_TARBALL_HASH}
+    # Generate pillar files to store the security material
+    cert_file="/srv/salt/platform-salt/pillar/certs.sls"
+    if [ -e cert_file ]; then rm cert_file; fi
+    for i in `find /srv/security-certs/ -maxdepth 1 -mindepth 1 -type d -exec basename {} \;`; do
+      for j in `find /srv/security-certs/$i -maxdepth 1 -mindepth 1 -type f -name '*.pem'`; do
+        echo -e "$i:\n  cert: |" >> $cert_file
+        sed  's/^/    /' $j >> $cert_file
+        break
+      done;
+      for j in `find /srv/security-certs/$i -maxdepth 1 -mindepth 1 -type f -name '*.key'`; do
+        out_dir="/srv/salt/platform-salt/pillar/roles/$i"
+        mkdir -p $out_dir
+        out_file="$out_dir/$i-key.sls"
+        echo "Generating $out_file"
+        echo -e "$i:\n  key: |" > $out_file
+        sed  's/^/    /' $j >> $out_file
+        break;
+      done;
+    done;
+    #salt '*' saltutil.refresh_pillar
+  fi
 fi
 
 MINE_FUNCTIONS_NETWORK_INTERFACE="eth0"
@@ -132,9 +164,13 @@ packages_server:
 hdp:
   hdp_core_stack_repo: '$PNDA_MIRROR/mirror_hdp/HDP/$HDP_OS/2.6.3.0-235/'
   hdp_utils_stack_repo: '$PNDA_MIRROR/mirror_hdp/HDP-UTILS-1.1.0.21/repos/$HDP_OS/'
+
 mine_functions:
   network.ip_addrs: [$MINE_FUNCTIONS_NETWORK_INTERFACE]
   grains.items: []
+
+security:
+  security: $SECURITY_MODE
 EOF
 
 if [ "x$NTP_SERVERS" != "x" ] ; then
