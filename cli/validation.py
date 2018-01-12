@@ -130,14 +130,20 @@ class UserInputValidator(object):
             self._range_validator = RangeValidator(flavor)
         flavor_validator['action'] = _flavor_action_func
 
+        # arbitrary predicates that can be associated with fields
+        self._field_flags = {
+            # predicate for allowing none-valued arguments (suppress prompt) 
+            'allow_none': lambda args: (args['command'] == 'expand') or (args['command'] == 'create' and args['x_machines_definition'] is not None)
+        }
+
         self._validated_fields = {
-            "pnda_cluster" : {"validator":name_validator, "group":["create", "expand", "destroy"], "required":True},
-            "keyname": {"validator":key_validator, "group":["create", "expand"], "required":True},
-            "datanodes" : {"validator":integer_validator, "group":["create", "expand"], "required":False},
-            "opentsdb_nodes" : {"validator":integer_validator, "group":["create", "expand"], "required":False},
-            "kafka_nodes" : {"validator":integer_validator, "group":["create", "expand"], "required":False},
-            "zk_nodes" : {"validator":integer_validator, "group":["create", "expand"], "required":False},
-            "flavor" : {"validator":flavor_validator, "group":["create", "expand"], "required":True}
+            "pnda_cluster" : {"validator":name_validator, "group":["create", "expand", "destroy"], "required":True, "flags":[]},
+            "keyname": {"validator":key_validator, "group":["create", "expand"], "required":True, "flags":[]},
+            "datanodes" : {"validator":integer_validator, "group":["create", "expand"], "required":False, "flags":['allow_none']},
+            "opentsdb_nodes" : {"validator":integer_validator, "group":["create", "expand"], "required":False, "flags":['allow_none']},
+            "kafka_nodes" : {"validator":integer_validator, "group":["create", "expand"], "required":False, "flags":['allow_none']},
+            "zk_nodes" : {"validator":integer_validator, "group":["create", "expand"], "required":False, "flags":['allow_none']},
+            "flavor" : {"validator":flavor_validator, "group":["create", "expand"], "required":True, "flags":[]}
         }
 
     def _value_or_default(self, field, func, default):
@@ -158,6 +164,10 @@ class UserInputValidator(object):
 
     def _field_validator_group(self, field):
         return self._value_or_default(field, lambda val: val["group"], [])
+
+    def _field_validator_flag(self, args, field, flag):
+        func = self._value_or_default(field, lambda val: self._field_flags[flag] if flag in val["flags"] else None, None)
+        return func(args) if func is not None else False
 
     def _get_range_validation_rule(self, field):
         return self._range_validator.get_validation_rule(field) if self._range_validator is not None else None
@@ -203,12 +213,14 @@ class UserInputValidator(object):
                 if not self._range_validate_field(field, val):
                     raise ArgumentTypeError("%s: '%s' not in valid range (%s)" % (field, val, rule))
             else: # value not specified
-                # if rule specified or field required, prompt user until we have valid value
-                if (rule is not None and rule != "0") or self._field_validator_required(field):
-                    val = _prompt_user(field, val)
-                # if rule specified as zero, default to 0
-                elif rule is not None and rule == "0":
-                    val = 0 if val is None else val
+                # if allow_none is set, allow none-valued field to pass through
+                if not self._field_validator_flag(args, field, 'allow_none'):
+                    # if field 'required' or non-zero rule then prompt user
+                    if (self._field_validator_required(field) or (rule is not None and rule != "0")):
+                        val = _prompt_user(field, val)
+                    # if rule is zero, default to 0 without prompting
+                    elif rule is not None and rule == "0":
+                        val = 0 if val is None else val
             args[field] = val
         return args
 
@@ -279,7 +291,8 @@ class UserInputValidator(object):
                                   'Useful for checking against existing Cloud formation template '
                                   ' to gain confidence before running the expand operation.'))
         parser.add_argument('-m', '--x-machines-definition',
-                            help='File describing topology of target server cluster')
+                            help=('File describing topology of target server cluster. If specified, '
+                                  'topology specifiers -k, -z, -o and -n are not required.'))
 
         args = parser.parse_args()
 
@@ -291,6 +304,7 @@ class UserInputValidator(object):
         '''
         args = self._parse()
         validated_fields = self._validate_user_input(vars(args))
+        print validated_fields
         return validated_fields
 
     def get_range_validator(self):
