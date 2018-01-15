@@ -172,3 +172,10 @@ package_repository:
   fs_location_path: "$PR_FS_LOCATION_PATH"
 EOF
 fi
+
+if [ "x$EXPERIMENTAL_FEATURES" == "xYES" ] ; then
+cat << EOF >> /srv/salt/platform-salt/pillar/env_parameters.sls
+features:
+  - EXPERIMENTAL
+EOF
+fi
