@@ -159,3 +159,15 @@ cli:
   # Consider increasing this when creating clusters with more than 100 nodes to speed
   # up PNDA creation time.
   MAX_SIMULTANEOUS_OUTBOUND_CONNECTIONS: 100
+
+dataset_compaction:
+  # Enable/Disable compaction on datasets.
+  # "YES" to enable.
+  # "NO" to disable.
+  COMPACTION: "YES"
+  # If compaction is enabled, PATTERN sets the frequency of compaction.
+  # H - hourly compaction.
+  # d - daily compaction.
+  # M - monthly compaction.
+  # Y - yearly compaction.
+  PATTERN: d
