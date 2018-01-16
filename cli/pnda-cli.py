@@ -814,9 +814,9 @@ def main():
     # Process user input
     ###
     input_validator = UserInputValidator(valid_flavors())
-    args = input_validator.parse_user_input()
+    fields = input_validator.parse_user_input()
 
-    create_cloud_infra = args['x_machines_definition'] is None
+    create_cloud_infra = fields['x_machines_definition'] is None
 
     os.chdir('../')
 
@@ -831,12 +831,12 @@ def main():
         PNDA_ENV = yaml.load(infile)
 
         if not create_cloud_infra:
-            CONSOLE.info('Installing to existing infra, defined in %s', args['x_machines_definition'])
-            node_counts = get_requested_node_counts(args['pnda_cluster'], args['x_machines_definition'])
-            args['datanodes'] = node_counts['hadoop-dn']
-            args['opentsdb_nodes'] = node_counts['opentsdb']
-            args['kafka_nodes'] = node_counts['kafka']
-            args['zk_nodes'] = node_counts['zk']
+            CONSOLE.info('Installing to existing infra, defined in %s', fields['x_machines_definition'])
+            node_counts = get_requested_node_counts(fields['pnda_cluster'], fields['x_machines_definition'])
+            fields['datanodes'] = node_counts['hadoop-dn']
+            fields['opentsdb_nodes'] = node_counts['opentsdb']
+            fields['kafka_nodes'] = node_counts['kafka']
+            fields['zk_nodes'] = node_counts['zk']
         else:
             os.environ['AWS_ACCESS_KEY_ID'] = PNDA_ENV['ec2_access']['AWS_ACCESS_KEY_ID']
             os.environ['AWS_SECRET_ACCESS_KEY'] = PNDA_ENV['ec2_access']['AWS_SECRET_ACCESS_KEY']
@@ -872,8 +872,8 @@ def main():
     branch = 'master'
     if 'PLATFORM_GIT_BRANCH' in PNDA_ENV['platform_salt']:
         branch = PNDA_ENV['platform_salt']['PLATFORM_GIT_BRANCH']
-    if args['branch'] is not None:
-        branch = args['branch']
+    if fields['branch'] is not None:
+        branch = fields['branch']
 
     if not os.path.isfile('git.pem') and create_cloud_infra:
         with open('git.pem', 'w') as git_key_file:
@@ -886,7 +886,7 @@ def main():
     global NODE_CONFIG
     if not create_cloud_infra:
         NODE_CONFIG = {'bastion-instance':''}
-        existing_machines_def = file(args['x_machines_definition'])
+        existing_machines_def = file(fields['x_machines_definition'])
         existing_machines = json.load(existing_machines_def)
         for node in existing_machines:
             if 'is_bastion' in existing_machines[node] and existing_machines[node]['is_bastion'] is True:
@@ -897,72 +897,72 @@ def main():
                 NODE_CONFIG['console-instance'] = node
         existing_machines_def.close()
     else:
-        if args['flavor'] is not None:
-            node_config_file = file('cloud-formation/%s/config.json' % args["flavor"])
+        if fields['flavor'] is not None:
+            node_config_file = file('cloud-formation/%s/config.json' % fields["flavor"])
             NODE_CONFIG = json.load(node_config_file)
             node_config_file.close()
 
     do_orchestrate = False
     template_data = None
 
-    write_pnda_env_sh(args['pnda_cluster'])
+    write_pnda_env_sh(fields['pnda_cluster'])
 
     ###
     # Handle destroy command
     ###
-    if args['command'] == 'destroy':
-        destroy(args['pnda_cluster'], args['x_machines_definition'])
+    if fields['command'] == 'destroy':
+        destroy(fields['pnda_cluster'], fields['x_machines_definition'])
         sys.exit(0)
 
     ###
     # Handle expand command
     ###
-    if args['command'] == 'expand':
+    if fields['command'] == 'expand':
         clear_instance_map_cache()
-        node_counts = get_live_node_counts(args['pnda_cluster'], args['x_machines_definition'])
+        node_counts = get_live_node_counts(fields['pnda_cluster'], fields['x_machines_definition'])
 
-        if args['datanodes'] < node_counts['hadoop-dn']:
+        if fields['datanodes'] < node_counts['hadoop-dn']:
             print "You cannot shrink the cluster using this CLI, existing number of datanodes is: %s" % node_counts['hadoop-dn']
             sys.exit(1)
-        elif args['datanodes'] > node_counts['hadoop-dn']:
-            print "Increasing the number of datanodes from %s to %s" % (node_counts['hadoop-dn'], args['datanodes'])
+        elif fields['datanodes'] > node_counts['hadoop-dn']:
+            print "Increasing the number of datanodes from %s to %s" % (node_counts['hadoop-dn'], fields['datanodes'])
             do_orchestrate = True
-        if args['kafka_nodes'] < node_counts['kafka']:
+        if fields['kafka_nodes'] < node_counts['kafka']:
             print "You cannot shrink the cluster using this CLI, existing number of kafkanodes is: %s" % node_counts['kafka']
             sys.exit(1)
-        elif args['kafka_nodes'] > node_counts['kafka']:
-            print "Increasing the number of kafkanodes from %s to %s" % (node_counts['kafka'], args['kafka_nodes'])
+        elif fields['kafka_nodes'] > node_counts['kafka']:
+            print "Increasing the number of kafkanodes from %s to %s" % (node_counts['kafka'], fields['kafka_nodes'])
 
         if create_cloud_infra:
-            template_data = generate_template_file(args['flavor'], args['datanodes'], node_counts['opentsdb'], args['kafka_nodes'], node_counts['zk'],
+            template_data = generate_template_file(fields['flavor'], fields['datanodes'], node_counts['opentsdb'], fields['kafka_nodes'], node_counts['zk'],
                                                    es_fields['elk_es_master'], es_fields['elk_es_ingest'], es_fields['elk_es_data'],
                                                    es_fields['elk_es_coordinator'], es_fields['elk_es_multi'], es_fields['elk_logstash'])
 
-        expand(template_data, args['pnda_cluster'], args['flavor'],
-               do_orchestrate, args['keyname'], args["no_config_check"], args['dry_run'], branch, args['x_machines_definition'])
+        expand(template_data, fields['pnda_cluster'], fields['flavor'],
+               do_orchestrate, fields['keyname'], fields["no_config_check"], fields['dry_run'], branch, fields['x_machines_definition'])
 
         sys.exit(0)
 
     ###
     # Handle create command
     ###
-    if args['command'] == 'create':
+    if fields['command'] == 'create':
         if create_cloud_infra:
-            template_data = generate_template_file(args['flavor'], args['datanodes'], args['opentsdb_nodes'], args['kafka_nodes'], args['zk_nodes'],
+            template_data = generate_template_file(fields['flavor'], fields['datanodes'], fields['opentsdb_nodes'], fields['kafka_nodes'], fields['zk_nodes'],
                                                    es_fields['elk_es_master'], es_fields['elk_es_ingest'], es_fields['elk_es_data'],
                                                    es_fields['elk_es_coordinator'], es_fields['elk_es_multi'], es_fields['elk_logstash'])
 
-        console_dns = create(template_data, args['pnda_cluster'], args['flavor'],
-                             args['keyname'], args["no_config_check"], args['dry_run'],
-                             branch, args['x_machines_definition'])
+        console_dns = create(template_data, fields['pnda_cluster'], fields['flavor'],
+                             fields['keyname'], fields["no_config_check"], fields['dry_run'],
+                             branch, fields['x_machines_definition'])
 
         CONSOLE.info('Use the PNDA console to get started: http://%s', console_dns)
         CONSOLE.info(' Access hints:')
         CONSOLE.info('  - The script ./socks_proxy-%s sets up port forwarding to the PNDA cluster with SSH acting as a SOCKS server on localhost:9999',
-                     args['pnda_cluster'])
-        CONSOLE.info('  - Please review ./socks_proxy-%s and ensure it complies with your local security policies before use', args['pnda_cluster'])
-        CONSOLE.info('  - Set up a socks proxy with: chmod +x socks_proxy-%s; ./socks_proxy-%s', args['pnda_cluster'], args['pnda_cluster'])
-        CONSOLE.info('  - SSH to a node with: ssh -F ssh_config-%s <private_ip>', args['pnda_cluster'])
+                     fields['pnda_cluster'])
+        CONSOLE.info('  - Please review ./socks_proxy-%s and ensure it complies with your local security policies before use', fields['pnda_cluster'])
+        CONSOLE.info('  - Set up a socks proxy with: chmod +x socks_proxy-%s; ./socks_proxy-%s', fields['pnda_cluster'], fields['pnda_cluster'])
+        CONSOLE.info('  - SSH to a node with: ssh -F ssh_config-%s <private_ip>', fields['pnda_cluster'])
 
 if __name__ == "__main__":
     try:
