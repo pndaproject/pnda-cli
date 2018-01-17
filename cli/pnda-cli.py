@@ -921,6 +921,12 @@ def main():
         clear_instance_map_cache()
         node_counts = get_live_node_counts(fields['pnda_cluster'], fields['x_machines_definition'])
 
+        # if these fields not supplied, default to previous values
+        if fields['datanodes'] is None:
+            fields['datanodes'] = node_counts['hadoop-dn']
+        if fields['kafka_nodes'] is None:
+            fields['kafka_nodes'] = node_counts['kafka']
+
         if fields['datanodes'] < node_counts['hadoop-dn']:
             print "You cannot shrink the cluster using this CLI, existing number of datanodes is: %s" % node_counts['hadoop-dn']
             sys.exit(1)
