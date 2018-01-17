@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-3599: Console output indicating any cloud formation stack errors
 - PNDA-3598: Add a pre-check to validate the AWS region
 - PNDA-3511: Export a bundle of resources used during provisioning to `cli/logs/<cluster>_<time>_bootstrap-resources.tar.gz` to help an operator with later operations tasks such as a recreating a failed node.
+- PNDA-3630: Added EXPERIMENTAL flag to pnda_env.yaml which is initially only used to include Jupyter Scala support
 
 ### Changed
 - PNDA-3583: hadoop distro is now part of grains
@@ -19,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-3534: Make iptables injection script idempotent.
 - PNDA-3552: Creation time improvements for large clusters when there is no bastion.
 - Fork: Fixed issue with missing /etc/cloud directory failing install on baremetal
+- PNDA-3629: Allow void arguments for specific invocation combinations e.g. no need to specify separate node counts for server cluster installs
 
 ## [1.0.0] 2017-11-24
 ### Added
