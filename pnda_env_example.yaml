@@ -159,3 +159,9 @@ cli:
   # Consider increasing this when creating clusters with more than 100 nodes to speed
   # up PNDA creation time.
   MAX_SIMULTANEOUS_OUTBOUND_CONNECTIONS: 100
+
+features:
+  # Include experimental features. 
+  # Set to "NO", omit setting or omit features section entirely to turn off experimental features
+  EXPERIMENTAL_FEATURES: "NO"
+
