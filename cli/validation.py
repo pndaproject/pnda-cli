@@ -304,7 +304,6 @@ class UserInputValidator(object):
         '''
         args = self._parse()
         validated_fields = self._validate_user_input(vars(args))
-        print validated_fields
         return validated_fields
 
     def get_range_validator(self):
