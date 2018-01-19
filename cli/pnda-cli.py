@@ -292,7 +292,7 @@ def export_bootstrap_resources(cluster, files, commands):
         command_info.size = len(command_text.buf)
         tar.addfile(tarinfo=command_info, fileobj=command_text)
 
-def bootstrap(instance, saltmaster, cluster, flavor, branch, salt_tarball, error_queue, bootstrap_files=None, bootstrap_commands=None):
+def bootstrap(instance, saltmaster, cluster, flavor, branch, salt_tarball, certs_tarball, error_queue, bootstrap_files=None, bootstrap_commands=None):
     ret_val = None
     try:
         ip_address = instance['private_ip_address']
@@ -319,6 +319,7 @@ def bootstrap(instance, saltmaster, cluster, flavor, branch, salt_tarball, error
                        'export PNDA_FLAVOR=%s' % flavor,
                        'export PLATFORM_GIT_BRANCH=%s' % branch,
                        'export PLATFORM_SALT_TARBALL=%s' % salt_tarball if salt_tarball is not None else ':',
+                       'export SECURITY_CERTS_TARBALL=%s' % certs_tarball if certs_tarball is not None else ':',
                        'sudo chmod a+x /tmp/package-install.sh',
                        'sudo chmod a+x /tmp/base.sh',
                        'sudo chmod a+x /tmp/volume-mappings.sh']
@@ -658,12 +659,16 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
         scp([platform_salt_tarball], cluster, saltmaster_ip)
         os.remove(platform_salt_tarball)
 
+    platform_certs_tarball = None
+    if PNDA_ENV['security']['SECURITY_MODE'] != 'disabled':
+        platform_certs_tarball = ship_certs(cluster, saltmaster_ip)
+       
     bootstrap_threads = []
     bootstrap_errors = Queue.Queue()
     bootstrap_files = Queue.Queue()
     bootstrap_commands = Queue.Queue()
 
-    bootstrap(saltmaster, saltmaster_ip, cluster, flavor, branch, platform_salt_tarball, bootstrap_errors, bootstrap_files, bootstrap_commands)
+    bootstrap(saltmaster, saltmaster_ip, cluster, flavor, branch, platform_salt_tarball, platform_certs_tarball, bootstrap_errors, bootstrap_files, bootstrap_commands)
     process_thread_errors('bootstrapping saltmaster', bootstrap_errors)
 
     CONSOLE.info('Bootstrapping other instances. Expect this to take a few minutes, check the debug log for progress (%s).', LOG_FILE_NAME)
@@ -671,7 +676,7 @@ def create(template_data, cluster, flavor, keyname, no_config_check, dry_run, br
         if '-' + NODE_CONFIG['salt-master-instance'] not in key:
             thread = Thread(target=bootstrap, args=[instance, saltmaster_ip,
                                                     cluster, flavor, branch,
-                                                    platform_salt_tarball, bootstrap_errors,
+                                                    platform_salt_tarball, None, bootstrap_errors,
                                                     bootstrap_files, bootstrap_commands])
             bootstrap_threads.append(thread)
 
@@ -744,7 +749,7 @@ def expand(template_data, cluster, flavor, do_orchestrate, keyname, no_config_ch
     bootstrap_errors = Queue.Queue()
     for _, instance in instance_map.iteritems():
         if len(instance['node_type']) > 0 and not instance['bootstrapped']:
-            thread = Thread(target=bootstrap, args=[instance, saltmaster_ip, cluster, flavor, branch, None, bootstrap_errors])
+            thread = Thread(target=bootstrap, args=[instance, saltmaster_ip, cluster, flavor, branch, None, None, bootstrap_errors])
             bootstrap_threads.append(thread)
 
     wait_on_host_operations('bootstrapping host', bootstrap_threads, bastion_ip is not None, bootstrap_errors)
@@ -802,6 +807,26 @@ def valid_flavors():
     bootstap_dirs = [dir_name for dir_name in os.listdir('../bootstrap-scripts') if  os.path.isdir(os.path.join('../bootstrap-scripts', dir_name))]
 
     return list(set(cfn_dirs + bootstap_dirs))
+
+def ship_certs(cluster, saltmaster_ip):
+    platform_certs_tarball = None
+    try:
+        local_certs_path = PNDA_ENV['security']['SECURITY_MATERIAL_PATH']
+        platform_certs_tarball = '%s.tar.gz' % str(uuid.uuid1())
+        with tarfile.open(platform_certs_tarball, mode='w:gz') as archive:
+            archive.add(local_certs_path, arcname='security-certs', recursive=True)
+    except Exception as exception:
+        if PNDA_ENV['security']['SECURITY_MODE'] == 'permissive':
+            LOG.warning(exception)
+            return None
+        else:
+            CONSOLE.error(exception)
+            raise PNDAConfigException("Error: %s must contain certificates" % local_certs_path)
+
+    scp([platform_certs_tarball], cluster, saltmaster_ip)
+    os.remove(platform_certs_tarball)
+
+    return platform_certs_tarball
 
 def main():
     print 'Saving debug log to %s' % LOG_FILE_NAME
