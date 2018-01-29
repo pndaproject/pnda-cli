@@ -162,8 +162,8 @@ packages_server:
   base_uri: '$PNDA_MIRROR'
 
 hdp:
-  hdp_core_stack_repo: '$PNDA_MIRROR/mirror_hdp/HDP/$HDP_OS/2.6.3.0-235/'
-  hdp_utils_stack_repo: '$PNDA_MIRROR/mirror_hdp/HDP-UTILS-1.1.0.21/repos/$HDP_OS/'
+  hdp_core_stack_repo: '$PNDA_MIRROR/mirror_hdp/HDP/$HDP_OS/2.6.4.0-91/'
+  hdp_utils_stack_repo: '$PNDA_MIRROR/mirror_hdp/HDP-UTILS-1.1.0.22/repos/$HDP_OS/'
 
 mine_functions:
   network.ip_addrs: [$MINE_FUNCTIONS_NETWORK_INTERFACE]
