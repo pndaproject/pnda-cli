@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-3487: /tmp is now tmpfs for production
 - PNDA-3602: Update boto requirement to 2.48.0 for updated ec2 region support
 - PNDA-4043: Update HDP to version 2.6.4.0
+- PNDA-4052: Add log volume to jupyter node in standard flavor
 
 ### Fixed
 - PNDA-3534: Make iptables injection script idempotent.
