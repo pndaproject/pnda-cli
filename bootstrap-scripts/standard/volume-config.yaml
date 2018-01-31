@@ -13,7 +13,7 @@ classes:
 instances:
   hadoop-dn: datanode
   bastion: no_additonal_volumes
-  jupyter: no_additonal_volumes
+  jupyter: generic
   saltmaster: no_additonal_volumes
   tools: no_additonal_volumes
   kafka: generic
