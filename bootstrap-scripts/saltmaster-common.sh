@@ -118,11 +118,6 @@ if [ "x$SECURITY_CERTS_TARBALL" != "x" ]; then
   fi
 fi
 
-MINE_FUNCTIONS_NETWORK_INTERFACE="eth0"
-if [ "x$MINE_FUNCTIONS_NETWORK_IP_ADDRS_NIC" != "x" ]; then
-  MINE_FUNCTIONS_NETWORK_INTERFACE="$MINE_FUNCTIONS_NETWORK_IP_ADDRS_NIC"
-fi
-
 # Push pillar config into platform-salt for environment specific config
 cat << EOF >> /srv/salt/platform-salt/pillar/env_parameters.sls
 os_user: $OS_USER
@@ -166,7 +161,7 @@ hdp:
   hdp_utils_stack_repo: '$PNDA_MIRROR/mirror_hdp/HDP-UTILS-1.1.0.22/repos/$HDP_OS/'
 
 mine_functions:
-  network.ip_addrs: [$MINE_FUNCTIONS_NETWORK_INTERFACE]
+  network.ip_addrs: [$PNDA_INTERNAL_NETWORK]
   grains.items: []
 
 security:
