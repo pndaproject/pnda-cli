@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4052: Add log volume to jupyter node in standard flavor
 - PNDA-4186: Deprecated PNDA-MINE_FUNCTIONS_NETWORK_IP_ADDRS_NIC field from pnda_env YAML
 - PNDA-4179: Removed interface setup code from bootstrap scripts, expected to be done during infra preparation
+- PNDA-4615: Major refactor into clearly separated back-ends to execute orchestration on different platforms
 
 ### Fixed
 - PNDA-3534: Make iptables injection script idempotent.
