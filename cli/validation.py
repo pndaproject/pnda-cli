@@ -132,7 +132,7 @@ class UserInputValidator(object):
 
         # arbitrary predicates that can be associated with fields
         self._field_flags = {
-            # predicate for allowing none-valued arguments (suppress prompt) 
+            # predicate for allowing none-valued arguments (suppress prompt)
             'allow_none': lambda args: (args['command'] == 'expand') or (args['command'] == 'create' and args['x_machines_definition'] is not None)
         }
 
@@ -216,7 +216,7 @@ class UserInputValidator(object):
                 # if allow_none is set, allow none-valued field to pass through
                 if not self._field_validator_flag(args, field, 'allow_none'):
                     # if field 'required' or non-zero rule then prompt user
-                    if (self._field_validator_required(field) or (rule is not None and rule != "0")):
+                    if self._field_validator_required(field) or (rule is not None and rule != "0"):
                         val = _prompt_user(field, val)
                     # if rule is zero, default to 0 without prompting
                     elif rule is not None and rule == "0":
@@ -229,20 +229,20 @@ class UserInputValidator(object):
 
         - Create new cluster, prompting for values:
             pnda-cli.py create
-        
+
         - Destroy existing cluster:
             pnda-cli.py destroy -e squirrel-land
-        
+
         - Expand existing cluster:
             pnda-cli.py expand -e squirrel-land -f standard -s keyname -n 10 -k 5
 
-        Either, or both, kafka (k) and datanodes (n) can be changed. 
-        The value specifies the new total number of nodes. 
+        Either, or both, kafka (k) and datanodes (n) can be changed.
+        The value specifies the new total number of nodes.
         Shrinking is not supported - this must be done very carefully to avoid data loss.
-        
+
         - Create cluster without user input:
             pnda-cli.py create -s mykeyname -e squirrel-land -f standard -n 5 -o 1 -k 2 -z 3
-            
+
         """
 
         def _build_action(func):
@@ -287,7 +287,7 @@ class UserInputValidator(object):
                             help='Branch of platform-salt to use. Overrides value in pnda_env.yaml')
         parser.add_argument('-d', '--dry-run',
                             action='store_true',
-                            help=('Output final Cloud Formation template but do not apply it. '
+                            help=('(AWS Only) Output final Cloud Formation template but do not apply it. '
                                   'Useful for checking against existing Cloud formation template '
                                   ' to gain confidence before running the expand operation.'))
         parser.add_argument('-m', '--x-machines-definition',
