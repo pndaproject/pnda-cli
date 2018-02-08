@@ -56,7 +56,8 @@ class BaseBackend(object):
         self._flavor = flavor
         self._keyfile = keyfile
         self._branch = branch
-        self._node_config = self.load_node_config()
+        if flavor is not None:
+            self._node_config = self.load_node_config()
         self._cached_instance_map = None
 
     ### Public interface
