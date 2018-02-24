@@ -147,7 +147,6 @@ cloudera:
   parcel_repo: '$PNDA_MIRROR/mirror_cloudera'
 
 anaconda:
-  parcel_version: "4.0.0"
   parcel_repo: '$PNDA_MIRROR/mirror_anaconda'
 
 pip:
