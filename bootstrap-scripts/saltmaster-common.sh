@@ -146,9 +146,6 @@ pnda_mirror:
 cloudera:
   parcel_repo: '$PNDA_MIRROR/mirror_cloudera'
 
-anaconda:
-  parcel_repo: '$PNDA_MIRROR/mirror_anaconda'
-
 pip:
   index_url: '$PNDA_MIRROR/mirror_python/simple'
 
