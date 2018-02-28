@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Changed
+- PNDA-4394: Remove Anaconda CDH parcel mirror as this is now installed from a bundle
 
 ## [1.1.0] 2018-02-10
 ### Added
