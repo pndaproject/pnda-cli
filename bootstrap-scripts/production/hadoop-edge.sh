@@ -25,6 +25,7 @@ roles:
   - console_backend_data_manager
   - graphite
   - gobblin
+  - flink
   - deployment_manager
   - package_repository
   - data_service
