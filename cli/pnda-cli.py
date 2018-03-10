@@ -235,7 +235,7 @@ def main():
         CONSOLE.info('  - The script ./socks_proxy-%s sets up port forwarding to the PNDA cluster with SSH acting as a SOCKS server on localhost:9999',
                      fields['pnda_cluster'])
         CONSOLE.info('  - Please review ./socks_proxy-%s and ensure it complies with your local security policies before use', fields['pnda_cluster'])
-        CONSOLE.info('  - Set up a socks proxy with: chmod +x socks_proxy-%s; ./socks_proxy-%s', fields['pnda_cluster'], fields['pnda_cluster'])
+        CONSOLE.info('  - Set up a socks proxy with: ./socks_proxy-%s', fields['pnda_cluster'])
         CONSOLE.info('  - SSH to a node with: ssh -F ssh_config-%s <private_ip>', fields['pnda_cluster'])
         sys.exit(0)
 
