@@ -494,7 +494,14 @@ class BaseBackend(object):
 
         CONSOLE.info('Running salt to install software. Expect this to take 45 minutes or more, check the debug log for progress (%s).', LOG_FILE_NAME)
         bastion = self._node_config['bastion-instance']
-        self._ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" state.highstate queue=True 2>&1) | tee -a pnda-salt.log; %s'
+        # Consul is installed first, the Consul sls waits for 30 seconds at the end then restarts the minion
+        # We then wait 60 seconds before continuing with highstate to allow the minions to restart
+        # An improvement would be running a test.ping and waiting for all expected minions to be ready
+        # Consul must be installed in a separate phase as the minion must be restarted for it to pick up
+        # changes to resolv.conf on redhat (see https://github.com/saltstack/salt/issues/21397)
+        self._ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" state.sls consul,consul.dns queue=True 2>&1) | tee -a pnda-salt.log; %s'
+                   % THROW_BASH_ERROR, 'sleep 60',
+                   '(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" state.highstate queue=True 2>&1) | tee -a pnda-salt.log; %s'
                    % THROW_BASH_ERROR,
                    '(sudo CLUSTER=%s salt-run --log-level=debug state.orchestrate orchestrate.pnda 2>&1) | tee -a pnda-salt.log; %s'
                    % (self._cluster, THROW_BASH_ERROR)], self._cluster, saltmaster_ip)
@@ -525,8 +532,13 @@ class BaseBackend(object):
 
         CONSOLE.info('Running salt to install software. Expect this to take 10 - 20 minutes, check the debug log for progress. (%s)', LOG_FILE_NAME)
 
-        expand_commands = ['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" state.sls hostsfile queue=True 2>&1)' +
-                           ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR,
+        # Consul is installed first, the Consul sls waits for 30 seconds at the end then restarts the minion
+        # We then wait 60 seconds before continuing with highstate to allow the minions to restart
+        # An improvement would be running a test.ping and waiting for all expected minions to be ready
+        # Consul must be installed in a separate phase as the minion must be restarted for it to pick up
+        # changes to resolv.conf on redhat (see https://github.com/saltstack/salt/issues/21397)
+        expand_commands = ['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed -C "G@pnda:is_new_node" state.sls consul,consul.dns queue=True 2>&1) | tee -a pnda-salt.log; %s'
+                           % THROW_BASH_ERROR, 'sleep 60',
                            '(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed -C "G@pnda:is_new_node" state.highstate queue=True 2>&1)' +
                            ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR]
         if do_orchestrate:
