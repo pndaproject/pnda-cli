@@ -293,7 +293,9 @@ class UserInputValidator(object):
         parser.add_argument('-m', '--x-machines-definition',
                             help=('File describing topology of target server cluster. If specified, '
                                   'topology specifiers -k, -z, -o and -n are not required.'))
-
+        parser.add_argument('-v', '--verbose',
+                            help='Verbose logging',
+                            action='store_true')
         args = parser.parse_args()
 
         return args
