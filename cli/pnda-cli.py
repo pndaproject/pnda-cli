@@ -137,6 +137,8 @@ def main():
     ###
     input_validator = UserInputValidator(valid_flavors())
     fields = input_validator.parse_user_input()
+    if fields['verbose']:
+        utils.set_log_level('DEBUG')
     utils.init_runfile(fields['pnda_cluster'])
 
     os.chdir('../')
@@ -207,16 +209,16 @@ def main():
             fields['kafka_nodes'] = node_counts['kafka']
 
         if fields['datanodes'] < node_counts['hadoop-dn']:
-            print "You cannot shrink the cluster using this CLI, existing number of datanodes is: %s" % node_counts['hadoop-dn']
+            CONSOLE.INFO("You cannot shrink the cluster using this CLI, existing number of datanodes is: %s", node_counts['hadoop-dn'])
             sys.exit(1)
         elif fields['datanodes'] > node_counts['hadoop-dn']:
-            print "Increasing the number of datanodes from %s to %s" % (node_counts['hadoop-dn'], fields['datanodes'])
+            CONSOLE.INFO("Increasing the number of datanodes from %s to %s", node_counts['hadoop-dn'], fields['datanodes'])
             do_orchestrate = True
         if fields['kafka_nodes'] < node_counts['kafka']:
-            print "You cannot shrink the cluster using this CLI, existing number of kafkanodes is: %s" % node_counts['kafka']
+            CONSOLE.INFO("You cannot shrink the cluster using this CLI, existing number of kafkanodes is: %s", node_counts['kafka'])
             sys.exit(1)
         elif fields['kafka_nodes'] > node_counts['kafka']:
-            print "Increasing the number of kafkanodes from %s to %s" % (node_counts['kafka'], fields['kafka_nodes'])
+            CONSOLE.INFO("Increasing the number of kafkanodes from %s to %s", node_counts['kafka'], fields['kafka_nodes'])
 
         # Does not support changing the following during an expand
         fields['opentsdb_nodes'] = node_counts['opentsdb']
