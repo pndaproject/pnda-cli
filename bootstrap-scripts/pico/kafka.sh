@@ -16,6 +16,7 @@ set -e
 
 cat >> /etc/salt/grains <<EOF
 roles:
+  - consul_server
   - zookeeper
   - kafka
 EOF
