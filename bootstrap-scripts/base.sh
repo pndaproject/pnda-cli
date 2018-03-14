@@ -14,9 +14,9 @@ DISTRO=$(cat /etc/*-release|grep ^ID\=|awk -F\= {'print $2'}|sed s/\"//g)
 
 if [ "x$DISTRO" == "xubuntu" ]; then
 export DEBIAN_FRONTEND=noninteractive
-apt-get -y install xfsprogs salt-minion=2015.8.11+ds-1
+apt-get -y install xfsprogs salt-minion=2015.8.11+ds-1 curl
 elif [ "x$DISTRO" == "xrhel"  -o "x$DISTRO" == "xcentos" ]; then
-yum -y install xfsprogs wget salt-minion-2015.8.11-1.el7
+yum -y install xfsprogs wget salt-minion-2015.8.11-1.el7 curl
 #enable boot time startup
 systemctl enable salt-minion.service
 fi
