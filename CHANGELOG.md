@@ -2,10 +2,14 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Added
+- PNDA-3127: Post ingress compaction for Kafka datasets
+- PNDA-4449: Add a consul_server grain
+- PNDA-4428: Add Flink role grains
+- PNDA-4452: Install curl in bootstrap phase
+
 ### Changed
 - PNDA-4394: Remove Anaconda CDH parcel mirror as this is now installed from a bundle
-- PNDA-4449: Add a consul_server grain
-- PNDA-4428: Deploy & configure Flink
 
 ### Fixed
 - PNDA-4415: Update PyYAML and requests
