@@ -146,6 +146,10 @@ connectivity:
   CLIENT_IP: 1.1.1.1
   # Add online repositories for yum, apt-get, pip, etc alongside PNDA mirror
   ADD_ONLINE_REPOS: "NO"
+  # RPM Extras repository to enable when ADD_ONLINE_REPOS=YES
+  RPM_EXTRAS_REPO_NAME: rhui-REGION-rhel-server-optional
+  # RPM Optional repository to enable when ADD_ONLINE_REPOS=YES
+  RPM_OPTIONAL_REPO_NAME: rhui-REGION-rhel-server-extras
 
 network_interfaces:
   PNDA_INTERNAL_NETWORK: eth0
