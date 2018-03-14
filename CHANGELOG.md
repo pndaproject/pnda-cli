@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 ### Changed
 - PNDA-4394: Remove Anaconda CDH parcel mirror as this is now installed from a bundle
+- PNDA-4449: Add a consul_server grain
+- PNDA-4428: Deploy & configure Flink
+
+### Fixed
+- PNDA-4415: Update PyYAML and requests
+- PNDA-4203: Set up Consul DNS before running highstate and restart minions from pnda-cli after installing Consul
 
 ## [1.1.0] 2018-02-10
 ### Added
