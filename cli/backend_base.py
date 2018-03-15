@@ -354,6 +354,7 @@ class BaseBackend(object):
     def _wait_on_host_operations(self, action, thread_list, bastion_used, errors):
         # Run the threads in thread_list in sets, waiting for each set to
         # complete before moving onto the next.
+        generic_timeout_minutes = 10
         thread_set_size = self._pnda_env['cli']['MAX_SIMULTANEOUS_OUTBOUND_CONNECTIONS']
         thread_sets = [thread_list[x:x+thread_set_size] for x in xrange(0, len(thread_list), thread_set_size)]
         for thread_set in thread_sets:
@@ -368,34 +369,34 @@ class BaseBackend(object):
                     time.sleep(wait_seconds)
 
             for thread in thread_set:
-                thread.join()
+                thread.join(generic_timeout_minutes * 60)
+                if thread.isAlive():
+                    raise Exception("Error %s, timeout after %s minutes. See debug log (%s) for details." % (action, generic_timeout_minutes, LOG_FILE_NAME))
 
         if errors is not None:
             self._process_thread_errors(action, errors)
 
-    def _wait_for_host_connectivity(self, hosts, cluster, bastion_used):
+    def _wait_for_host_connectivity(self, hosts, cluster, bastion_used, check_func=None):
         wait_threads = []
         wait_errors = Queue.Queue()
 
         def do_wait(host, cluster, wait_errors):
-            time_start = MILLI_TIME()
             while True:
                 try:
                     CONSOLE.info('Checking connectivity to %s', host)
-                    self._ssh(['ls ~'], cluster, host)
+                    if check_func is not None:
+                        check_func()
+                    else:
+                        self._ssh(['ls ~'], cluster, host)
                     break
                 except:
                     LOG.debug('Still waiting for connectivity to %s.', host)
                     LOG.info(traceback.format_exc())
-                    if MILLI_TIME() - time_start > 10 * 60 * 1000:
-                        ret_val = 'Giving up waiting for connectivity to %s' % host
-                        wait_errors.put(ret_val)
-                        CONSOLE.error(ret_val)
-                        break
                     time.sleep(2)
 
         for host in hosts:
             thread = Thread(target=do_wait, args=[host, cluster, wait_errors])
+            thread.daemon = True
             wait_threads.append(thread)
 
         self._wait_on_host_operations('waiting for host connectivity', wait_threads, bastion_used, wait_errors)
@@ -410,6 +411,7 @@ class BaseBackend(object):
 
         for host in hosts:
             thread = Thread(target=do_cmd, args=[host, cluster, wait_errors])
+            thread.daemon = True
             wait_threads.append(thread)
 
         self._wait_on_host_operations('restarting salt minions', wait_threads, bastion_used, wait_errors)
@@ -444,26 +446,17 @@ class BaseBackend(object):
         CONSOLE.debug('The PNDA console will come up on: http://%s',
                       instance_map[self._cluster + '-' + self._node_config['console-instance']]['private_ip_address'])
 
-        if bastion_ip:
-            time_start = MILLI_TIME()
-            while True:
-                try:
-                    nc_ssh_cmd = 'ssh -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s@%s' % (
-                        self._keyfile, self._pnda_env['ec2_access']['OS_USER'], bastion_ip)
-                    nc_install_cmd = nc_ssh_cmd.split(' ')
-                    nc_install_cmd.append('sudo yum install -y nc || echo nc already installed')
-                    ret_val = subprocess_to_log.call(nc_install_cmd, LOG, bastion_ip)
-                    if ret_val != 0:
-                        raise Exception("Error running ssh commands on host %s. See debug log (%s) for details." % (bastion_ip, LOG_FILE_NAME))
-                    break
-                except:
-                    CONSOLE.info('Still waiting for connectivity to bastion. See debug log (%s) for details.', LOG_FILE_NAME)
-                    LOG.info(traceback.format_exc())
-                    if MILLI_TIME() - time_start > 10 * 60 * 1000:
-                        CONSOLE.error('Giving up waiting for connectivity to %s', bastion_ip)
-                        sys.exit(-1)
-                    time.sleep(2)
+        def check_bastion_connectivity():
+            nc_ssh_cmd = 'ssh -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s@%s' % (
+                self._keyfile, self._pnda_env['ec2_access']['OS_USER'], bastion_ip)
+            nc_install_cmd = nc_ssh_cmd.split(' ')
+            nc_install_cmd.append('sudo yum install -y nc || echo nc already installed')
+            ret_val = subprocess_to_log.call(nc_install_cmd, LOG, bastion_ip)
+            if ret_val != 0:
+                raise Exception("Error running ssh commands on host %s. See debug log (%s) for details." % (bastion_ip, LOG_FILE_NAME))
 
+        if bastion_ip:
+            self._wait_for_host_connectivity([bastion_ip], self._cluster, False, check_bastion_connectivity)
         self._wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], self._cluster, bastion_ip is not None)
 
         CONSOLE.info('Bootstrapping saltmaster. Expect this to take a few minutes, check the debug log for progress (%s).', LOG_FILE_NAME)
@@ -499,6 +492,7 @@ class BaseBackend(object):
                                                               self._cluster, self._flavor, self._branch,
                                                               platform_salt_tarball, None, bootstrap_errors,
                                                               bootstrap_files, bootstrap_commands])
+                thread.daemon = True
                 bootstrap_threads.append(thread)
 
         self._wait_on_host_operations('bootstrapping host', bootstrap_threads, bastion_ip is not None, bootstrap_errors)
@@ -542,6 +536,7 @@ class BaseBackend(object):
             if len(instance['node_type']) > 0 and not instance['bootstrapped']:
                 thread = Thread(target=self._bootstrap, args=[instance, saltmaster_ip, self._cluster, self._flavor, self._branch, None, None, bootstrap_errors])
                 bootstrap_threads.append(thread)
+                thread.daemon = True
 
         self._wait_on_host_operations('bootstrapping host', bootstrap_threads, bastion_ip is not None, bootstrap_errors)
 
@@ -595,6 +590,7 @@ class BaseBackend(object):
 
         for key, instance in instances.iteritems():
             thread = Thread(target=do_check, args=[key, instance['private_ip_address'], cluster, check_results])
+            thread.daemon = True
             check_threads.append(thread)
 
         self._wait_on_host_operations('checking bootstrap status', check_threads, bastion_used, None)

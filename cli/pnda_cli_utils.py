@@ -45,6 +45,10 @@ LOG_FILE_NAME = None
 CONSOLE_LOGGER = None
 FILE_LOGGER = None
 
+def set_log_level(log_level):
+    CONSOLE_LOGGER.setLevel(logging.getLevelName(log_level))
+    FILE_LOGGER.setLevel(logging.getLevelName(log_level))
+
 def init_logging():
     global LOG_FILE_NAME
     global CONSOLE_LOGGER
