@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - PNDA-4415: Update PyYAML and requests
 - PNDA-4203: Set up Consul DNS before running highstate and restart minions from pnda-cli after installing Consul
+- PNDA-4453: Apply timeouts in thread.join
 
 ## [1.1.0] 2018-02-10
 ### Added
