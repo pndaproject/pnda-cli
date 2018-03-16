@@ -158,6 +158,8 @@ hdp:
 
 mine_functions:
   network.ip_addrs: [$PNDA_INTERNAL_NETWORK]
+  pnda.get_fqdn: []
+  network.get_hostname: []
   grains.items: []
 
 security:
