@@ -61,10 +61,11 @@ apt-get update
 elif [ "x$DISTRO" == "xrhel" -o "x$DISTRO" == "xcentos" ]; then
 
 if [ "x$ADD_ONLINE_REPOS" == "xYES" ]; then
-  RPM_EXTRAS=rhui-REGION-rhel-server-extras
-  RPM_OPTIONAL=rhui-REGION-rhel-server-optional
+  yum install -y yum-utils
+  RPM_EXTRAS=$RPM_EXTRAS_REPO_NAME
+  RPM_OPTIONAL=$RPM_OPTIONAL_REPO_NAME
   yum-config-manager --enable $RPM_EXTRAS $RPM_OPTIONAL
-  yum install -y yum-plugin-priorities yum-utils
+  yum install -y yum-plugin-priorities
   PNDA_REPO=${PNDA_MIRROR/http\:\/\//}
   PNDA_REPO=${PNDA_REPO/\//_mirror_rpm}
   yum-config-manager --add-repo $PNDA_MIRROR/mirror_rpm
@@ -72,7 +73,19 @@ if [ "x$ADD_ONLINE_REPOS" == "xYES" ]; then
 else
   mkdir -p /etc/yum.repos.d.backup/
   mv /etc/yum.repos.d/* /etc/yum.repos.d.backup/
-  yum-config-manager --add-repo $PNDA_MIRROR/mirror_rpm
+  
+  cat << EOF > /etc/yum.repos.d/pnda_mirror.repo
+
+[pnda_mirror]
+name=added from: $PNDA_MIRROR/mirror_rpm
+baseurl=$PNDA_MIRROR/mirror_rpm
+enabled=1
+priority = 1
+gpgcheck = 1
+keepcache = 0
+
+EOF
+
 fi
   if [ "x$DISTRO" == "xrhel" ]; then
     rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-redhat-release
