@@ -511,6 +511,9 @@ class BaseBackend(object):
                    % THROW_BASH_ERROR], self._cluster, saltmaster_ip)
         CONSOLE.info('Restarting minions')
         self._restart_minions([instance_map[h]['private_ip_address'] for h in instance_map], self._cluster, bastion_ip is not None)
+        CONSOLE.info('Refreshing salt mines')
+        self._ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" mine.update 2>&1) | tee -a pnda-salt.log; %s'
+                   % THROW_BASH_ERROR], self._cluster, saltmaster_ip)
         CONSOLE.info('Continuing with installation of PNDA')
         self._ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" state.highstate queue=True 2>&1) | tee -a pnda-salt.log; %s'
                    % THROW_BASH_ERROR,
@@ -553,6 +556,9 @@ class BaseBackend(object):
                    % THROW_BASH_ERROR], self._cluster, saltmaster_ip)
         CONSOLE.info('Restarting minions')
         self._restart_minions([instance_map[h]['private_ip_address'] for h in instance_map], self._cluster, bastion_ip is not None)
+        CONSOLE.info('Refreshing salt mines')
+        self._ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" mine.update 2>&1) | tee -a pnda-salt.log; %s'
+                   % THROW_BASH_ERROR], self._cluster, saltmaster_ip)
         CONSOLE.info('Continuing with installation of PNDA')
         expand_commands = ['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed -C "G@pnda:is_new_node" state.highstate queue=True 2>&1)' +
                            ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR]
