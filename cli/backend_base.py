@@ -428,6 +428,7 @@ class BaseBackend(object):
             tar.addfile(tarinfo=command_info, fileobj=command_text)
 
     def _install_pnda(self):
+        return
         bastion = self._node_config['bastion-instance']
 
         to_runfile({'cmdline':sys.argv,
