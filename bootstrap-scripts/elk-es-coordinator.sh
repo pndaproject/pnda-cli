@@ -26,4 +26,3 @@ EOF
 echo $PNDA_CLUSTER-elk-es-coordinator-$1 > /etc/hostname
 hostname $PNDA_CLUSTER-elk-es-coordinator-$1
 
-service salt-minion restart

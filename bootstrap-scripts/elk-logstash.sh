@@ -25,5 +25,3 @@ EOF
 
 echo $PNDA_CLUSTER-elk-logstash-$1 > /etc/hostname
 hostname $PNDA_CLUSTER-elk-logstash-$1
-
-service salt-minion restart

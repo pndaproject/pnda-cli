@@ -28,7 +28,7 @@ fi
 
 cat << EOF > /etc/salt/master
 ## specific PNDA saltmaster config
-auto_accept: True      # auto accept minion key on new minion provisioning
+auto_accept: False      # do not auto accept minion key on new minion provisioning
 
 fileserver_backend:
   - roots
@@ -222,3 +222,5 @@ dataset_compaction:
   pattern: '$PATTERN'
 EOF
 fi
+
+/tmp/saltmaster-gen-keys.sh

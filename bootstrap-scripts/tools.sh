@@ -24,5 +24,3 @@ EOF
 
 echo $PNDA_CLUSTER-tools > /etc/hostname
 hostname $PNDA_CLUSTER-tools
-
-service salt-minion restart

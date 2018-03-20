@@ -184,7 +184,7 @@ def main():
     fields['branch'] = branch
 
     deployment_target = select_deployment_target_impl(fields)
-
+    PNDA_ENV['ec2_access']['SSH_KEY'] = '%s%s' % (fields['keyname'], '.pem')
     write_pnda_env_sh(fields['pnda_cluster'])
 
     ###
@@ -209,16 +209,16 @@ def main():
             fields['kafka_nodes'] = node_counts['kafka']
 
         if fields['datanodes'] < node_counts['hadoop-dn']:
-            CONSOLE.INFO("You cannot shrink the cluster using this CLI, existing number of datanodes is: %s", node_counts['hadoop-dn'])
+            CONSOLE.info("You cannot shrink the cluster using this CLI, existing number of datanodes is: %s", node_counts['hadoop-dn'])
             sys.exit(1)
         elif fields['datanodes'] > node_counts['hadoop-dn']:
-            CONSOLE.INFO("Increasing the number of datanodes from %s to %s", node_counts['hadoop-dn'], fields['datanodes'])
+            CONSOLE.info("Increasing the number of datanodes from %s to %s", node_counts['hadoop-dn'], fields['datanodes'])
             do_orchestrate = True
         if fields['kafka_nodes'] < node_counts['kafka']:
-            CONSOLE.INFO("You cannot shrink the cluster using this CLI, existing number of kafkanodes is: %s", node_counts['kafka'])
+            CONSOLE.info("You cannot shrink the cluster using this CLI, existing number of kafkanodes is: %s", node_counts['kafka'])
             sys.exit(1)
         elif fields['kafka_nodes'] > node_counts['kafka']:
-            CONSOLE.INFO("Increasing the number of kafkanodes from %s to %s", node_counts['kafka'], fields['kafka_nodes'])
+            CONSOLE.info("Increasing the number of kafkanodes from %s to %s", node_counts['kafka'], fields['kafka_nodes'])
 
         # Does not support changing the following during an expand
         fields['opentsdb_nodes'] = node_counts['opentsdb']

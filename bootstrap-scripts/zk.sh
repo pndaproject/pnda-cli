@@ -26,5 +26,3 @@ EOF
 
 echo $PNDA_CLUSTER-zk-$1 > /etc/hostname
 hostname $PNDA_CLUSTER-zk-$1
-
-service salt-minion restart
