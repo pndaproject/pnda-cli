@@ -21,9 +21,9 @@ The PNDA CLI is able to create PNDA on [Amazon Web Services](https://aws.amazon.
 
 4. Copy ```pnda_env_example.yaml``` to create ```pnda_env.yaml```
 
-5. Edit pnda_env.yaml with a CentOS or Redhat Enterprise Linux 7 image ID (`cloud_formation_parameters.imageId`). This should be the AWS default CentOS or Redhat AMI for the region you are provisioning into. If using a CentOS AMI set `ec2_access.OS_USER` to centos; for a Redhat AMI set `ec2_access.OS_USER` to ec2-user.
+5. Edit pnda_env.yaml with a CentOS or Redhat Enterprise Linux 7 image ID (`aws_parameters.imageId`). This should be the AWS default CentOS or Redhat AMI for the region you are provisioning into. If using a CentOS AMI set `infrastructure.OS_USER` to centos; for a Redhat AMI set `infrastructure.OS_USER` to ec2-user.
 
-6. Edit pnda_env.yaml with [AWS credentials](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html) to use to launch the cloud formation stack (`ec2_access.AWS_ACCESS_KEY_ID` and `ec2_access.AWS_SECRET_ACCESS_KEY`). These credentials should have permissions to launch cloud formation stacks and are only ever stored on the client machine.
+6. Edit pnda_env.yaml with [AWS credentials](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html) to use to launch the cloud formation stack (`aws_parameters.AWS_ACCESS_KEY_ID` and `aws_parameters.AWS_SECRET_ACCESS_KEY`). These credentials should have permissions to launch cloud formation stacks and are only ever stored on the client machine.
 
 7. Edit pnda_env.yaml with a version of platform-salt to use. Platform-salt installs PNDA software on the cloud instances created by the PNDA CLI. There are two main options:
    - A local copy of platform-salt can be used by setting (`platform_salt.PLATFORM_SALT_LOCAL`) to the path to the platform-salt folder on the local machine running pnda-cli.py.
