@@ -230,35 +230,40 @@ class BaseBackend(object):
         socks_file_path = 'cli/socks_proxy-%s' % cluster
         with open(socks_file_path, 'w') as config_file:
             config_file.write('''
-    unset SSH_AUTH_SOCK
-    unset SSH_AGENT_PID
+if [ -z "$1" ]; then
+	export SOCKS_PORT=9999
+else
+	export SOCKS_PORT=$1
+fi
+unset SSH_AUTH_SOCK
+unset SSH_AGENT_PID
 
-    for FILE in $(find /tmp/ssh-* -type s -user ${LOGNAME} -name "agent.[0-9]*" 2>/dev/null)
-    do
-        SOCK_PID=${FILE##*.}
+for FILE in $(find /tmp/ssh-* -type s -user ${LOGNAME} -name "agent.[0-9]*" 2>/dev/null)
+do
+    SOCK_PID=${FILE##*.}
 
-        PID=$(ps -fu${LOGNAME}|awk '/ssh-agent/ && ( $2=='${SOCK_PID}' || $3=='${SOCK_PID}' || $2=='${SOCK_PID}' +1 ) {print $2}')
+    PID=$(ps -fu${LOGNAME}|awk '/ssh-agent/ && ( $2=='${SOCK_PID}' || $3=='${SOCK_PID}' || $2=='${SOCK_PID}' +1 ) {print $2}')
 
-        if [ -z "$PID" ]
-        then
-            continue
-        fi
-
-        export SSH_AUTH_SOCK=${FILE}
-        export SSH_AGENT_PID=${PID}
-        break
-    done
-
-    if [ -z "$SSH_AGENT_PID" ]
+    if [ -z "$PID" ]
     then
-        echo "Starting a new SSH Agent..."
-        eval `ssh-agent`
-    else
-        echo "Using existing SSH Agent with pid: ${SSH_AGENT_PID}, sock file: ${SSH_AUTH_SOCK}"
-    fi\n''')
+        continue
+    fi
+
+    export SSH_AUTH_SOCK=${FILE}
+    export SSH_AGENT_PID=${PID}
+    break
+done
+
+if [ -z "$SSH_AGENT_PID" ]
+then
+    echo "Starting a new SSH Agent..."
+    eval `ssh-agent`
+else
+    echo "Using existing SSH Agent with pid: ${SSH_AGENT_PID}, sock file: ${SSH_AUTH_SOCK}"
+fi\n''')
             config_file.write('eval `ssh-agent`\n')
             config_file.write('ssh-add %s\n' % keyfile)
-            config_file.write('ssh -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -A -D 9999 %s@%s\n' % (keyfile, os_user, bastion_ip))
+            config_file.write('ssh -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -A -D $SOCKS_PORT %s@%s\n' % (keyfile, os_user, bastion_ip))
         mode = os.stat(socks_file_path).st_mode
         os.chmod(socks_file_path, mode | (mode & 292) >> 2)
 
