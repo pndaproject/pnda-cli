@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - PNDA-4394: Remove Anaconda CDH parcel mirror as this is now installed from a bundle
+- PNDA-4420: Pre-seed salt minion keys
 
 ### Fixed
 - PNDA-4415: Update PyYAML and requests
