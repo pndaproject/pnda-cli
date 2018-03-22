@@ -272,7 +272,7 @@ class BaseBackend(object):
     def _ssh(self, cmds, cluster, host):
         cmd = "ssh -F cli/ssh_config-%s %s" % (cluster, host)
         parts = cmd.split(' ')
-        parts.append(';'.join(cmds))
+        parts.append(' && '.join(cmds))
         CONSOLE.debug(json.dumps(parts))
         ret_val = subprocess_to_log.call(parts, LOG, host, scan_for_errors=[r'lost connection', r'\s*Failed:\s*[1-9].*'])
         if ret_val != 0:
@@ -296,6 +296,7 @@ class BaseBackend(object):
             files_to_scp = ['cli/pnda_env_%s.sh' % cluster,
                             'bootstrap-scripts/package-install.sh',
                             'bootstrap-scripts/base.sh',
+                            'bootstrap-scripts/base_post.sh',
                             'bootstrap-scripts/volume-mappings.sh',
                             type_script]
 
@@ -310,6 +311,7 @@ class BaseBackend(object):
                            'export SECURITY_CERTS_TARBALL=%s' % certs_tarball if certs_tarball is not None else ':',
                            'sudo chmod a+x /tmp/package-install.sh',
                            'sudo chmod a+x /tmp/base.sh',
+                           'sudo chmod a+x /tmp/base_post.sh',
                            'sudo chmod a+x /tmp/volume-mappings.sh']
 
             if requested_volumes is not None and 'partitions' in requested_volumes:
@@ -322,14 +324,18 @@ class BaseBackend(object):
             cmds_to_run.append('(sudo -E /tmp/base.sh 2>&1) | tee -a pnda-bootstrap.log; %s' % THROW_BASH_ERROR)
 
             if node_type == self._node_config['salt-master-instance'] or "is_saltmaster" in instance:
+                cmds_to_run.append('echo \'%s\' | tee /tmp/minions_list' % '\n'.join(self._get_minion_list()))
+                files_to_scp.append('bootstrap-scripts/saltmaster-gen-keys.sh')
+                cmds_to_run.append('sudo chmod a+x /tmp/saltmaster-gen-keys.sh')
                 files_to_scp.append('bootstrap-scripts/saltmaster-common.sh')
                 cmds_to_run.append('sudo chmod a+x /tmp/saltmaster-common.sh')
                 cmds_to_run.append('(sudo -E /tmp/saltmaster-common.sh 2>&1) | tee -a pnda-bootstrap.log; %s' % THROW_BASH_ERROR)
                 if os.path.isfile('git.pem'):
                     files_to_scp.append('git.pem')
-
+                files_to_scp.append(self._keyfile)
             cmds_to_run.append('sudo chmod a+x /tmp/%s.sh' % node_type)
             cmds_to_run.append('(sudo -E /tmp/%s.sh %s 2>&1) | tee -a pnda-bootstrap.log; %s' % (node_type, node_idx, THROW_BASH_ERROR))
+            cmds_to_run.append('(sudo -E /tmp/base_post.sh 2>&1) | tee -a pnda-bootstrap.log; %s' % THROW_BASH_ERROR)
             cmds_to_run.append('touch ~/.bootstrap_complete')
 
             self._scp(files_to_scp, cluster, ip_address)
@@ -426,6 +432,11 @@ class BaseBackend(object):
             command_info = tarfile.TarInfo(name="cli/additional_exports.sh")
             command_info.size = len(command_text.buf)
             tar.addfile(tarinfo=command_info, fileobj=command_text)
+
+    def _get_minion_list(self):
+        return ['%s %s' % (instance_name, instance_properties['private_ip_address'])
+                for instance_name, instance_properties in self.get_instance_map().iteritems()
+                if not instance_properties['bootstrapped']]
 
     def _install_pnda(self):
         bastion = self._node_config['bastion-instance']
@@ -531,6 +542,13 @@ class BaseBackend(object):
         saltmaster = instance_map[self._cluster + '-' + self._node_config['salt-master-instance']]
         saltmaster_ip = saltmaster['private_ip_address']
 
+        self._ssh(['rm -rf /tmp/%s || true' % self._keyfile], self._cluster, saltmaster_ip)
+        self._scp([self._keyfile, 'cli/pnda_env_%s.sh' % self._cluster, 'bootstrap-scripts/saltmaster-gen-keys.sh'], self._cluster, saltmaster_ip)
+        self._ssh(['echo \'%s\' | tee /tmp/minions_list' % '\n'.join(self._get_minion_list()),
+                   'source /tmp/pnda_env_%s.sh' % self._cluster,
+                   'sudo chmod a+x /tmp/saltmaster-gen-keys.sh',
+                   'sudo -E /tmp/saltmaster-gen-keys.sh'], self._cluster, saltmaster_ip)
+        
         self._wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], self._cluster, bastion_ip is not None)
         CONSOLE.info('Bootstrapping new instances. Expect this to take a few minutes, check the debug log for progress. (%s)', LOG_FILE_NAME)
         bootstrap_threads = []

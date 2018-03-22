@@ -24,5 +24,3 @@ EOF
 
 echo $PNDA_CLUSTER-logserver > /etc/hostname
 hostname $PNDA_CLUSTER-logserver
-
-service salt-minion restart

@@ -30,5 +30,3 @@ EOF
 
 echo $PNDA_CLUSTER-opentsdb-$1 > /etc/hostname
 hostname $PNDA_CLUSTER-opentsdb-$1
-
-service salt-minion restart

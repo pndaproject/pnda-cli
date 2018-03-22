@@ -31,5 +31,3 @@ EOF
 
 echo $PNDA_CLUSTER-hadoop-mgr-1 > /etc/hostname
 hostname $PNDA_CLUSTER-hadoop-mgr-1
-
-service salt-minion restart

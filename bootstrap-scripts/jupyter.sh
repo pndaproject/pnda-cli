@@ -28,5 +28,3 @@ EOF
 
 echo $PNDA_CLUSTER-jupyter > /etc/hostname
 hostname $PNDA_CLUSTER-jupyter
-
-service salt-minion restart
