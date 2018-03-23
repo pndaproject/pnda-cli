@@ -21,10 +21,9 @@ import os
 import os.path
 import atexit
 import datetime
+import yaml
 import pnda_cli_utils as utils
 from pnda_cli_utils import PNDAConfigException
-
-import yaml
 
 from validation import UserInputValidator
 from backend_cloud_formation import CloudFormationBackend
@@ -67,7 +66,7 @@ def get_node_counts(deployment_target, live_only):
 
     node_counts = {'zk':0, 'kafka':0, 'hadoop-dn':0, 'opentsdb':0}
     for _, instance in deployment_target.get_instance_map(live_only).iteritems():
-        if len(instance['node_type']) > 0:
+        if instance['node_type']:
             if instance['node_type'] in node_counts:
                 current_count = node_counts[instance['node_type']]
             else:
@@ -97,7 +96,6 @@ def valid_flavors():
     return list(set(cfn_dirs + bootstap_dirs))
 
 def select_deployment_target_impl(fields):
-    #pylint: disable=redefined-variable-type
     if fields['x_machines_definition'] is not None:
         CONSOLE.info('Installing to existing infra, defined in %s', fields['x_machines_definition'])
         deployment_target = ExistingMachinesBackend(

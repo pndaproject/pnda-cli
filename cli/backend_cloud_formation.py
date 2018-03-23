@@ -115,19 +115,25 @@ class CloudFormationBackend(BaseBackend):
         CONSOLE.info('Creating Cloud Formation stack')
         conn = boto.cloudformation.connect_to_region(region)
         stack_status = 'CREATING'
+        stack_status_new = None
         conn.create_stack(self._cluster,
                           template_body=template_data,
                           parameters=cf_parameters)
 
         while stack_status in ['CREATE_IN_PROGRESS', 'CREATING']:
             time.sleep(5)
-            CONSOLE.info('Stack is: ' + stack_status)
+            if stack_status != stack_status_new:
+                if stack_status_new is not None:
+                    stack_status = stack_status_new
+                CONSOLE.info('Stack is: %s', stack_status)
+            else:
+                CONSOLE.debug('Stack is: %s', stack_status)
             stacks = self._retry(conn.describe_stacks, self._cluster)
-            if len(stacks) > 0:
-                stack_status = stacks[0].stack_status
+            if stacks:
+                stack_status_new = stacks[0].stack_status
 
         if stack_status != 'CREATE_COMPLETE':
-            CONSOLE.error('Stack did not come up, status is: ' + stack_status)
+            CONSOLE.error('Stack did not come up, status is: %s', stack_status)
             self._fetch_stack_events(conn, self._cluster)
             sys.exit(1)
 
@@ -156,19 +162,25 @@ class CloudFormationBackend(BaseBackend):
         CONSOLE.info('Updating Cloud Formation stack')
         conn = boto.cloudformation.connect_to_region(region)
         stack_status = 'UPDATING'
+        stack_status_new = None
         self._retry(conn.update_stack, self._cluster,
                     template_body=template_data,
                     parameters=cf_parameters)
 
         while stack_status in ['UPDATE_IN_PROGRESS', 'UPDATING', 'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS']:
             time.sleep(5)
-            CONSOLE.info('Stack is: ' + stack_status)
+            if stack_status != stack_status_new:
+                if stack_status_new is not None:
+                    stack_status = stack_status_new
+                CONSOLE.info('Stack is: %s', stack_status)
+            else:
+                CONSOLE.debug('Stack is: %s', stack_status)
             stacks = self._retry(conn.describe_stacks, self._cluster)
-            if len(stacks) > 0:
-                stack_status = stacks[0].stack_status
+            if stacks:
+                stack_status_new = stacks[0].stack_status
 
         if stack_status != 'UPDATE_COMPLETE':
-            CONSOLE.error('Stack did not come up, status is: ' + stack_status)
+            CONSOLE.error('Stack did not come up, status is: %s', stack_status)
             self._fetch_stack_events(conn, self._cluster)
             sys.exit(1)
 
@@ -182,19 +194,25 @@ class CloudFormationBackend(BaseBackend):
         region = self._pnda_env['ec2_access']['AWS_REGION']
         conn = boto.cloudformation.connect_to_region(region)
         stack_status = 'DELETING'
+        stack_status_new = None
         self._retry(conn.delete_stack, self._cluster)
         while stack_status in ['DELETE_IN_PROGRESS', 'DELETING']:
             time.sleep(5)
-            CONSOLE.info('Stack is: ' + stack_status)
+            if stack_status != stack_status_new:
+                if stack_status_new is not None:
+                    stack_status = stack_status_new
+                CONSOLE.info('Stack is: %s', stack_status)
+            else:
+                CONSOLE.debug('Stack is: %s', stack_status)
             try:
                 stacks = self._retry(conn.describe_stacks, self._cluster)
             except:
                 stacks = []
 
-            if len(stacks) > 0:
-                stack_status = stacks[0].stack_status
+            if stacks:
+                stack_status_new = stacks[0].stack_status
             else:
-                stack_status = None
+                stack_status_new = 'DELETE_COMPLETE'
 
     def _retry(self, do_func, *args, **kwargs):
         ret = None

@@ -207,7 +207,7 @@ class BaseBackend(object):
 
     def _get_volume_info(self, node_type, config_file):
         volumes = None
-        if len(node_type) > 0:
+        if node_type:
             with open(config_file, 'r') as infile:
                 volume_config = yaml.load(infile)
                 volume_class = volume_config['instances'][node_type]
@@ -324,7 +324,7 @@ class BaseBackend(object):
             cmds_to_run.append('(sudo -E /tmp/base.sh 2>&1) | tee -a pnda-bootstrap.log; %s' % THROW_BASH_ERROR)
 
             if node_type == self._node_config['salt-master-instance'] or "is_saltmaster" in instance:
-                cmds_to_run.append('echo \'%s\' | tee /tmp/minions_list' % '\n'.join(self._get_minion_list()))
+                cmds_to_run.append('echo \'%s\' | tee /tmp/minions_list' % '\n'.join(self._get_minions_to_bootstrap()))
                 files_to_scp.append('bootstrap-scripts/saltmaster-gen-keys.sh')
                 cmds_to_run.append('sudo chmod a+x /tmp/saltmaster-gen-keys.sh')
                 files_to_scp.append('bootstrap-scripts/saltmaster-common.sh')
@@ -384,9 +384,8 @@ class BaseBackend(object):
 
     def _wait_for_host_connectivity(self, hosts, cluster, bastion_used, check_func=None):
         wait_threads = []
-        wait_errors = Queue.Queue()
 
-        def do_wait(host, cluster, wait_errors):
+        def do_wait(host, cluster):
             while True:
                 try:
                     CONSOLE.info('Checking connectivity to %s', host)
@@ -401,26 +400,25 @@ class BaseBackend(object):
                     time.sleep(2)
 
         for host in hosts:
-            thread = Thread(target=do_wait, args=[host, cluster, wait_errors])
+            thread = Thread(target=do_wait, args=[host, cluster])
             thread.daemon = True
             wait_threads.append(thread)
 
-        self._wait_on_host_operations('waiting for host connectivity', wait_threads, bastion_used, wait_errors)
+        self._wait_on_host_operations('waiting for host connectivity', wait_threads, bastion_used, None)
 
     def _restart_minions(self, hosts, cluster, bastion_used):
         wait_threads = []
-        wait_errors = Queue.Queue()
 
-        def do_cmd(host, cluster, wait_errors):
+        def do_cmd(host, cluster):
             CONSOLE.info('Restarting salt minion on %s', host)
             self._ssh(['sudo service salt-minion restart'], cluster, host)
 
         for host in hosts:
-            thread = Thread(target=do_cmd, args=[host, cluster, wait_errors])
+            thread = Thread(target=do_cmd, args=[host, cluster])
             thread.daemon = True
             wait_threads.append(thread)
 
-        self._wait_on_host_operations('restarting salt minions', wait_threads, bastion_used, wait_errors)
+        self._wait_on_host_operations('restarting salt minions', wait_threads, bastion_used, None)
         time.sleep(60)
 
     def _export_bootstrap_resources(self, cluster, files, commands):
@@ -433,7 +431,7 @@ class BaseBackend(object):
             command_info.size = len(command_text.buf)
             tar.addfile(tarinfo=command_info, fileobj=command_text)
 
-    def _get_minion_list(self):
+    def _get_minions_to_bootstrap(self):
         return ['%s %s' % (instance_name, instance_properties['private_ip_address'])
                 for instance_name, instance_properties in self.get_instance_map().iteritems()
                 if not instance_properties['bootstrapped']]
@@ -518,8 +516,8 @@ class BaseBackend(object):
         # We then wait 60 seconds before continuing with highstate to allow the minions to restart
         # An improvement would be running a test.ping and waiting for all expected minions to be ready
         CONSOLE.info('Installing Consul')
-        self._ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" state.sls consul,consul.dns queue=True 2>&1) | tee -a pnda-salt.log; %s'
-                   % THROW_BASH_ERROR], self._cluster, saltmaster_ip)
+        self._ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" state.sls consul,consul.dns queue=True 2>&1)' +
+                   ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR], self._cluster, saltmaster_ip)
         CONSOLE.info('Restarting minions')
         self._restart_minions([instance_map[h]['private_ip_address'] for h in instance_map], self._cluster, bastion_ip is not None)
         CONSOLE.info('Refreshing salt mines')
@@ -544,17 +542,17 @@ class BaseBackend(object):
 
         self._ssh(['rm -rf /tmp/%s || true' % self._keyfile], self._cluster, saltmaster_ip)
         self._scp([self._keyfile, 'cli/pnda_env_%s.sh' % self._cluster, 'bootstrap-scripts/saltmaster-gen-keys.sh'], self._cluster, saltmaster_ip)
-        self._ssh(['echo \'%s\' | tee /tmp/minions_list' % '\n'.join(self._get_minion_list()),
+        self._ssh(['echo \'%s\' | tee /tmp/minions_list' % '\n'.join(self._get_minions_to_bootstrap()),
                    'source /tmp/pnda_env_%s.sh' % self._cluster,
                    'sudo chmod a+x /tmp/saltmaster-gen-keys.sh',
                    'sudo -E /tmp/saltmaster-gen-keys.sh'], self._cluster, saltmaster_ip)
-        
+
         self._wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], self._cluster, bastion_ip is not None)
         CONSOLE.info('Bootstrapping new instances. Expect this to take a few minutes, check the debug log for progress. (%s)', LOG_FILE_NAME)
         bootstrap_threads = []
         bootstrap_errors = Queue.Queue()
         for _, instance in instance_map.iteritems():
-            if len(instance['node_type']) > 0 and not instance['bootstrapped']:
+            if instance['node_type'] and not instance['bootstrapped']:
                 thread = Thread(target=self._bootstrap, args=[instance, saltmaster_ip, self._cluster, self._flavor, self._branch, None, None, bootstrap_errors])
                 bootstrap_threads.append(thread)
                 thread.daemon = True
@@ -570,8 +568,8 @@ class BaseBackend(object):
         # We then wait 60 seconds before continuing with highstate to allow the minions to restart
         # An improvement would be running a test.ping and waiting for all expected minions to be ready
         CONSOLE.info('Installing Consul')
-        self._ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed -C "G@pnda:is_new_node" state.sls consul,consul.dns queue=True 2>&1) | tee -a pnda-salt.log; %s'
-                   % THROW_BASH_ERROR], self._cluster, saltmaster_ip)
+        self._ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed -C "G@pnda:is_new_node" state.sls consul,consul.dns queue=True 2>&1)' +
+                   ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR], self._cluster, saltmaster_ip)
         CONSOLE.info('Restarting minions')
         self._restart_minions([instance_map[h]['private_ip_address'] for h in instance_map], self._cluster, bastion_ip is not None)
         CONSOLE.info('Refreshing salt mines')
