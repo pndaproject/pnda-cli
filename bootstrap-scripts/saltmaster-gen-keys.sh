@@ -21,8 +21,11 @@ do
   # Authorise this key to connect to the master
   cp ~/.ssh/${minion_id}.pub /etc/salt/pki/master/minions/${minion_id}
   # Copy both keys to the minion
+  ssh -n -i /tmp/$SSH_KEY -o StrictHostKeyChecking=no $OS_USER@${minion_ip} "rm -rf minion_id;rm -rf minion.pub;rm -rf minion.pem"
   scp -i /tmp/$SSH_KEY -o StrictHostKeyChecking=no ~/.ssh/${minion_id}.pub $OS_USER@${minion_ip}:minion.pub
   scp -i /tmp/$SSH_KEY -o StrictHostKeyChecking=no ~/.ssh/${minion_id}.pem $OS_USER@${minion_ip}:minion.pem
+  # Tell the minion what its ID is
+  ssh -n -i /tmp/$SSH_KEY -o StrictHostKeyChecking=no $OS_USER@${minion_ip} "echo ${minion_id} > minion_id"
   # The minion is responsible for making sure that it only uses this key after it has
   # been correctly configured, this will avoid badly configured minions connecting to the
   # saltmaster
