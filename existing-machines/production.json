@@ -1,27 +1,40 @@
 {
-    "cdh-mgr-1": {
+    "hadoop-mgr-1": {
         "ip_address": "10.2.1.101",
-        "node_type": "cdh-mgr-1"
+        "node_type": "hadoop-mgr-1"
     },
-    "cdh-mgr-2": {
+    "hadoop-mgr-2": {
         "ip_address": "10.2.1.102",
-        "node_type": "cdh-mgr-2"
+        "node_type": "hadoop-mgr-2"
     },
-    "cdh-mgr-3": {
+    "hadoop-mgr-3": {
         "ip_address": "10.2.1.102",
-        "node_type": "cdh-mgr-3"
+        "node_type": "hadoop-mgr-3"
     },
-    "cdh-mgr-4": {
+    "hadoop-mgr-4": {
         "ip_address": "10.2.1.103",
-        "node_type": "cdh-mgr-4"
+        "node_type": "hadoop-mgr-4"
     },
-    "jupyter": {
-        "ip_address": "10.2.1.104",
-        "node_type": "jupyter"
+    "hadoop-dn-0": {
+        "ip_address": "10.2.1.109",
+        "node_type": "hadoop-dn"
     },
-    "logserver": {
-        "ip_address": "10.2.1.105",
-        "node_type": "logserver"
+    "hadoop-dn-1": {
+        "ip_address": "10.2.1.110",
+        "node_type": "hadoop-dn"
+    },
+    "hadoop-dn-2": {
+        "ip_address": "10.2.1.111",
+        "node_type": "hadoop-dn"
+    },
+    "hadoop-edge": {
+        "ip_address": "10.2.1.112",
+        "node_type": "hadoop-edge",
+        "is_console": true
+    },
+    "hadoop-cm": {
+        "ip_address": "10.2.1.115",
+        "node_type": "hadoop-cm"
     },
     "kafka-0": {
         "ip_address": "10.2.1.106",
@@ -33,42 +46,11 @@
     },
     "tools": {
         "ip_address": "10.2.1.108",
-        "node_type": "tools"
-    },
-    "cdh-dn-0": {
-        "ip_address": "10.2.1.109",
-        "node_type": "cdh-dn"
-    },
-    "cdh-dn-2": {
-        "ip_address": "10.2.1.110",
-        "node_type": "cdh-dn"
-    },
-    "cdh-dn-3": {
-        "ip_address": "10.2.1.111",
-        "node_type": "cdh-dn"
-    },
-    "cdh-edge": {
-        "ip_address": "10.2.1.112",
-        "node_type": "cdh-edge",
-        "is_console": true
+        "node_type": "tools",
+        "is_saltmaster": true
     },
     "opentsdb-0": {
         "ip_address": "10.2.1.113",
         "node_type": "opentsdb"
-    },
-    "saltmaster": {
-        "ip_address": "10.2.1.114",
-        "node_type": "saltmaster",
-        "is_saltmaster": true        
-    },
-    "cdh-cm": {
-        "ip_address": "10.2.1.115",
-        "node_type": "cdh-cm"
-    },
-    "build": {
-        "ip_address": "10.2.1.116",
-        "node_type": "build",
-        "public_ip_address": "10.2.0.101",
-        "is_bastion": true
     }
 }
