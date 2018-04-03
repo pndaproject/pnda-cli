@@ -1,0 +1,157 @@
+# pnda_cluster.yaml defines the instances to create for this flavor of PNDA
+# The resource_registry.yaml file defines which yaml template to apply to
+# each instance type, and these specific yaml files configure the
+# instance as required for that type of node.
+
+heat_template_version: 2015-04-30
+
+parameters:
+  Manager1Flavor:
+    type: string
+    description: Falvor for the manager nodes
+  EdgeFlavor:
+    type: string
+    description: Falvor for the edge node
+  BastionFlavor:
+    type: string
+    description: Flavor for the bastion nodes
+  KafkaFlavor:
+    type: string
+    description: Flavor for the kafka nodes
+  DatanodeFlavor:
+    type: string
+    description: Flavor for the data nodes
+  image_id:
+    type: string
+    description: default image for pnda servers
+  DataNodes:
+    description: Number of DATA nodes
+    type: number
+  KafkaNodes:
+    description: Number of KAFKA nodes
+    type: number
+  LogVolumeSize:
+    type: number
+  DatanodeVolumeSize:
+    type: number
+  public_net_id:
+    type: string
+    description: >
+      ID or name of public network for which floating IP addresses will be allocated
+  pnda_private_network:
+    type: string
+  pnda_private_subnet:
+    type: string
+  pnda_ingest_network:
+    type: string
+  pnda_ingest_subnet:
+    type: string
+  KeyName:
+    description: Name of an existing KeyPair to enable SSH access to the instances
+    type: string
+  pnda_security_group_pnda:
+    type: string
+  pnda_security_group_kafka_ingest:
+    type: string
+  stack_name:
+    type: string
+
+resources:
+  bastion:
+    type: OS::Pnda::bastion
+    properties:
+      Flavor: { get_param: BastionFlavor }
+      Image: { get_param: image_id }
+      KeyName: { get_param: KeyName }
+      stack_name: { get_param: stack_name }
+      name:
+        str_replace:
+          template: '%stackname%-bastion'
+          params:
+            '%stackname%': { get_param: stack_name  }
+      pnda_private_network: { get_param: pnda_private_network }
+      pnda_private_subnet: { get_param: pnda_private_subnet }
+      public_net_id: { get_param: public_net_id }
+      pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
+
+  dn:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: DataNodes }
+      resource_def:
+        type: OS::Pnda::dn
+        properties:
+          Flavor: { get_param: DatanodeFlavor }
+          Image: { get_param: image_id }
+          KeyName: { get_param: KeyName }
+          stack_name: { get_param: stack_name }
+          name:
+            str_replace:
+              template: '%stackname%-hadoop-dn-%index%'
+              params:
+                '%stackname%': { get_param: stack_name  }
+          NodeIndex: '%index%'
+          pnda_private_network: { get_param: pnda_private_network }
+          pnda_private_subnet: { get_param: pnda_private_subnet }
+          pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
+          DatanodeVolumeSize: { get_param: DatanodeVolumeSize }
+          LogVolumeSize : { get_param: LogVolumeSize }
+
+  kafka:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: KafkaNodes }
+      resource_def:
+        type: OS::Pnda::kafka
+        properties:
+          Flavor: { get_param: KafkaFlavor }
+          Image: { get_param: image_id }
+          KeyName: { get_param: KeyName }
+          stack_name: { get_param: stack_name }
+          name:
+            str_replace:
+              template: '%stackname%-kafka-%index%'
+              params:
+                '%stackname%': { get_param: stack_name  }
+          NodeIndex: '%index%'
+          pnda_private_network: { get_param: pnda_private_network }
+          pnda_private_subnet: { get_param: pnda_private_subnet }
+          pnda_ingest_network: { get_param: pnda_ingest_network }
+          pnda_ingest_subnet: { get_param: pnda_ingest_subnet } 
+          pnda_security_group_kafka_ingest: { get_param: pnda_security_group_kafka_ingest }
+          pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
+          LogVolumeSize : { get_param: LogVolumeSize }
+
+  manager1:
+    type: OS::Pnda::manager1
+    properties:
+      Flavor: { get_param: Manager1Flavor }
+      Image: { get_param: image_id }
+      KeyName: { get_param: KeyName }
+      stack_name: { get_param: stack_name }
+      name:
+        str_replace:
+          template: '%stackname%-hadoop-mgr-1'
+          params:
+            '%stackname%': { get_param: stack_name  }
+      pnda_private_network: { get_param: pnda_private_network }
+      pnda_private_subnet: { get_param: pnda_private_subnet }
+      pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
+      LogVolumeSize : { get_param: LogVolumeSize }
+
+  edge:
+    type: OS::Pnda::edge
+    properties:
+      Flavor: { get_param: EdgeFlavor }
+      Image: { get_param: image_id }
+      KeyName: { get_param: KeyName }
+      stack_name: { get_param: stack_name }
+      pnda_private_network: { get_param: pnda_private_network }
+      pnda_private_subnet: { get_param: pnda_private_subnet }
+      pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
+      LogVolumeSize : { get_param: LogVolumeSize }
+      name:
+        str_replace:
+          template: '%stackname%-hadoop-edge'
+          params:
+            '%stackname%': { get_param: stack_name  }

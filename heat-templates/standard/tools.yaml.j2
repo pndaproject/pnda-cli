@@ -1,0 +1,63 @@
+# Definition for the tools instance type
+heat_template_version: 2015-04-30
+
+parameters:
+  stack_name:
+    type: string
+  Flavor:
+    description: Flavor of the tools server
+    type: string
+  KeyName:
+    description: Name of an existing ssh keypair
+    type: string
+  pnda_private_network:
+    description: Private network for pnda deployment
+    type: string
+  pnda_private_subnet:
+    description: Private network for pnda deployment
+    type: string
+  Image:
+    type: string
+  name:
+    type: string
+  pnda_security_group_pnda:
+    type: string
+
+resources:
+  tools_port:
+    type: OS::Neutron::Port
+    properties:
+      network: { get_param: pnda_private_network }
+      fixed_ips:
+        - subnet_id: { get_param: pnda_private_subnet }
+      security_groups: [{ get_param: pnda_security_group_pnda }]
+
+  tools_server:
+    type: OS::Nova::Server
+    properties:
+      name: { get_param: name }
+      image: { get_param: Image }
+      flavor: { get_param: Flavor }
+      key_name: { get_param: KeyName }
+      metadata: {'node_type': 'tools',
+                 'pnda_cluster': {get_param: stack_name},
+                 'node_idx': "",
+                 'Name': {get_param: name}}
+      networks:
+        - port: { get_resource: tools_port }
+
+outputs:
+  server_resource:
+    description: Heat resource handle for the Nova compute server
+    value:
+      {get_resource: tools_server}
+  hosts_entry:
+    description: >
+      Server's IP address and hostname in the /etc/hosts format
+    value:
+      str_replace:
+        template: |
+          PRIMARYIP PRIMARYHOST
+        params:
+          PRIMARYIP: {get_attr: [tools_server, first_address]}
+          PRIMARYHOST: {get_attr: [tools_server, name]}

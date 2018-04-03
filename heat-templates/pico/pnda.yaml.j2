@@ -1,0 +1,56 @@
+parameters:
+  Manager1Flavor:
+    type: string
+    description: Flavor for the manager nodes
+  EdgeFlavor:
+    type: string
+    description: Flavor for the edge node
+  BastionFlavor:
+    type: string
+    description: Flavor for the bastion nodes
+  KafkaFlavor:
+    type: string
+    description: Flavor for the kafka nodes
+  DatanodeFlavor:
+    type: string
+    description: Flavor for the data nodes
+  ZookeeperNodes:
+    description: Number of ZOOKEEPER nodes
+    type: number
+  KafkaNodes:
+    description: Number of KAFKA nodes
+    type: number
+  DataNodes:
+    description: Number of DATA nodes
+    type: number
+  OpentsdbNodes:
+    description: Number of Opentsdb nodes
+    type: number
+  DatanodeVolumeSize:
+    type: number
+  LogVolumeSize:
+    type: number
+resources:
+  pnda_cluster:
+    type: OS::Pnda::cluster
+    depends_on: [ private_network_router_interface, ingest_network_router_interface ]
+    properties:
+      stack_name: { get_param: 'OS::stack_name' }
+      pnda_private_network: { get_resource: pnda_private_network }
+      pnda_private_subnet: { get_resource: pnda_private_subnet }
+      pnda_ingest_network: { get_resource: pnda_ingest_network }
+      pnda_ingest_subnet: { get_resource: pnda_ingest_subnet }
+      public_net_id: { get_param: PUBLIC_NETWORK_ID }
+      pnda_security_group_pnda: { get_resource: pnda_security_group_pnda}
+      pnda_security_group_kafka_ingest: { get_resource: pnda_security_group_kafka_ingest}
+      KeyName: { get_param: KeyName }
+      image_id: { get_param: IMAGE_ID }
+      EdgeFlavor: { get_param: EdgeFlavor }
+      KafkaFlavor: { get_param: KafkaFlavor }
+      BastionFlavor: { get_param: BastionFlavor }
+      DatanodeFlavor: { get_param: DatanodeFlavor }
+      Manager1Flavor: { get_param: Manager1Flavor }
+      DataNodes: { get_param: DataNodes }
+      DatanodeVolumeSize : { get_param: DatanodeVolumeSize }
+      LogVolumeSize : { get_param: LogVolumeSize }
+      KafkaNodes: { get_param: KafkaNodes }

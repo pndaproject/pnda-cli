@@ -38,7 +38,7 @@ aws_parameters:
   publicSubnetCidr: 10.0.0.0/24
 
 openstack_parameters:
- # KEYSTONE_USER: Username for the openstack clients to use
+  # KEYSTONE_USER: Username for the openstack clients to use
   KEYSTONE_USER: username
 
   # KEYSTONE_PASSWORD: Password for the openstack clients to use
@@ -70,6 +70,9 @@ openstack_parameters:
 
   # UUID of the public network in openstack to use
   PUBLIC_NETWORK_ID: 5982b761-802a-4af3-9c0b-c3b457559179
+
+  #name_servers: DNS server(s) to use, this should be provided in the environment
+  dns_nameservers: '8.8.8.8'
 
 platform_salt:
   # Use either PLATFORM_GIT_REPO_URI + PLATFORM_GIT_BRANCH or PLATFORM_SALT_LOCAL
