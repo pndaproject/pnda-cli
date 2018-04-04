@@ -152,7 +152,6 @@
         "InstanceInitiatedShutdownBehavior": "stop",
         "ImageId": { "Ref" : "imageId" },
         "InstanceType": { "Ref" : "instancetypeLogserver" },
-        "SubnetId": { "Ref" : "PrivateSubnet" },
         "KeyName": { "Ref" : "keyName" },
         "Monitoring": "false",
         "Tags": [
@@ -183,7 +182,16 @@
               "Ebs" : { "VolumeSize" : "250" }
           }
         ],
-        "SecurityGroupIds": [ {"Ref": "pndaSg"} ]
+        "NetworkInterfaces": [
+          {
+            "DeleteOnTermination": "true",
+            "Description": "Primary network interface",
+            "DeviceIndex": 0,
+            "SubnetId": {"Ref": "PublicSubnet"},
+            "GroupSet": [{"Ref": "pndaSg"}],
+            "AssociatePublicIpAddress": "true"
+          }
+        ]
       }
     },
    "instanceZookeeper": {
@@ -193,7 +201,6 @@
         "InstanceInitiatedShutdownBehavior": "stop",
         "ImageId": { "Ref" : "imageId" },
         "InstanceType": { "Ref" : "instancetypeDbZookeeper" },
-        "SubnetId": { "Ref" : "PrivateSubnet" },
         "KeyName": { "Ref" : "keyName" },
         "Monitoring": "false",
         "Tags": [
@@ -225,7 +232,16 @@
               "Ebs" : { "VolumeSize" : {"Ref": "logVolumeSizeGb"} }
           }
         ],
-        "SecurityGroupIds": [ {"Ref": "pndaSg"} ]
+        "NetworkInterfaces": [
+          {
+            "DeleteOnTermination": "true",
+            "Description": "Primary network interface",
+            "DeviceIndex": 0,
+            "SubnetId": {"Ref": "PublicSubnet"},
+            "GroupSet": [{"Ref": "pndaSg"}],
+            "AssociatePublicIpAddress": "true"
+          }
+        ]
       }
     },
     "instanceKafka": {
@@ -270,31 +286,11 @@
             "DeleteOnTermination": "true",
             "Description": "Primary network interface",
             "DeviceIndex": 0,
-            "SubnetId": {"Ref": "PrivateSubnet"},
-            "GroupSet": [{"Ref": "pndaSg"}]
-          },
-          {
-            "DeleteOnTermination": "true",
-            "Description": "Secondary network interface",
-            "DeviceIndex": 1,
-            "SubnetId": {"Ref": "PublicProducerSubnet"},
-            "GroupSet": [{"Ref": "pndaSg"},{"Ref": "kafkaSg"}]
+            "SubnetId": {"Ref": "PublicSubnet"},
+            "GroupSet": [{"Ref": "pndaSg"}],
+            "AssociatePublicIpAddress": "true"
           }
-        ],
-        "UserData" : { "Fn::Base64" : { "Fn::Join" : ["\n", [
-            "#!/bin/bash -v",
-            "cat > /etc/sysconfig/network-scripts/ifcfg-eth1 <<EOF",
-            "DEVICE=\"eth1\"",
-            "BOOTPROTO=\"dhcp\"",
-            "ONBOOT=\"yes\"",
-            "TYPE=\"Ethernet\"",
-            "USERCTL=\"yes\"",
-            "PEERDNS=\"yes\"",
-            "IPV6INIT=\"no\"",
-            "DEFROUTE=\"no\"",
-            "EOF",
-            "ifup eth1"
-      ]]}}
+        ]
       }
     },
     "instanceJupyter": {
@@ -304,7 +300,6 @@
         "InstanceInitiatedShutdownBehavior": "stop",
         "ImageId": { "Ref" : "imageId" },
         "InstanceType": { "Ref" : "instancetypeJupyter" },
-        "SubnetId": { "Ref" : "PrivateSubnet" },
         "KeyName": { "Ref" : "keyName" },
         "Monitoring": "false",
         "Tags": [
@@ -335,7 +330,16 @@
               "Ebs" : { "VolumeSize" : {"Ref": "logVolumeSizeGb"} }
           }
         ],
-        "SecurityGroupIds": [ {"Ref": "pndaSg"} ]
+        "NetworkInterfaces": [
+          {
+            "DeleteOnTermination": "true",
+            "Description": "Primary network interface",
+            "DeviceIndex": 0,
+            "SubnetId": {"Ref": "PublicSubnet"},
+            "GroupSet": [{"Ref": "pndaSg"}],
+            "AssociatePublicIpAddress": "true"
+          }
+        ]
       }
     },
     "instanceSaltmaster": {
@@ -345,7 +349,6 @@
         "InstanceInitiatedShutdownBehavior": "stop",
         "ImageId": { "Ref" : "imageId" },
         "InstanceType": { "Ref" : "instancetypeSaltmaster" },
-        "SubnetId": { "Ref" : "PrivateSubnet" },
         "KeyName": { "Ref" : "keyName" },
         "Monitoring": "false",
         "Tags": [
@@ -372,7 +375,16 @@
               "Ebs" : { "VolumeSize" : "50" }
           }
         ],
-        "SecurityGroupIds": [ {"Ref": "pndaSg"} ]
+        "NetworkInterfaces": [
+          {
+            "DeleteOnTermination": "true",
+            "Description": "Primary network interface",
+            "DeviceIndex": 0,
+            "SubnetId": {"Ref": "PublicSubnet"},
+            "GroupSet": [{"Ref": "pndaSg"}],
+            "AssociatePublicIpAddress": "true"
+          }
+        ]
       }
     },
     "instanceCdhDn": {
@@ -383,7 +395,6 @@
         "EbsOptimized": "true",
         "ImageId": { "Ref" : "imageId" },
         "InstanceType": { "Ref" : "instancetypeCdhDn" },
-        "SubnetId": { "Ref" : "PrivateSubnet" },
         "KeyName": { "Ref" : "keyName" },
         "Monitoring": "false",
         "Tags": [
@@ -418,7 +429,16 @@
               "Ebs" : { "VolumeSize" : "1024" }
           }
         ],
-        "SecurityGroupIds": [ {"Ref": "pndaSg"} ]
+        "NetworkInterfaces": [
+          {
+            "DeleteOnTermination": "true",
+            "Description": "Primary network interface",
+            "DeviceIndex": 0,
+            "SubnetId": {"Ref": "PublicSubnet"},
+            "GroupSet": [{"Ref": "pndaSg"}],
+            "AssociatePublicIpAddress": "true"
+          }
+        ]
       }
     },
     "instanceOpenTsdb": {
@@ -428,7 +448,6 @@
         "InstanceInitiatedShutdownBehavior": "stop",
         "ImageId": { "Ref" : "imageId" },
         "InstanceType": { "Ref" : "instancetypeOpenTsdb" },
-        "SubnetId": { "Ref" : "PrivateSubnet" },
         "KeyName": { "Ref" : "keyName" },
         "Monitoring": "false",
         "Tags": [
@@ -459,7 +478,16 @@
               "Ebs" : { "VolumeSize" : {"Ref": "logVolumeSizeGb"} }
           }
         ],
-        "SecurityGroupIds": [ {"Ref": "pndaSg"} ]
+        "NetworkInterfaces": [
+          {
+            "DeleteOnTermination": "true",
+            "Description": "Primary network interface",
+            "DeviceIndex": 0,
+            "SubnetId": {"Ref": "PublicSubnet"},
+            "GroupSet": [{"Ref": "pndaSg"}],
+            "AssociatePublicIpAddress": "true"
+          }
+        ]
       }
     },
     "instanceCdhEdge": {
@@ -469,7 +497,6 @@
         "InstanceInitiatedShutdownBehavior": "stop",
         "ImageId": { "Ref" : "imageId" },
         "InstanceType": { "Ref" : "instancetypeCdhEdge" },
-        "SubnetId": { "Ref" : "PrivateSubnet" },
         "KeyName": { "Ref" : "keyName" },
         "Monitoring": "false",
         "Tags": [
@@ -500,7 +527,16 @@
               "Ebs" : { "VolumeSize" : {"Ref": "logVolumeSizeGb"} }
           }
         ],
-        "SecurityGroupIds": [ {"Ref": "pndaSg"} ]
+        "NetworkInterfaces": [
+          {
+            "DeleteOnTermination": "true",
+            "Description": "Primary network interface",
+            "DeviceIndex": 0,
+            "SubnetId": {"Ref": "PublicSubnet"},
+            "GroupSet": [{"Ref": "pndaSg"}],
+            "AssociatePublicIpAddress": "true"
+          }
+        ]
       }
     },
     "instanceCdhCm": {
@@ -510,7 +546,6 @@
         "InstanceInitiatedShutdownBehavior": "stop",
         "ImageId": { "Ref" : "imageId" },
         "InstanceType": { "Ref" : "instancetypeCdhCm" },
-        "SubnetId": { "Ref" : "PrivateSubnet" },
         "KeyName": { "Ref" : "keyName" },
         "Monitoring": "false",
         "Tags": [
@@ -541,7 +576,16 @@
               "Ebs" : { "VolumeSize" : {"Ref": "logVolumeSizeGb"} }
           }
         ],
-        "SecurityGroupIds": [ {"Ref": "pndaSg"} ]
+        "NetworkInterfaces": [
+          {
+            "DeleteOnTermination": "true",
+            "Description": "Primary network interface",
+            "DeviceIndex": 0,
+            "SubnetId": {"Ref": "PublicSubnet"},
+            "GroupSet": [{"Ref": "pndaSg"}],
+            "AssociatePublicIpAddress": "true"
+          }
+        ]
       }
     },
     "instanceDbTools": {
@@ -551,7 +595,6 @@
         "InstanceInitiatedShutdownBehavior": "stop",
         "ImageId": { "Ref" : "imageId" },
         "InstanceType": { "Ref" : "instancetypeDbTools" },
-        "SubnetId": { "Ref" : "PrivateSubnet" },
         "KeyName": { "Ref" : "keyName" },
         "Monitoring": "false",
         "Tags": [
@@ -578,7 +621,16 @@
               "Ebs" : { "VolumeSize" : "50" }
           }
         ],
-        "SecurityGroupIds": [ {"Ref": "pndaSg"} ]
+        "NetworkInterfaces": [
+          {
+            "DeleteOnTermination": "true",
+            "Description": "Primary network interface",
+            "DeviceIndex": 0,
+            "SubnetId": {"Ref": "PublicSubnet"},
+            "GroupSet": [{"Ref": "pndaSg"}],
+            "AssociatePublicIpAddress": "true"
+          }
+        ]
       }
     },
     "instanceCdhMgr1": {
@@ -588,7 +640,6 @@
         "InstanceInitiatedShutdownBehavior": "stop",
         "ImageId": { "Ref" : "imageId" },
         "InstanceType": { "Ref" : "instancetypeCdhMgr" },
-        "SubnetId": { "Ref" : "PrivateSubnet" },
         "KeyName": { "Ref" : "keyName" },
         "Monitoring": "false",
         "Tags": [
@@ -619,7 +670,16 @@
               "Ebs" : { "VolumeSize" : {"Ref": "logVolumeSizeGb"} }
           }
         ],
-        "SecurityGroupIds": [ {"Ref": "pndaSg"} ]
+        "NetworkInterfaces": [
+          {
+            "DeleteOnTermination": "true",
+            "Description": "Primary network interface",
+            "DeviceIndex": 0,
+            "SubnetId": {"Ref": "PublicSubnet"},
+            "GroupSet": [{"Ref": "pndaSg"}],
+            "AssociatePublicIpAddress": "true"
+          }
+        ]
       }
     },
     "instanceCdhMgr2": {
@@ -629,7 +689,6 @@
         "InstanceInitiatedShutdownBehavior": "stop",
         "ImageId": { "Ref" : "imageId" },
         "InstanceType": { "Ref" : "instancetypeCdhMgr" },
-        "SubnetId": { "Ref" : "PrivateSubnet" },
         "KeyName": { "Ref" : "keyName" },
         "Monitoring": "false",
         "Tags": [
@@ -660,7 +719,16 @@
               "Ebs" : { "VolumeSize" : {"Ref": "logVolumeSizeGb"} }
           }
         ],
-        "SecurityGroupIds": [ {"Ref": "pndaSg"} ]
+        "NetworkInterfaces": [
+          {
+            "DeleteOnTermination": "true",
+            "Description": "Primary network interface",
+            "DeviceIndex": 0,
+            "SubnetId": {"Ref": "PublicSubnet"},
+            "GroupSet": [{"Ref": "pndaSg"}],
+            "AssociatePublicIpAddress": "true"
+          }
+        ]
       }
     },
     "instanceCdhMgr3": {
@@ -670,7 +738,6 @@
         "InstanceInitiatedShutdownBehavior": "stop",
         "ImageId": { "Ref" : "imageId" },
         "InstanceType": { "Ref" : "instancetypeCdhMgr" },
-        "SubnetId": { "Ref" : "PrivateSubnet" },
         "KeyName": { "Ref" : "keyName" },
         "Monitoring": "false",
         "Tags": [
@@ -701,7 +768,16 @@
               "Ebs" : { "VolumeSize" : {"Ref": "logVolumeSizeGb"} }
           }
         ],
-        "SecurityGroupIds": [ {"Ref": "pndaSg"} ]
+        "NetworkInterfaces": [
+          {
+            "DeleteOnTermination": "true",
+            "Description": "Primary network interface",
+            "DeviceIndex": 0,
+            "SubnetId": {"Ref": "PublicSubnet"},
+            "GroupSet": [{"Ref": "pndaSg"}],
+            "AssociatePublicIpAddress": "true"
+          }
+        ]
       }
     },
     "instanceCdhMgr4": {
@@ -711,7 +787,6 @@
         "InstanceInitiatedShutdownBehavior": "stop",
         "ImageId": { "Ref" : "imageId" },
         "InstanceType": { "Ref" : "instancetypeCdhMgr" },
-        "SubnetId": { "Ref" : "PrivateSubnet" },
         "KeyName": { "Ref" : "keyName" },
         "Monitoring": "false",
         "Tags": [
@@ -742,7 +817,16 @@
               "Ebs" : { "VolumeSize" : {"Ref": "logVolumeSizeGb"} }
           }
         ],
-        "SecurityGroupIds": [ {"Ref": "pndaSg"} ]
+        "NetworkInterfaces": [
+          {
+            "DeleteOnTermination": "true",
+            "Description": "Primary network interface",
+            "DeviceIndex": 0,
+            "SubnetId": {"Ref": "PublicSubnet"},
+            "GroupSet": [{"Ref": "pndaSg"}],
+            "AssociatePublicIpAddress": "true"
+          }
+        ]
       }
     }
   }
