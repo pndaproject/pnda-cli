@@ -263,7 +263,8 @@ else
 fi\n''')
             config_file.write('eval `ssh-agent`\n')
             config_file.write('ssh-add %s\n' % keyfile)
-            config_file.write('ssh -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -A -D $SOCKS_PORT %s@%s\n' % (keyfile, os_user, bastion_ip))
+            config_file.write('ssh -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -A -D $SOCKS_PORT %s@%s\n' %
+                              (keyfile, os_user, bastion_ip))
         mode = os.stat(socks_file_path).st_mode
         os.chmod(socks_file_path, mode | (mode & 292) >> 2)
 
@@ -460,17 +461,39 @@ fi\n''')
         CONSOLE.debug('The PNDA console will come up on: http://%s',
                       instance_map[self._cluster + '-' + self._node_config['console-instance']]['private_ip_address'])
 
-        def check_bastion_connectivity():
+        def prepare_bastion():
+            # Configure the bastion with the PNDA mirror and install nc on it
+            # nc is required for relaying commands through the bastion
+            # to do anything on the other instances
+            files_to_scp = ['cli/pnda_env_%s.sh' % self._cluster,
+                            'bootstrap-scripts/package-install.sh']
+
+            cmds_to_run = ['source /tmp/pnda_env_%s.sh' % self._cluster,
+                           'export PNDA_CLUSTER=%s' % self._cluster,
+                           'export PNDA_FLAVOR=%s' % self._flavor,
+                           'sudo chmod a+x /tmp/package-install.sh',
+                           'sudo -E /tmp/package-install.sh',
+                           'DISTRO=$(cat /etc/*-release|grep ^ID\\=|awk -F\\= {\'print $2\'}|sed s/\\"//g);' +
+                           'if [ "x$DISTRO" == "xubuntu" ]; then sudo apt-get install -y netcat; else sudo yum install -y nc; fi']
+
+            nc_scp_cmd = "scp -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s %s@%s:%s" % (
+                self._keyfile, ' '.join(files_to_scp), self._pnda_env['ec2_access']['OS_USER'], bastion_ip, '/tmp')
+            CONSOLE.debug(nc_scp_cmd)
+            ret_val = subprocess_to_log.call(nc_scp_cmd.split(' '), LOG, bastion_ip)
+            if ret_val != 0:
+                raise Exception("Error transferring files to new host %s via SCP. See debug log (%s) for details." % (bastion_ip, LOG_FILE_NAME))
+
             nc_ssh_cmd = 'ssh -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s@%s' % (
                 self._keyfile, self._pnda_env['ec2_access']['OS_USER'], bastion_ip)
             nc_install_cmd = nc_ssh_cmd.split(' ')
-            nc_install_cmd.append('sudo yum install -y nc || echo nc already installed')
+            nc_install_cmd.append(' && '.join(cmds_to_run))
+            CONSOLE.debug(nc_install_cmd)
             ret_val = subprocess_to_log.call(nc_install_cmd, LOG, bastion_ip)
             if ret_val != 0:
                 raise Exception("Error running ssh commands on host %s. See debug log (%s) for details." % (bastion_ip, LOG_FILE_NAME))
 
         if bastion_ip:
-            self._wait_for_host_connectivity([bastion_ip], self._cluster, False, check_bastion_connectivity)
+            self._wait_for_host_connectivity([bastion_ip], self._cluster, False, prepare_bastion)
         self._wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], self._cluster, bastion_ip is not None)
 
         CONSOLE.info('Bootstrapping saltmaster. Expect this to take a few minutes, check the debug log for progress (%s).', LOG_FILE_NAME)
