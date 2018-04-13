@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4394: Remove Anaconda CDH parcel mirror as this is now installed from a bundle
 - PNDA-4420: Pre-seed salt minion keys
 - PNDA-4490: Update production.json example to match the production flavour
+- PNDA-4122: Remove scalable ELK
 
 ### Fixed
 - PNDA-4415: Update PyYAML and requests
