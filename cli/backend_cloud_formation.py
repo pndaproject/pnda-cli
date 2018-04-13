@@ -38,15 +38,7 @@ class CloudFormationBackend(BaseBackend):
     '''
     def __init__(self, pnda_env, cluster, no_config_check, flavor, keyname, branch, dry_run):
         self._dry_run = dry_run
-        # read ES cluster setup from yaml
-        self._es_counts = {
-            "elk_es_master":pnda_env['elk-cluster']['MASTER_NODES'],
-            "elk_es_data":pnda_env['elk-cluster']['DATA_NODES'],
-            "elk_es_ingest":pnda_env['elk-cluster']['INGEST_NODES'],
-            "elk_es_coordinator":pnda_env['elk-cluster']['COORDINATING_NODES'],
-            "elk_es_multi":pnda_env['elk-cluster']['MULTI_ROLE_NODES'],
-            "elk_logstash":pnda_env['elk-cluster']['LOGSTASH_NODES']
-        }
+
         super(CloudFormationBackend, self).__init__(
             pnda_env, cluster, no_config_check, flavor, self._keyfile_from_keyname(keyname), branch)
 
@@ -97,9 +89,7 @@ class CloudFormationBackend(BaseBackend):
         The cloud formation stack is defined in json files in the flavor specific cloud-formation directory
         '''
         template_data = self._generate_template_file(
-            self._flavor, node_counts['datanodes'], node_counts['opentsdb_nodes'], node_counts['kafka_nodes'], node_counts['zk_nodes'],
-            self._es_counts['elk_es_master'], self._es_counts['elk_es_ingest'], self._es_counts['elk_es_data'],
-            self._es_counts['elk_es_coordinator'], self._es_counts['elk_es_multi'], self._es_counts['elk_logstash'])
+            self._flavor, node_counts['datanodes'], node_counts['opentsdb_nodes'], node_counts['kafka_nodes'], node_counts['zk_nodes'])
 
         region = self._pnda_env['ec2_access']['AWS_REGION']
         aws_availability_zone = self._pnda_env['ec2_access']['AWS_AVAILABILITY_ZONE']
@@ -145,9 +135,7 @@ class CloudFormationBackend(BaseBackend):
         The cloud formation stack is defined in json files in the flavor specific cloud-formation directory
         '''
         template_data = self._generate_template_file(
-            self._flavor, node_counts['datanodes'], node_counts['opentsdb_nodes'], node_counts['kafka_nodes'], node_counts['zk_nodes'],
-            self._es_counts['elk_es_master'], self._es_counts['elk_es_ingest'], self._es_counts['elk_es_data'],
-            self._es_counts['elk_es_coordinator'], self._es_counts['elk_es_multi'], self._es_counts['elk_logstash'])
+            self._flavor, node_counts['datanodes'], node_counts['opentsdb_nodes'], node_counts['kafka_nodes'], node_counts['zk_nodes'])
 
         region = self._pnda_env['ec2_access']['AWS_REGION']
         cf_parameters = [('keyName', self._keyname_from_keyfile(self._keyfile)), ('pndaCluster', self._cluster)]
@@ -264,7 +252,7 @@ class CloudFormationBackend(BaseBackend):
             instance_def_n = instance_def.replace('$node_idx$', str(instance_index))
             template_data['Resources']['%s%s' % (instance_name, instance_index)] = json.loads(instance_def_n)
 
-    def _generate_template_file(self, flavor, datanodes, opentsdbs, kafkas, zookeepers, esmasters, esingests, esdatas, escoords, esmultis, logstashs):
+    def _generate_template_file(self, flavor, datanodes, opentsdbs, kafkas, zookeepers):
         common_filepath = 'cloud-formation/cf-common.json'
         with open(common_filepath, 'r') as template_file:
             template_data = json.loads(template_file.read())
@@ -284,12 +272,6 @@ class CloudFormationBackend(BaseBackend):
         self._generate_instance_templates(template_data, 'instanceOpenTsdb', opentsdbs)
         self._generate_instance_templates(template_data, 'instanceKafka', kafkas)
         self._generate_instance_templates(template_data, 'instanceZookeeper', zookeepers)
-        self._generate_instance_templates(template_data, 'instanceESMaster', esmasters)
-        self._generate_instance_templates(template_data, 'instanceESData', esdatas)
-        self._generate_instance_templates(template_data, 'instanceESIngest', esingests)
-        self._generate_instance_templates(template_data, 'instanceESCoordinator', escoords)
-        self._generate_instance_templates(template_data, 'instanceESMulti', esmultis)
-        self._generate_instance_templates(template_data, 'instanceLogstash', logstashs)
 
         return json.dumps(template_data)
 

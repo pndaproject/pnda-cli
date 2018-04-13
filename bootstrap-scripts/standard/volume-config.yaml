@@ -26,9 +26,3 @@ instances:
   hadoop-mgr-2: generic
   hadoop-mgr-3: generic
   hadoop-mgr-4: generic
-  elk-es-master: generic
-  elk-es-ingest: generic
-  elk-es-data: generic
-  elk-es-coordinator: generic
-  elk-es-multi: generic
-  elk-es-logstash: generic
