@@ -23,7 +23,6 @@ import atexit
 import datetime
 import yaml
 import pnda_cli_utils as utils
-from pnda_cli_utils import PNDAConfigException
 
 from validation import UserInputValidator
 from backend_cloud_formation import CloudFormationBackend
@@ -150,26 +149,6 @@ def main():
     check_config_file()
     with open('pnda_env.yaml', 'r') as infile:
         PNDA_ENV = yaml.load(infile)
-
-    es_fields = {
-        "elk_es_master":PNDA_ENV['elk-cluster']['MASTER_NODES'],
-        "elk_es_data":PNDA_ENV['elk-cluster']['DATA_NODES'],
-        "elk_es_ingest":PNDA_ENV['elk-cluster']['INGEST_NODES'],
-        "elk_es_coordinator":PNDA_ENV['elk-cluster']['COORDINATING_NODES'],
-        "elk_es_multi":PNDA_ENV['elk-cluster']['MULTI_ROLE_NODES'],
-        "elk_logstash":PNDA_ENV['elk-cluster']['LOGSTASH_NODES']
-    }
-
-    # TODO parsing and validation of YAML needs to be factored out
-    range_validator = input_validator.get_range_validator()
-    try:
-        for field, val in es_fields.items():
-            numeric_val = int(val) if val is not None else 0
-            if range_validator is not None and not range_validator.validate_field(field, numeric_val):
-                raise PNDAConfigException("Error in pnda_env.yaml: %s must be in range (%s)" % (field, range_validator.get_validation_rule(field)))
-            es_fields[field] = numeric_val
-    except ValueError:
-        raise PNDAConfigException("Error in pnda_env.yaml: %s must be a number" % field)
 
     # Branch defaults to master
     # but may be overridden by pnda_env.yaml
