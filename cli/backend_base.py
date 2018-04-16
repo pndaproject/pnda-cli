@@ -473,8 +473,7 @@ fi\n''')
                            'export PNDA_FLAVOR=%s' % self._flavor,
                            'sudo chmod a+x /tmp/package-install.sh',
                            'sudo -E /tmp/package-install.sh',
-                           'DISTRO=$(cat /etc/*-release|grep ^ID\\=|awk -F\\= {\'print $2\'}|sed s/\\"//g);' +
-                           'if [ "x$DISTRO" == "xubuntu" ]; then sudo apt-get install -y netcat; else sudo yum install -y nc; fi']
+                           'sudo yum install -y nc']
 
             nc_scp_cmd = "scp -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s %s@%s:%s" % (
                 self._keyfile, ' '.join(files_to_scp), self._pnda_env['ec2_access']['OS_USER'], bastion_ip, '/tmp')
@@ -540,7 +539,7 @@ fi\n''')
         CONSOLE.info('Running salt to install software. Expect this to take 45 minutes or more, check the debug log for progress (%s).', LOG_FILE_NAME)
         bastion = self._node_config['bastion-instance']
         # Consul is installed first, before restarting the minion to pick up
-        # changes to resolv.conf on redhat (see https://github.com/saltstack/salt/issues/21397)
+        # changes to resolv.conf (see https://github.com/saltstack/salt/issues/21397)
         # We then wait 60 seconds before continuing with highstate to allow the minions to restart
         # An improvement would be running a test.ping and waiting for all expected minions to be ready
         CONSOLE.info('Installing Consul')
@@ -592,7 +591,7 @@ fi\n''')
         CONSOLE.info('Running salt to install software. Expect this to take 10 - 20 minutes, check the debug log for progress. (%s)', LOG_FILE_NAME)
 
         # Consul is installed first, before restarting the minion to pick up
-        # changes to resolv.conf on redhat (see https://github.com/saltstack/salt/issues/21397)
+        # changes to resolv.conf (see https://github.com/saltstack/salt/issues/21397)
         # We then wait 60 seconds before continuing with highstate to allow the minions to restart
         # An improvement would be running a test.ping and waiting for all expected minions to be ready
         CONSOLE.info('Installing Consul')

@@ -7,24 +7,13 @@
 # variables
 set -ex
 
-DISTRO=$(cat /etc/*-release|grep ^ID\=|awk -F\= {'print $2'}|sed s/\"//g)
-
 # Install a saltmaster, plus saltmaster config
-if [ "x$DISTRO" == "xubuntu" ]; then
-export DEBIAN_FRONTEND=noninteractive
-apt-get update
-apt-get -y install unzip salt-master=2015.8.11+ds-1 git
-HDP_OS=ubuntu14
-fi
-
-if [ "x$DISTRO" == "xrhel"  -o "x$DISTRO" == "xcentos" ]; then
 yum -y install unzip salt-master-2015.8.11-1.el7 git
-#Enable init mode , RHEL not enabled salt-minion by default
+#Enable init mode , RHEL does not enable services by default
 systemctl enable salt-master.service
 HDP_OS=centos7
 #enable boot time startup
 systemctl enable salt-master.service
-fi
 
 cat << EOF > /etc/salt/master
 ## specific PNDA saltmaster config
