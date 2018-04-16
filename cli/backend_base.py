@@ -59,6 +59,7 @@ class BaseBackend(object):
         if flavor is not None:
             self._node_config = self.load_node_config()
         self._cached_instance_map = None
+        self._set_up_env_conf()
 
     ### Public interface
     def create(self, node_counts):
@@ -72,6 +73,7 @@ class BaseBackend(object):
         if not self._no_config_check:
             self._check_config(self._keyfile)
         self.pre_install_pnda(node_counts)
+        self._set_up_env_conf()
         self._install_pnda()
         self.post_install_pnda()
 
@@ -213,6 +215,23 @@ class BaseBackend(object):
                 volume_class = volume_config['instances'][node_type]
                 volumes = volume_config['classes'][volume_class]
         return volumes
+
+    def _set_up_env_conf(self):
+        self._write_pnda_env_sh(self._cluster)
+        self._write_ssh_config(self._cluster,
+                               self._get_bastion_ip(),
+                               self._pnda_env['infrastructure']['OS_USER'],
+                               os.path.abspath(self._keyfile))
+
+    def _write_pnda_env_sh(self, cluster):
+        client_only = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'PLATFORM_GIT_BRANCH']
+        with open('cli/pnda_env_%s.sh' % cluster, 'w') as pnda_env_sh_file:
+            for section in self._pnda_env:
+                for setting in self._pnda_env[section]:
+                    if setting not in client_only:
+                        val = '"%s"' % self._pnda_env[section][setting] if isinstance(
+                            self._pnda_env[section][setting], (list, tuple)) else self._pnda_env[section][setting]
+                        pnda_env_sh_file.write('export %s=%s\n' % (setting, val))
 
     def _write_ssh_config(self, cluster, bastion_ip, os_user, keyfile):
         with open('cli/ssh_config-%s' % cluster, 'w') as config_file:
@@ -442,22 +461,23 @@ fi\n''')
                 for instance_name, instance_properties in self.get_instance_map().iteritems()
                 if not instance_properties['bootstrapped']]
 
-    def _install_pnda(self):
-        bastion = self._node_config['bastion-instance']
-
-        to_runfile({'cmdline':sys.argv,
-                    'bastion':bastion,
-                    'saltmaster':self._node_config['salt-master-instance']})
-
-        instance_map = self.get_instance_map()
-
+    def _get_bastion_ip(self):
         bastion_ip = None
+        instance_map = self.get_instance_map()
+        bastion = self._node_config['bastion-instance']
         bastion_name = self._cluster + '-' + bastion
         if bastion_name in instance_map.keys():
             bastion_ip = instance_map[self._cluster + '-' + bastion]['ip_address']
+        return bastion_ip
 
-        self._write_ssh_config(self._cluster, bastion_ip,
-                               self._pnda_env['infrastructure']['OS_USER'], os.path.abspath(self._keyfile))
+    def _install_pnda(self):
+        to_runfile({'cmdline':sys.argv,
+                    'bastion':self._node_config['bastion-instance'],
+                    'saltmaster':self._node_config['salt-master-instance']})
+
+        instance_map = self.get_instance_map()
+        bastion_ip = self._get_bastion_ip()
+
         CONSOLE.debug('The PNDA console will come up on: http://%s',
                       instance_map[self._cluster + '-' + self._node_config['console-instance']]['private_ip_address'])
 
@@ -537,7 +557,6 @@ fi\n''')
         time.sleep(30)
 
         CONSOLE.info('Running salt to install software. Expect this to take 45 minutes or more, check the debug log for progress (%s).', LOG_FILE_NAME)
-        bastion = self._node_config['bastion-instance']
         # Consul is installed first, before restarting the minion to pick up
         # changes to resolv.conf (see https://github.com/saltstack/salt/issues/21397)
         # We then wait 60 seconds before continuing with highstate to allow the minions to restart
@@ -558,12 +577,7 @@ fi\n''')
 
     def _expand_pnda(self, do_orchestrate):
         instance_map = self.get_instance_map(True)
-        bastion = self._node_config['bastion-instance']
-        bastion_ip = None
-        bastion_name = self._cluster + '-' + bastion
-        if bastion_name in instance_map.keys():
-            bastion_ip = instance_map[self._cluster + '-' + bastion]['ip_address']
-        self._write_ssh_config(self._cluster, bastion_ip, self._pnda_env['infrastructure']['OS_USER'], os.path.abspath(self._keyfile))
+        bastion_ip = self._get_bastion_ip()
         saltmaster = instance_map[self._cluster + '-' + self._node_config['salt-master-instance']]
         saltmaster_ip = saltmaster['private_ip_address']
 
