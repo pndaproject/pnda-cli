@@ -283,21 +283,6 @@
         ],
         "UserData" : { "Fn::Base64" : { "Fn::Join" : ["\n", [
             "#!/bin/bash -v",
-            "DISTRO=$(cat /etc/*-release|grep ^ID\\=|awk -F\\= {'print $2'}|sed s/\\\"//g)",
-            "if [ \"x$DISTRO\" == \"xubuntu\" ]; then",
-            "cat > /etc/network/interfaces <<EOF",
-            "auto eth0",
-            "iface eth0 inet dhcp",
-            { "Fn::Sub": "post-up ip route add default via ${privateSubnetGateway} dev eth0 tab 1" },
-            { "Fn::Sub": "post-up ip rule add from ${privateSubnetCidr} tab 1" },
-            "auto eth1",
-            "iface eth1 inet dhcp",
-            { "Fn::Sub": "post-up ip route add default via ${publicProducerSubnetGateway} dev eth1 tab 2" },
-            { "Fn::Sub": "post-up ip rule add from ${publicProducerSubnetCidr} tab 2" },
-            "EOF",
-            "ifdown eth0; ifup eth0",
-            "ifdown eth1; ifup eth1",
-            "elif [ \"x$DISTRO\" == \"xrhel\" -o \"x$DISTRO\" == \"xcentos\" ]; then",
             "cat > /etc/sysconfig/network-scripts/ifcfg-eth1 <<EOF",
             "DEVICE=\"eth1\"",
             "BOOTPROTO=\"dhcp\"",
@@ -308,7 +293,6 @@
             "IPV6INIT=\"no\"",
             "DEFROUTE=\"no\"",
             "EOF",
-            "fi",
             "ifup eth1"
       ]]}}
       }

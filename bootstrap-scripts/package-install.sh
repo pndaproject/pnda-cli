@@ -39,26 +39,6 @@ fi
 
 DISTRO=$(cat /etc/*-release|grep ^ID\=|awk -F\= {'print $2'}|sed s/\"//g)
 
-if [ "x$DISTRO" == "xubuntu" ]; then
-  export DEBIAN_FRONTEND=noninteractive
-  wget -O - $PNDA_MIRROR/mirror_deb/pnda.gpg.key | apt-key add -
-  wget -O - $PNDA_MIRROR/mirror_hdp/hdp.gpg.key | apt-key add -
-
-if [ "x$ADD_ONLINE_REPOS" == "xYES" ]; then
-  # Give local mirror priority
-  sed -i "1ideb $PNDA_MIRROR/mirror_deb/ ./" /etc/apt/sources.list
-  (wget -O - 'https://archive.cloudera.com/cm5/ubuntu/trusty/amd64/cm/archive.key' | apt-key add - ) && echo 'deb [arch=amd64] https://archive.cloudera.com/cm5/ubuntu/trusty/amd64/cm/ trusty-cm5.9.0 contrib' > /etc/apt/sources.list.d/cloudera-manager.list
-  (wget -O - 'https://repo.saltstack.com/apt/ubuntu/14.04/amd64/archive/2015.8.11/SALTSTACK-GPG-KEY.pub' | apt-key add - ) && echo 'deb [arch=amd64] https://repo.saltstack.com/apt/ubuntu/14.04/amd64/archive/2015.8.11/ trusty main' > /etc/apt/sources.list.d/saltstack.list
-  (wget -O - 'https://deb.nodesource.com/gpgkey/nodesource.gpg.key' | apt-key add - ) && echo 'deb [arch=amd64] https://deb.nodesource.com/node_6.x trusty main' > /etc/apt/sources.list.d/nodesource.list
-else
-  mv /etc/apt/sources.list /etc/apt/sources.list.backup
-  echo -e "deb $PNDA_MIRROR/mirror_deb/ ./" > /etc/apt/sources.list
-fi
-
-apt-get update
-
-elif [ "x$DISTRO" == "xrhel" -o "x$DISTRO" == "xcentos" ]; then
-
 if [ "x$ADD_ONLINE_REPOS" == "xYES" ]; then
   yum install -y yum-utils
   RPM_EXTRAS=$RPM_EXTRAS_REPO_NAME
@@ -86,16 +66,16 @@ keepcache = 0
 EOF
 
 fi
-  if [ "x$DISTRO" == "xrhel" ]; then
-    rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-redhat-release
-  fi
-  rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-mysql
-  rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-cloudera
-  rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-EPEL-7
-  rpm --import $PNDA_MIRROR/mirror_rpm/SALTSTACK-GPG-KEY.pub
-  rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-CentOS-7
-  rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-Jenkins
+
+if [ "x$DISTRO" == "xrhel" ]; then
+  rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-redhat-release
 fi
+rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-mysql
+rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-cloudera
+rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-EPEL-7
+rpm --import $PNDA_MIRROR/mirror_rpm/SALTSTACK-GPG-KEY.pub
+rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-CentOS-7
+rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-Jenkins
 
 PIP_INDEX_URL="$PNDA_MIRROR/mirror_python/simple"
 TRUSTED_HOST=$(echo $PIP_INDEX_URL | awk -F'[/:]' '/http:\/\//{print $4}')

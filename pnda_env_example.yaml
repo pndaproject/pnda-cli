@@ -9,20 +9,17 @@ ec2_access:
   AWS_AVAILABILITY_ZONE: eu-west-1a
 
   # The user name to use when logging into the AWS ec2 instances
-  # Ubuntu: ubuntu
   # Redhat: ec2-user
   # CentOS: centos
-  OS_USER: ubuntu
+  OS_USER: centos
 
 cloud_formation_parameters:
   # Settings in this section are passed through as parameters when
   # creating the cloud formation template. The cloud formation template must
   # define a matching input parameter for each value listed here.
 
-  # Base image to use, use the default AWS Ubuntu/Redhat image for the AWS region
-  # Ubuntu: 64-bit Ubuntu 14.04
-  # Redhat: Red Hat Enterprise Linux 7
-  imageId: ami-f95ef58a
+  # Base image to use, use the default AWS CentOS/Redhat image for the AWS region
+  imageId: ami-6e28b517
 
   # CIDR specifying the address range that may access the created PNDA instances
   whitelistSshAccess: 0.0.0.0/0
@@ -86,7 +83,7 @@ pnda_application_repo:
   PR_FS_LOCATION_PATH: /opt/pnda/packages
 
   # SSH accessed file system to use for PNDA application packages
-  PR_SSHFS_USER: ubuntu
+  PR_SSHFS_USER: centos
   PR_SSHFS_HOST: 127.0.0.1
   PR_SSHFS_PATH: /mnt/packages
   PR_SSHFS_KEY: key.pem
