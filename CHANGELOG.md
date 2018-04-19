@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4490: Update production.json example to match the production flavour
 - PNDA-4122: Remove scalable ELK
 - PNDA-4525: Deprecate Ubuntu 14.04
+- PNDA-4530: Refactor pnda_env.yaml to reflect that pnda-cli is no longer AWS specific
 
 ### Fixed
 - PNDA-4415: Update PyYAML and requests
