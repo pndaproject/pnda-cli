@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4428: Add Flink role grains
 - PNDA-4452: Install curl in bootstrap phase
 - PNDA-4489: Option to set the port to use on the command line when calling the socks proxy setup script
+- PNDA-4450: Set name tags for CFN resources
 
 ### Changed
 - PNDA-4394: Remove Anaconda CDH parcel mirror as this is now installed from a bundle
