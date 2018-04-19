@@ -1,4 +1,21 @@
-ec2_access:
+infrastructure :
+  # infrastructure used for pnda deployment
+  # Valid Values are:
+  #   - aws
+  #   - openstack
+  #   - existing-machines
+  INFRASTRUCTURE_TYPE: aws
+
+  # The user name to use when logging into the  instances
+  # For aws target user-name allowed :
+  #            Target         AWS         Openstack
+  #
+  #   Distro   Redhat:       ec2-user     cloud-user
+  #            CentOS:       centos       cloud-user
+  OS_USER: centos
+
+aws_parameters:
+  # Settings in this section are passed through as parameters when
   # API key for full API access for use creating PNDA
   # These keys are only ever stored on the client
   AWS_ACCESS_KEY_ID: xxxx
@@ -7,16 +24,6 @@ ec2_access:
   # AWS region to create PNDA ec2 instances in
   AWS_REGION: eu-west-1
   AWS_AVAILABILITY_ZONE: eu-west-1a
-
-  # The user name to use when logging into the AWS ec2 instances
-  # Redhat: ec2-user
-  # CentOS: centos
-  OS_USER: centos
-
-cloud_formation_parameters:
-  # Settings in this section are passed through as parameters when
-  # creating the cloud formation template. The cloud formation template must
-  # define a matching input parameter for each value listed here.
 
   # Base image to use, use the default AWS CentOS/Redhat image for the AWS region
   imageId: ami-6e28b517
@@ -41,6 +48,61 @@ cloud_formation_parameters:
 
   # Address of gateway for Kakfa interface on public producer subnet
   publicProducerSubnetGateway: 10.0.2.1
+
+openstack_parameters:
+ # KEYSTONE_USER: Username for the openstack clients to use
+  KEYSTONE_USER: username
+
+  # KEYSTONE_PASSWORD: Password for the openstack clients to use
+  KEYSTONE_PASSWORD: password
+
+  # KEYSTONE_TENANT: Name of the tenant / project in the openstack environment. The
+  # PNDA stack will be created in this project.
+  KEYSTONE_TENANT: pnda
+
+  # KEYSTONE_AUTH_URL: Keystone authentication URL. The Openstack console provides this
+  # under the Access & Security section.
+  KEYSTONE_AUTH_URL: 'http://x.x.x.x:5000/v2.0'
+
+  # KEYSTONE_AUTH_VERSION: Keystone authentication version. The Openstack console provides this
+  # under the Access & Security section.
+  KEYSTONE_AUTH_VERSION: '2'
+
+  # KEYSTONE_REGION_NAME: Keystone region. The Openstack console provides this
+  # under the Access & Security section.
+  KEYSTONE_REGION_NAME: RegionOne
+
+  # IMAGE_ID: Base image to use for the created instances. It should be created by
+  # following the guide in https://github.com/pndaproject/pnda-dib-elements
+  #
+  IMAGE_ID: 858abfc7-799e-44fe-8681-1cc38d36fde9
+
+  # CIDR specifying the address range that may access the created PNDA instances
+  whitelistSshAccess: 0.0.0.0/0
+
+  # UUID of the public network in openstack to use
+  PUBLIC_NETWORK_ID: 5982b761-802a-4af3-9c0b-c3b457559179
+
+  # CIDR specifying the address range for the private subnet (PNDA)
+  privateSubnetCidr: 10.0.1.0/24
+
+  # Address of gateway for Kakfa interface on private subnet
+  privateSubnetGateway: 10.0.1.1
+
+  # CIDR specifying the address range for the public producer subnet (Kafka ingress)
+  publicProducerSubnetCidr: 10.0.2.0/24
+
+  # Address of gateway for Kakfa interface on public producer subnet
+  publicProducerSubnetGateway: 10.0.2.1
+
+existing_machines_parameters:
+  #Below 2 variables used in package_install.sh for offline mode
+
+  # CIDR specifying the address range for the private subnet (PNDA)
+  privateSubnetCidr: 10.0.1.0/24
+
+  # CIDR specifying the address range for the public producer subnet (Kafka ingress)
+  publicProducerSubnetCidr: 10.0.2.0/24
 
 platform_salt:
   # Use either PLATFORM_GIT_REPO_URI + PLATFORM_GIT_BRANCH or PLATFORM_SALT_LOCAL

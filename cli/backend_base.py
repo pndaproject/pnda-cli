@@ -457,7 +457,7 @@ fi\n''')
             bastion_ip = instance_map[self._cluster + '-' + bastion]['ip_address']
 
         self._write_ssh_config(self._cluster, bastion_ip,
-                               self._pnda_env['ec2_access']['OS_USER'], os.path.abspath(self._keyfile))
+                               self._pnda_env['infrastructure']['OS_USER'], os.path.abspath(self._keyfile))
         CONSOLE.debug('The PNDA console will come up on: http://%s',
                       instance_map[self._cluster + '-' + self._node_config['console-instance']]['private_ip_address'])
 
@@ -476,14 +476,14 @@ fi\n''')
                            'sudo yum install -y nc']
 
             nc_scp_cmd = "scp -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s %s@%s:%s" % (
-                self._keyfile, ' '.join(files_to_scp), self._pnda_env['ec2_access']['OS_USER'], bastion_ip, '/tmp')
+                self._keyfile, ' '.join(files_to_scp), self._pnda_env['infrastructure']['OS_USER'], bastion_ip, '/tmp')
             CONSOLE.debug(nc_scp_cmd)
             ret_val = subprocess_to_log.call(nc_scp_cmd.split(' '), LOG, bastion_ip)
             if ret_val != 0:
                 raise Exception("Error transferring files to new host %s via SCP. See debug log (%s) for details." % (bastion_ip, LOG_FILE_NAME))
 
             nc_ssh_cmd = 'ssh -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s@%s' % (
-                self._keyfile, self._pnda_env['ec2_access']['OS_USER'], bastion_ip)
+                self._keyfile, self._pnda_env['infrastructure']['OS_USER'], bastion_ip)
             nc_install_cmd = nc_ssh_cmd.split(' ')
             nc_install_cmd.append(' && '.join(cmds_to_run))
             CONSOLE.debug(nc_install_cmd)
@@ -563,7 +563,7 @@ fi\n''')
         bastion_name = self._cluster + '-' + bastion
         if bastion_name in instance_map.keys():
             bastion_ip = instance_map[self._cluster + '-' + bastion]['ip_address']
-        self._write_ssh_config(self._cluster, bastion_ip, self._pnda_env['ec2_access']['OS_USER'], os.path.abspath(self._keyfile))
+        self._write_ssh_config(self._cluster, bastion_ip, self._pnda_env['infrastructure']['OS_USER'], os.path.abspath(self._keyfile))
         saltmaster = instance_map[self._cluster + '-' + self._node_config['salt-master-instance']]
         saltmaster_ip = saltmaster['private_ip_address']
 

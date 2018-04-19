@@ -64,7 +64,7 @@ class CloudFormationBackend(BaseBackend):
         Use the AWS Ec2 API to generate a list of the target instances
         '''
         CONSOLE.debug('Checking details of created instances')
-        region = self._pnda_env['ec2_access']['AWS_REGION']
+        region = self._pnda_env['aws_parameters']['AWS_REGION']
         ec2 = boto.ec2.connect_to_region(region)
         reservations = self._retry(ec2.get_all_reservations)
         instance_map = {}
@@ -91,11 +91,13 @@ class CloudFormationBackend(BaseBackend):
         template_data = self._generate_template_file(
             self._flavor, node_counts['datanodes'], node_counts['opentsdb_nodes'], node_counts['kafka_nodes'], node_counts['zk_nodes'])
 
-        region = self._pnda_env['ec2_access']['AWS_REGION']
-        aws_availability_zone = self._pnda_env['ec2_access']['AWS_AVAILABILITY_ZONE']
+        region = self._pnda_env['aws_parameters']['AWS_REGION']
+        aws_availability_zone = self._pnda_env['aws_parameters']['AWS_AVAILABILITY_ZONE']
         cf_parameters = [('keyName', self._keyname_from_keyfile(self._keyfile)), ('pndaCluster', self._cluster), ('awsAvailabilityZone', aws_availability_zone)]
-        for parameter in self._pnda_env['cloud_formation_parameters']:
-            cf_parameters.append((parameter, self._pnda_env['cloud_formation_parameters'][parameter]))
+        exclude=['AWS_SECRET_ACCESS_KEY','AWS_AVAILABILITY_ZONE','AWS_REGION','AWS_ACCESS_KEY_ID']
+        for parameter in self._pnda_env['aws_parameters']:
+            if parameter not in exclude:
+                cf_parameters.append((parameter, self._pnda_env['aws_parameters'][parameter]))
 
         self._save_cf_resources('create_%s' % utils.MILLI_TIME(), self._cluster, cf_parameters, template_data)
         if self._dry_run:
@@ -137,10 +139,12 @@ class CloudFormationBackend(BaseBackend):
         template_data = self._generate_template_file(
             self._flavor, node_counts['datanodes'], node_counts['opentsdb_nodes'], node_counts['kafka_nodes'], node_counts['zk_nodes'])
 
-        region = self._pnda_env['ec2_access']['AWS_REGION']
+        region = self._pnda_env['aws_parameters']['AWS_REGION']
         cf_parameters = [('keyName', self._keyname_from_keyfile(self._keyfile)), ('pndaCluster', self._cluster)]
-        for parameter in self._pnda_env['cloud_formation_parameters']:
-            cf_parameters.append((parameter, self._pnda_env['cloud_formation_parameters'][parameter]))
+        exclude=['AWS_SECRET_ACCESS_KEY','AWS_AVAILABILITY_ZONE','AWS_REGION','AWS_ACCESS_KEY_ID']
+        for parameter in self._pnda_env['aws_parameters']:
+            if parameter not in exclude:
+                cf_parameters.append((parameter, self._pnda_env['aws_parameters'][parameter]))
 
         self._save_cf_resources('expand_%s' % utils.MILLI_TIME(), self._cluster, cf_parameters, template_data)
         if self._dry_run:
@@ -179,7 +183,7 @@ class CloudFormationBackend(BaseBackend):
         Use the AWS Cloud Formation API to delete the cloud formation stack that PNDA was installed on
         '''
         CONSOLE.info('Deleting Cloud Formation stack')
-        region = self._pnda_env['ec2_access']['AWS_REGION']
+        region = self._pnda_env['aws_parameters']['AWS_REGION']
         conn = boto.cloudformation.connect_to_region(region)
         stack_status = 'DELETING'
         stack_status_new = None
@@ -277,7 +281,7 @@ class CloudFormationBackend(BaseBackend):
 
     def _check_keypair(self, keyname):
         try:
-            region = self._pnda_env['ec2_access']['AWS_REGION']
+            region = self._pnda_env['aws_parameters']['AWS_REGION']
             ec2 = boto.ec2.connect_to_region(region)
             stored_key = ec2.get_key_pair(keyname)
             if stored_key is None:
@@ -290,7 +294,7 @@ class CloudFormationBackend(BaseBackend):
             sys.exit(1)
 
     def _check_aws_connection(self):
-        region = self._pnda_env['ec2_access']['AWS_REGION']
+        region = self._pnda_env['aws_parameters']['AWS_REGION']
 
         valid_regions = [valid_region.name for valid_region in boto.ec2.regions()]
         if region not in valid_regions:
@@ -301,7 +305,7 @@ class CloudFormationBackend(BaseBackend):
         conn = boto.cloudformation.connect_to_region(region)
         if conn is None:
             CONSOLE.info('AWS connection... ERROR')
-            CONSOLE.error('Failed to connect to cloud formation API, verify ec2_access settings in "pnda_env.yaml" and try again.')
+            CONSOLE.error('Failed to connect to cloud formation API, verify aws_parameters settings in "pnda_env.yaml" and try again.')
             sys.exit(1)
 
         try:
@@ -309,6 +313,6 @@ class CloudFormationBackend(BaseBackend):
             CONSOLE.info('AWS connection... OK')
         except:
             CONSOLE.info('AWS connection... ERROR')
-            CONSOLE.error('Failed to query cloud formation API, verify ec2_access settings in "pnda_env.yaml" and try again.')
+            CONSOLE.error('Failed to query cloud formation API, verify aws_parameters settings in "pnda_env.yaml" and try again.')
             CONSOLE.error(traceback.format_exc())
             sys.exit(1)
