@@ -73,6 +73,7 @@
       "Description" : "Gateway on public subnet for producers"
     }
   },
+
   "Resources": {
     "VPC" : {
       "Type" : "AWS::EC2::VPC",
@@ -81,6 +82,7 @@
         "EnableDnsHostnames" : "true",
         "CidrBlock" : { "Ref" : "vpcCidr" },
         "Tags" : [
+          { "Key" : "Name", "Value" : { "Ref" : "AWS::StackName" } },
           { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
           { "Key" : "Network", "Value" : "Public" }
         ]
@@ -94,6 +96,7 @@
         "CidrBlock" : { "Ref" : "publicSubnetCidr" },
         "AvailabilityZone" : {"Ref": "awsAvailabilityZone"},
         "Tags" : [
+          { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "PublicSubnet" ] ]} },
           { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
           { "Key" : "Network", "Value" : "Public" }
         ]
@@ -104,6 +107,7 @@
       "Type" : "AWS::EC2::InternetGateway",
       "Properties" : {
         "Tags" : [
+          { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "InternetGateway" ] ]} },
           { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
           { "Key" : "Network", "Value" : "Public" }
         ]
@@ -123,6 +127,7 @@
       "Properties" : {
         "VpcId" : { "Ref" : "VPC" },
         "Tags" : [
+          { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "PublicRouteTable" ] ]} },
           { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
           { "Key" : "Network", "Value" : "Public" }
         ]
@@ -152,6 +157,7 @@
       "Properties" : {
         "VpcId" : { "Ref" : "VPC" },
         "Tags" : [
+          { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "PublicNetworkAcl" ] ]} },
           { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
           { "Key" : "Network", "Value" : "Public" }
         ]
@@ -163,6 +169,7 @@
       "Properties" : {
         "VpcId" : { "Ref" : "VPC" },
         "Tags" : [
+          { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "PublicProducerNetworkAcl" ] ]} },
           { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
           { "Key" : "Network", "Value" : "PublicProducer" }
         ]
@@ -327,19 +334,26 @@
         "CidrBlock" : { "Ref" : "privateSubnetCidr" },
         "AvailabilityZone" : {"Ref": "awsAvailabilityZone"},
         "Tags" : [
+          { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "PrivateSubnet" ] ]} },
           { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
           { "Key" : "Network", "Value" : "Private" }
         ]
       }
     },
+
     "NAT" : {
       "DependsOn" : "GatewayToInternet",
       "Type" : "AWS::EC2::NatGateway",
       "Properties" : {
         "AllocationId" : { "Fn::GetAtt" : ["EIP", "AllocationId"]},
-        "SubnetId" : { "Ref" : "PublicSubnet"}
+        "SubnetId" : { "Ref" : "PublicSubnet"},
+        "Tags" : [
+          { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "NAT" ] ]} },
+          { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } }
+        ]
       }
     },
+
     "EIP" : {
       "Type" : "AWS::EC2::EIP",
       "Properties" : {
@@ -352,11 +366,13 @@
       "Properties" : {
         "VpcId" : { "Ref" : "VPC" },
         "Tags" : [
+          { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "PrivateRouteTable" ] ]} },
           { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
           { "Key" : "Network", "Value" : "Private" }
         ]
       }
     },
+
     "PrivateRoute" : {
       "Type" : "AWS::EC2::Route",
       "Properties" : {
@@ -365,6 +381,7 @@
         "NatGatewayId" : { "Ref" : "NAT" }
       }
     },
+
     "PrivateSubnetRouteTableAssociation" : {
          "Type" : "AWS::EC2::SubnetRouteTableAssociation",
          "Properties" : {
@@ -373,29 +390,32 @@
          }
     },
 
-     "PublicProducerSubnet" : {
+    "PublicProducerSubnet" : {
       "Type" : "AWS::EC2::Subnet",
       "Properties" : {
         "VpcId" : { "Ref" : "VPC" },
         "CidrBlock" : { "Ref" : "publicProducerSubnetCidr" },
         "AvailabilityZone" : {"Ref": "awsAvailabilityZone"},
         "Tags" : [
+          { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "PublicProducerSubnet" ] ]} },
           { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
           { "Key" : "Network", "Value" : "Public" }
         ]
       }
     },
-    
+
     "PublicProducerRouteTable" : {
       "Type" : "AWS::EC2::RouteTable",
       "Properties" : {
         "VpcId" : { "Ref" : "VPC" },
         "Tags" : [
+          { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "PublicProducerRouteTable" ] ]} },
           { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
           { "Key" : "Network", "Value" : "PublicProducer" }
         ]
       }
     },
+
     "PublicProducerRoute" : {
       "Type" : "AWS::EC2::Route",
       "DependsOn" : "GatewayToInternet",      
@@ -421,14 +441,20 @@
         "NetworkAclId" : { "Ref" : "PublicProducerNetworkAcl" }
       }
     },
+
     "kafkaSg": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "GroupDescription": "access to Kafka",
-        "VpcId": {"Ref": "VPC"}
+        "VpcId": {"Ref": "VPC"},
+        "Tags" : [
+          { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "kafkaSg" ] ]} },
+          { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } }
+        ]
       }
     },
-   "ingressKafka1": {
+
+    "ingressKafka1": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
         "GroupId": {
@@ -440,15 +466,20 @@
         "CidrIp": { "Ref" : "whitelistKafkaAccess" }
       }
     },
-    
+
     "sshSg": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "GroupDescription": "access to pnda instances",
-        "VpcId": {"Ref": "VPC"}
+        "VpcId": {"Ref": "VPC"},
+        "Tags" : [
+          { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "sshSg" ] ]} },
+          { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } }
+        ]
       }
     },
-   "ingressSsh1": {
+
+    "ingressSsh1": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
         "GroupId": {
@@ -460,14 +491,20 @@
         "CidrIp": { "Ref" : "whitelistSshAccess" }
       }
     },
+
     "pndaSg": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "GroupDescription": "access to pnda UIs",
-        "VpcId": {"Ref": "VPC"}
+        "VpcId": {"Ref": "VPC"},
+        "Tags" : [
+          { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "pndaSg" ] ]} },
+          { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } }
+        ]
       }
     },
-   "ingressSsh2": {
+
+    "ingressSsh2": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
         "GroupId": {
@@ -479,6 +516,7 @@
         "CidrIp": { "Ref" : "whitelistSshAccess" }
       }
     },
+
     "ingressInternal": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
@@ -491,6 +529,7 @@
         "SourceSecurityGroupId": { "Ref" : "pndaSg" }
       }
     },
+
     "ingressInternal2": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
@@ -503,6 +542,7 @@
         "SourceSecurityGroupId": { "Ref" : "pndaSg" }
       }
     },
+
     "ingressInternal3": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
@@ -515,6 +555,7 @@
         "SourceSecurityGroupId": { "Ref" : "sshSg" }
       }
     },
+
     "egressAll": {
       "Type": "AWS::EC2::SecurityGroupEgress",
       "Properties": {
