@@ -79,15 +79,6 @@ def check_config_file():
         CONSOLE.error('Missing required pnda_env.yaml config file, make a copy of pnda_env_example.yaml named pnda_env.yaml, fill it out and try again.')
         sys.exit(1)
 
-def write_pnda_env_sh(cluster):
-    client_only = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'PLATFORM_GIT_BRANCH']
-    with open('cli/pnda_env_%s.sh' % cluster, 'w') as pnda_env_sh_file:
-        for section in PNDA_ENV:
-            for setting in PNDA_ENV[section]:
-                if setting not in client_only:
-                    val = '"%s"' % PNDA_ENV[section][setting] if isinstance(PNDA_ENV[section][setting], (list, tuple)) else PNDA_ENV[section][setting]
-                    pnda_env_sh_file.write('export %s=%s\n' % (setting, val))
-
 def valid_flavors():
     cfn_dirs = [dir_name for dir_name in os.listdir('../cloud-formation') if  os.path.isdir(os.path.join('../cloud-formation', dir_name))]
     bootstap_dirs = [dir_name for dir_name in os.listdir('../bootstrap-scripts') if  os.path.isdir(os.path.join('../bootstrap-scripts', dir_name))]
@@ -168,9 +159,8 @@ def main():
         branch = fields['branch']
     fields['branch'] = branch
 
-    deployment_target = select_deployment_target_impl(fields)
     PNDA_ENV['infrastructure']['SSH_KEY'] = '%s%s' % (fields['keyname'], '.pem')
-    write_pnda_env_sh(fields['pnda_cluster'])
+    deployment_target = select_deployment_target_impl(fields)
 
     ###
     # Destroy command
