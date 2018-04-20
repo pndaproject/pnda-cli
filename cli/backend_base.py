@@ -463,11 +463,12 @@ fi\n''')
 
     def _get_bastion_ip(self):
         bastion_ip = None
-        instance_map = self.get_instance_map()
-        bastion = self._node_config['bastion-instance']
-        bastion_name = self._cluster + '-' + bastion
-        if bastion_name in instance_map.keys():
-            bastion_ip = instance_map[self._cluster + '-' + bastion]['ip_address']
+        if self._flavor is not None:
+            instance_map = self.get_instance_map()
+            bastion = self._node_config['bastion-instance']
+            bastion_name = self._cluster + '-' + bastion
+            if bastion_name in instance_map.keys():
+                bastion_ip = instance_map[self._cluster + '-' + bastion]['ip_address']
         return bastion_ip
 
     def _install_pnda(self):
