@@ -185,7 +185,7 @@ hadoop:
   # Valid values are:
   # - 1
   # - 2
-  OOZIE_SPARK_VERSION: 1
+  OOZIE_SPARK_VERSION: 2
 
 connectivity:
   # Deploy an iptables ruleset to every node preventing outbound access to all hosts except the PNDA_MIRROR, NTP_SERVER and specified CLIENT_IP. Specify YES to enable.
