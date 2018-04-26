@@ -180,7 +180,7 @@ hadoop:
   # Valid values are:
   # - HDP
   # - CDH
-  HADOOP_DISTRO: CDH
+  HADOOP_DISTRO: HDP
 
 connectivity:
   # Deploy an iptables ruleset to every node preventing outbound access to all hosts except the PNDA_MIRROR, NTP_SERVER and specified CLIENT_IP. Specify YES to enable.
