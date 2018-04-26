@@ -35,6 +35,8 @@ import pnda_cli_utils as utils
 from pnda_cli_utils import PNDAConfigException
 from pnda_cli_utils import MILLI_TIME
 from pnda_cli_utils import to_runfile
+from ssh_client import SshClient
+from service_registry_consul import ServiceRegistryConsul
 import subprocess_to_log
 
 utils.init_logging()
@@ -52,6 +54,7 @@ class BaseBackend(object):
     def __init__(self, pnda_env, cluster, no_config_check, flavor, keyfile, branch):
         self._pnda_env = pnda_env
         self._cluster = cluster
+        self._ssh_client = SshClient(self._cluster)
         self._no_config_check = no_config_check
         self._flavor = flavor
         self._keyfile = keyfile
@@ -60,6 +63,7 @@ class BaseBackend(object):
             self._node_config = self.load_node_config()
         self._cached_instance_map = None
         self._set_up_env_conf()
+        self._service_registry = ServiceRegistryConsul(self._ssh_client)
 
     ### Public interface
     def create(self, node_counts):
@@ -187,7 +191,7 @@ class BaseBackend(object):
         pass
     ### END (Methods that should be overridden in implementation class) ###
 
-    def _ship_certs(self, cluster, saltmaster_ip):
+    def _ship_certs(self, saltmaster_ip):
         platform_certs_tarball = None
         try:
             local_certs_path = self._pnda_env['security']['SECURITY_MATERIAL_PATH']
@@ -202,7 +206,7 @@ class BaseBackend(object):
                 CONSOLE.error(exception)
                 raise PNDAConfigException("Error: %s must contain certificates" % local_certs_path)
 
-        self._scp([platform_certs_tarball], cluster, saltmaster_ip)
+        self._ssh_client.scp([platform_certs_tarball], saltmaster_ip)
         os.remove(platform_certs_tarball)
 
         return platform_certs_tarball
@@ -218,10 +222,9 @@ class BaseBackend(object):
 
     def _set_up_env_conf(self):
         self._write_pnda_env_sh(self._cluster)
-        self._write_ssh_config(self._cluster,
-                               self._get_bastion_ip(),
-                               self._pnda_env['infrastructure']['OS_USER'],
-                               os.path.abspath(self._keyfile))
+        self._ssh_client.write_ssh_config(self._get_bastion_ip(),
+                                          self._pnda_env['infrastructure']['OS_USER'],
+                                          os.path.abspath(self._keyfile))
 
     def _write_pnda_env_sh(self, cluster):
         client_only = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'PLATFORM_GIT_BRANCH']
@@ -232,76 +235,6 @@ class BaseBackend(object):
                         val = '"%s"' % self._pnda_env[section][setting] if isinstance(
                             self._pnda_env[section][setting], (list, tuple)) else self._pnda_env[section][setting]
                         pnda_env_sh_file.write('export %s=%s\n' % (setting, val))
-
-    def _write_ssh_config(self, cluster, bastion_ip, os_user, keyfile):
-        with open('cli/ssh_config-%s' % cluster, 'w') as config_file:
-            config_file.write('host *\n')
-            config_file.write('    User %s\n' % os_user)
-            config_file.write('    IdentityFile %s\n' % keyfile)
-            config_file.write('    StrictHostKeyChecking no\n')
-            config_file.write('    UserKnownHostsFile /dev/null\n')
-            if bastion_ip:
-                config_file.write('    ProxyCommand ssh -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s@%s exec nc %%h %%p\n'
-                                  % (keyfile, os_user, bastion_ip))
-        if not bastion_ip:
-            return
-
-        socks_file_path = 'cli/socks_proxy-%s' % cluster
-        with open(socks_file_path, 'w') as config_file:
-            config_file.write('''
-if [ -z "$1" ]; then
-	export SOCKS_PORT=9999
-else
-	export SOCKS_PORT=$1
-fi
-unset SSH_AUTH_SOCK
-unset SSH_AGENT_PID
-
-for FILE in $(find /tmp/ssh-* -type s -user ${LOGNAME} -name "agent.[0-9]*" 2>/dev/null)
-do
-    SOCK_PID=${FILE##*.}
-
-    PID=$(ps -fu${LOGNAME}|awk '/ssh-agent/ && ( $2=='${SOCK_PID}' || $3=='${SOCK_PID}' || $2=='${SOCK_PID}' +1 ) {print $2}')
-
-    if [ -z "$PID" ]
-    then
-        continue
-    fi
-
-    export SSH_AUTH_SOCK=${FILE}
-    export SSH_AGENT_PID=${PID}
-    break
-done
-
-if [ -z "$SSH_AGENT_PID" ]
-then
-    echo "Starting a new SSH Agent..."
-    eval `ssh-agent`
-else
-    echo "Using existing SSH Agent with pid: ${SSH_AGENT_PID}, sock file: ${SSH_AUTH_SOCK}"
-fi\n''')
-            config_file.write('eval `ssh-agent`\n')
-            config_file.write('ssh-add %s\n' % keyfile)
-            config_file.write('ssh -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -A -D $SOCKS_PORT %s@%s\n' %
-                              (keyfile, os_user, bastion_ip))
-        mode = os.stat(socks_file_path).st_mode
-        os.chmod(socks_file_path, mode | (mode & 292) >> 2)
-
-    def _scp(self, files, cluster, host):
-        cmd = "scp -F cli/ssh_config-%s %s %s:%s" % (cluster, ' '.join(files), host, '/tmp')
-        CONSOLE.debug(cmd)
-        ret_val = subprocess_to_log.call(cmd.split(' '), LOG, host)
-        if ret_val != 0:
-            raise Exception("Error transferring files to new host %s via SCP. See debug log (%s) for details." % (host, LOG_FILE_NAME))
-
-    def _ssh(self, cmds, cluster, host):
-        cmd = "ssh -F cli/ssh_config-%s %s" % (cluster, host)
-        parts = cmd.split(' ')
-        parts.append(' && '.join(cmds))
-        CONSOLE.debug(json.dumps(parts))
-        ret_val = subprocess_to_log.call(parts, LOG, host, scan_for_errors=[r'lost connection', r'\s*Failed:\s*[1-9].*'])
-        if ret_val != 0:
-            raise Exception("Error running ssh commands on host %s. See debug log (%s) for details." % (host, LOG_FILE_NAME))
 
     def _bootstrap(self, instance, saltmaster, cluster, flavor, branch,
                    salt_tarball, certs_tarball, error_queue,
@@ -363,8 +296,8 @@ fi\n''')
             cmds_to_run.append('(sudo -E /tmp/base_post.sh 2>&1) | tee -a pnda-bootstrap.log; %s' % THROW_BASH_ERROR)
             cmds_to_run.append('touch ~/.bootstrap_complete')
 
-            self._scp(files_to_scp, cluster, ip_address)
-            self._ssh(cmds_to_run, cluster, ip_address)
+            self._ssh_client.scp(files_to_scp, ip_address)
+            self._ssh_client.ssh(cmds_to_run, ip_address)
 
             if bootstrap_files is not None:
                 map(bootstrap_files.put, files_to_scp)
@@ -407,17 +340,17 @@ fi\n''')
         if errors is not None:
             self._process_thread_errors(action, errors)
 
-    def _wait_for_host_connectivity(self, hosts, cluster, bastion_used, check_func=None):
+    def _wait_for_host_connectivity(self, hosts, bastion_used, check_func=None):
         wait_threads = []
 
-        def do_wait(host, cluster):
+        def do_wait(host):
             while True:
                 try:
                     CONSOLE.info('Checking connectivity to %s', host)
                     if check_func is not None:
                         check_func()
                     else:
-                        self._ssh(['ls ~'], cluster, host)
+                        self._ssh_client.ssh(['ls ~'], host)
                     break
                 except:
                     LOG.debug('Still waiting for connectivity to %s.', host)
@@ -425,21 +358,21 @@ fi\n''')
                     time.sleep(2)
 
         for host in hosts:
-            thread = Thread(target=do_wait, args=[host, cluster])
+            thread = Thread(target=do_wait, args=[host])
             thread.daemon = True
             wait_threads.append(thread)
 
         self._wait_on_host_operations('waiting for host connectivity', wait_threads, bastion_used, None)
 
-    def _restart_minions(self, hosts, cluster, bastion_used):
+    def _restart_minions(self, hosts, bastion_used):
         wait_threads = []
 
-        def do_cmd(host, cluster):
+        def do_cmd(host):
             CONSOLE.info('Restarting salt minion on %s', host)
-            self._ssh(['sudo service salt-minion restart'], cluster, host)
+            self._ssh_client.ssh(['sudo service salt-minion restart'], host)
 
         for host in hosts:
-            thread = Thread(target=do_cmd, args=[host, cluster])
+            thread = Thread(target=do_cmd, args=[host])
             thread.daemon = True
             wait_threads.append(thread)
 
@@ -513,8 +446,8 @@ fi\n''')
                 raise Exception("Error running ssh commands on host %s. See debug log (%s) for details." % (bastion_ip, LOG_FILE_NAME))
 
         if bastion_ip:
-            self._wait_for_host_connectivity([bastion_ip], self._cluster, False, prepare_bastion)
-        self._wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], self._cluster, bastion_ip is not None)
+            self._wait_for_host_connectivity([bastion_ip], False, prepare_bastion)
+        self._wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], bastion_ip is not None)
 
         CONSOLE.info('Bootstrapping saltmaster. Expect this to take a few minutes, check the debug log for progress (%s).', LOG_FILE_NAME)
         saltmaster = instance_map[self._cluster + '-' + self._node_config['salt-master-instance']]
@@ -525,12 +458,12 @@ fi\n''')
             platform_salt_tarball = '%s.tmp' % str(uuid.uuid1())
             with tarfile.open(platform_salt_tarball, mode='w:gz') as archive:
                 archive.add(local_salt_path, arcname='platform-salt', recursive=True)
-            self._scp([platform_salt_tarball], self._cluster, saltmaster_ip)
+            self._ssh_client.scp([platform_salt_tarball], saltmaster_ip)
             os.remove(platform_salt_tarball)
 
         platform_certs_tarball = None
         if self._pnda_env['security']['SECURITY_MODE'] != 'disabled':
-            platform_certs_tarball = self._ship_certs(self._cluster, saltmaster_ip)
+            platform_certs_tarball = self._ship_certs(saltmaster_ip)
 
         bootstrap_threads = []
         bootstrap_errors = Queue.Queue()
@@ -563,18 +496,55 @@ fi\n''')
         # We then wait 60 seconds before continuing with highstate to allow the minions to restart
         # An improvement would be running a test.ping and waiting for all expected minions to be ready
         CONSOLE.info('Installing Consul')
-        self._ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" state.sls consul,consul.dns queue=True 2>&1)' +
-                   ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR], self._cluster, saltmaster_ip)
+        self._ssh_client.ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" state.sls consul,consul.dns queue=True 2>&1)'
+                              ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR], saltmaster_ip)
         CONSOLE.info('Restarting minions')
-        self._restart_minions([instance_map[h]['private_ip_address'] for h in instance_map], self._cluster, bastion_ip is not None)
+        self._restart_minions([instance_map[h]['private_ip_address'] for h in instance_map], bastion_ip is not None)
         CONSOLE.info('Refreshing salt mines')
-        self._ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" mine.update 2>&1) | tee -a pnda-salt.log; %s'
-                   % THROW_BASH_ERROR], self._cluster, saltmaster_ip)
+        self._ssh_client.ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" mine.update 2>&1) | tee -a pnda-salt.log; %s'
+                              % THROW_BASH_ERROR], saltmaster_ip)
+
+        self._register_public_services(saltmaster_ip)
+
         CONSOLE.info('Continuing with installation of PNDA')
-        self._ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" state.highstate queue=True 2>&1) | tee -a pnda-salt.log; %s'
-                   % THROW_BASH_ERROR,
-                   '(sudo CLUSTER=%s salt-run --log-level=debug state.orchestrate orchestrate.pnda 2>&1) | tee -a pnda-salt.log; %s'
-                   % (self._cluster, THROW_BASH_ERROR)], self._cluster, saltmaster_ip)
+        self._ssh_client.ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*"'
+                              ' state.highstate queue=True 2>&1) | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR,
+                              '(sudo CLUSTER=%s salt-run --log-level=debug state.orchestrate orchestrate.pnda 2>&1) | tee -a pnda-salt.log; %s'
+                              % (self._cluster, THROW_BASH_ERROR)], saltmaster_ip)
+
+    def _register_public_services(self, saltmaster_ip):
+        CONSOLE.info('Populating %s with services', self._service_registry.name)
+        CONSOLE.debug('Populating %s with public services', self._service_registry.name)
+        # Read descriptor
+        service_to_role_descriptor = self._get_service_to_role_descriptor()
+        # Find hosts with those roles using grains
+        for service in service_to_role_descriptor:
+            role = service_to_role_descriptor[service]['role']
+            port = service_to_role_descriptor[service]['port']
+            hosts_for_role = self._get_hosts_for_role(saltmaster_ip, role)
+            # Get the public addresses for those hosts
+            public_addresses_for_role = [instance_properties['ip_address']
+                                         for instance_name, instance_properties in self.get_instance_map().iteritems()
+                                         if instance_name in hosts_for_role and instance_properties['ip_address'] is not None]
+            # Push records into registry mapping service->public address
+            self._service_registry.register_service_record(service, public_addresses_for_role, port)
+        self._service_registry.commit()
+
+    def _get_service_to_role_descriptor(self):
+        rts_filepath = 'bootstrap-scripts/service_to_role.json'
+        with open(rts_filepath, 'r') as mapping_file:
+            mapping_data = json.loads(mapping_file.read())
+        return mapping_data
+
+    def _get_hosts_for_role(self, saltmaster_ip, role):
+        output = []
+        self._ssh_client.ssh(['(sudo salt-call pnda.get_hosts_for_role %s 2>&1) | tee -a pnda-salt.log; %s' % (role, THROW_BASH_ERROR)], saltmaster_ip, output)
+        hosts_for_role = []
+        for line in output:
+            if line.strip().startswith('-'):
+                hosts_for_role.append(line.strip().split('- ')[1])
+        CONSOLE.debug('Hosts for role %s are: %s', role, json.dumps(hosts_for_role))
+        return hosts_for_role
 
     def _expand_pnda(self, do_orchestrate):
         instance_map = self.get_instance_map(True)
@@ -582,14 +552,14 @@ fi\n''')
         saltmaster = instance_map[self._cluster + '-' + self._node_config['salt-master-instance']]
         saltmaster_ip = saltmaster['private_ip_address']
 
-        self._ssh(['rm -rf /tmp/%s || true' % self._keyfile], self._cluster, saltmaster_ip)
-        self._scp([self._keyfile, 'cli/pnda_env_%s.sh' % self._cluster, 'bootstrap-scripts/saltmaster-gen-keys.sh'], self._cluster, saltmaster_ip)
-        self._ssh(['echo \'%s\' | tee /tmp/minions_list' % '\n'.join(self._get_minions_to_bootstrap()),
-                   'source /tmp/pnda_env_%s.sh' % self._cluster,
-                   'sudo chmod a+x /tmp/saltmaster-gen-keys.sh',
-                   'sudo -E /tmp/saltmaster-gen-keys.sh'], self._cluster, saltmaster_ip)
+        self._ssh_client.ssh(['rm -rf /tmp/%s || true' % self._keyfile], saltmaster_ip)
+        self._ssh_client.scp([self._keyfile, 'cli/pnda_env_%s.sh' % self._cluster, 'bootstrap-scripts/saltmaster-gen-keys.sh'], saltmaster_ip)
+        self._ssh_client.ssh(['echo \'%s\' | tee /tmp/minions_list' % '\n'.join(self._get_minions_to_bootstrap()),
+                              'source /tmp/pnda_env_%s.sh' % self._cluster,
+                              'sudo chmod a+x /tmp/saltmaster-gen-keys.sh',
+                              'sudo -E /tmp/saltmaster-gen-keys.sh'], saltmaster_ip)
 
-        self._wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], self._cluster, bastion_ip is not None)
+        self._wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], bastion_ip is not None)
         CONSOLE.info('Bootstrapping new instances. Expect this to take a few minutes, check the debug log for progress. (%s)', LOG_FILE_NAME)
         bootstrap_threads = []
         bootstrap_errors = Queue.Queue()
@@ -610,13 +580,17 @@ fi\n''')
         # We then wait 60 seconds before continuing with highstate to allow the minions to restart
         # An improvement would be running a test.ping and waiting for all expected minions to be ready
         CONSOLE.info('Installing Consul')
-        self._ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed -C "G@pnda:is_new_node" state.sls consul,consul.dns queue=True 2>&1)' +
-                   ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR], self._cluster, saltmaster_ip)
+        self._ssh_client.ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed'
+                              '-C "G@pnda:is_new_node" state.sls consul,consul.dns queue=True 2>&1)'
+                              ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR], saltmaster_ip)
         CONSOLE.info('Restarting minions')
-        self._restart_minions([instance_map[h]['private_ip_address'] for h in instance_map], self._cluster, bastion_ip is not None)
+        self._restart_minions([instance_map[h]['private_ip_address'] for h in instance_map], bastion_ip is not None)
         CONSOLE.info('Refreshing salt mines')
-        self._ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" mine.update 2>&1) | tee -a pnda-salt.log; %s'
-                   % THROW_BASH_ERROR], self._cluster, saltmaster_ip)
+        self._ssh_client.ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" mine.update 2>&1) | tee -a pnda-salt.log; %s'
+                              % THROW_BASH_ERROR], saltmaster_ip)
+
+        self._register_public_services(saltmaster_ip)
+
         CONSOLE.info('Continuing with installation of PNDA')
         expand_commands = ['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed -C "G@pnda:is_new_node" state.highstate queue=True 2>&1)' +
                            ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR]
@@ -625,7 +599,7 @@ fi\n''')
             expand_commands.append('(sudo CLUSTER=%s salt-run --log-level=debug state.orchestrate orchestrate.pnda-expand 2>&1)' % self._cluster +
                                    ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR)
 
-        self._ssh(expand_commands, self._cluster, saltmaster_ip)
+        self._ssh_client.ssh(expand_commands, saltmaster_ip)
 
     def _destroy_pnda(self):
         CONSOLE.info('Removing ssh access scripts')
@@ -646,7 +620,7 @@ fi\n''')
         def do_check(host_key, host, cluster, check_results):
             try:
                 CONSOLE.info('Checking bootstrap status for %s', host)
-                self._ssh(['ls ~/.bootstrap_complete'], cluster, host)
+                self._ssh_client.ssh(['ls ~/.bootstrap_complete'], cluster, host)
                 CONSOLE.debug('Host is bootstrapped: %s.', host)
                 check_results.put(host_key)
             except:
