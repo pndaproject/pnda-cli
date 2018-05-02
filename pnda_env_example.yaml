@@ -37,18 +37,6 @@ aws_parameters:
   # CIDR specifying the address range for the public subnet (bastion access)
   publicSubnetCidr: 10.0.0.0/24
 
-  # CIDR specifying the address range for the private subnet (PNDA)
-  privateSubnetCidr: 10.0.1.0/24
-
-  # CIDR specifying the address range for the public producer subnet (Kafka ingress)
-  publicProducerSubnetCidr: 10.0.2.0/24
-
-  # Address of gateway for Kakfa interface on private subnet
-  privateSubnetGateway: 10.0.1.1
-
-  # Address of gateway for Kakfa interface on public producer subnet
-  publicProducerSubnetGateway: 10.0.2.1
-
 openstack_parameters:
  # KEYSTONE_USER: Username for the openstack clients to use
   KEYSTONE_USER: username
@@ -83,26 +71,8 @@ openstack_parameters:
   # UUID of the public network in openstack to use
   PUBLIC_NETWORK_ID: 5982b761-802a-4af3-9c0b-c3b457559179
 
-  # CIDR specifying the address range for the private subnet (PNDA)
-  privateSubnetCidr: 10.0.1.0/24
-
-  # Address of gateway for Kakfa interface on private subnet
-  privateSubnetGateway: 10.0.1.1
-
-  # CIDR specifying the address range for the public producer subnet (Kafka ingress)
-  publicProducerSubnetCidr: 10.0.2.0/24
-
-  # Address of gateway for Kakfa interface on public producer subnet
-  publicProducerSubnetGateway: 10.0.2.1
-
 existing_machines_parameters:
   #Below 2 variables used in package_install.sh for offline mode
-
-  # CIDR specifying the address range for the private subnet (PNDA)
-  privateSubnetCidr: 10.0.1.0/24
-
-  # CIDR specifying the address range for the public producer subnet (Kafka ingress)
-  publicProducerSubnetCidr: 10.0.2.0/24
 
 platform_salt:
   # Use either PLATFORM_GIT_REPO_URI + PLATFORM_GIT_BRANCH or PLATFORM_SALT_LOCAL
@@ -201,7 +171,7 @@ connectivity:
 
 network_interfaces:
   PNDA_INTERNAL_NETWORK: eth0
-  PNDA_INGEST_NETWORK: eth1
+  PNDA_INGEST_NETWORK: eth0
 
 cli:
   # Maximum number of outbound connections that the CLI will attempt to open at once
