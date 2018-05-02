@@ -42,7 +42,7 @@
       "Default" : "120",
       "Description" : "Size in GB for the log volume"
     },
-    "vpcCidr" : {
+    "networkCidr" : {
       "Type" : "String",
       "Default" : "10.0.0.0/16",
       "Description" : "CIDR specifying the address range for the VPC"
@@ -60,7 +60,7 @@
       "Properties" : {
         "EnableDnsSupport" : "true",
         "EnableDnsHostnames" : "true",
-        "CidrBlock" : { "Ref" : "vpcCidr" },
+        "CidrBlock" : { "Ref" : "networkCidr" },
         "Tags" : [
           { "Key" : "Name", "Value" : { "Ref" : "AWS::StackName" } },
           { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
