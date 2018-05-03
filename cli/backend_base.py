@@ -121,6 +121,7 @@ class BaseBackend(object):
         '''
         if not self._cached_instance_map:
             instance_map = self.fill_instance_map()
+            self._ssh_client.set_ip_mappings(instance_map)
             if check_bootstrapped:
                 self._check_hosts_bootstrapped(instance_map, self._cluster, self._cluster + '-' + self._node_config['bastion-instance'] in instance_map)
 
