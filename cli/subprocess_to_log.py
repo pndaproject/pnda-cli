@@ -4,7 +4,7 @@ import re
 from logging import INFO
 
 
-def call(cmd_to_run, logger, log_id=None, stdout_log_level=INFO, stderr_log_level=INFO, scan_for_errors=None, **kwargs):
+def call(cmd_to_run, logger, log_id=None, stdout_log_level=INFO, stderr_log_level=INFO, output=None, scan_for_errors=None, **kwargs):
     if scan_for_errors is None:
         scan_for_errors = []
 
@@ -18,6 +18,8 @@ def call(cmd_to_run, logger, log_id=None, stdout_log_level=INFO, stderr_log_leve
             line = child_output_stream.readline()
             msg = line[:-1]
             msg = msg.decode('utf-8')
+            if output is not None and child_output_stream == child_process.stdout:
+                output.append(msg)
             if log_id is not None:
                 msg_with_id = '%s %s' % (log_id, msg)
             logger.log(log_level[child_output_stream], msg_with_id)

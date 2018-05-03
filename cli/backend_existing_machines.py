@@ -56,7 +56,7 @@ class ExistingMachinesBackend(BaseBackend):
             new_instance = {}
             new_instance['bootstrapped'] = False
             new_instance['private_ip_address'] = node_detail['ip_address']
-            if 'is_bastion' in node_detail and node_detail['is_bastion'] is True:
+            if 'public_ip_address' in node_detail:
                 new_instance['ip_address'] = node_detail['public_ip_address']
             else:
                 new_instance['ip_address'] = None
