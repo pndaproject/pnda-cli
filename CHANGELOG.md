@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4489: Option to set the port to use on the command line when calling the socks proxy setup script
 - PNDA-4450: Set name tags for CFN resources
 - PNDA-4398: Support Spark 2 for Oozie jobs
+- PNDA-4131: Heat backend to provision PNDA on OpenStack via pnda-cli
 
 ### Changed
 - PNDA-4394: Remove Anaconda CDH parcel mirror as this is now installed from a bundle
