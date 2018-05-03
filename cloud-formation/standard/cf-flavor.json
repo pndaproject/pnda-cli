@@ -1,11 +1,9 @@
-
-
 {
   "Parameters" : {
-    "instancetypeBastion" : {
+    "instancetypeGateway" : {
       "Type" : "String",
       "Default" : "t2.medium",
-      "Description" : "Instance type for the access bastion"
+      "Description" : "Instance type for the Gateway"
     },
     "instancetypeLogserver" : {
       "Type" : "String",
@@ -100,19 +98,19 @@
   },
   "Resources": {
 
-    "instanceBastion": {
+    "instanceGateway": {
       "Type": "AWS::EC2::Instance",
       "Properties": {
         "DisableApiTermination": "false",
         "InstanceInitiatedShutdownBehavior": "stop",
         "ImageId": { "Ref" : "imageId" },
-        "InstanceType": { "Ref" : "instancetypeBastion" },
+        "InstanceType": { "Ref" : "instancetypeGateway" },
         "KeyName": { "Ref" : "keyName" },
         "Monitoring": "false",
         "Tags": [
           {
             "Key": "Name",
-            "Value": {"Fn::Join" : [ "-", [ {"Ref": "pndaCluster"}, "bastion" ] ]}
+            "Value": {"Fn::Join" : [ "-", [ {"Ref": "pndaCluster"}, "gateway" ] ]}
           },
           {
             "Key": "pnda_cluster",
@@ -120,7 +118,7 @@
           },
           {
             "Key": "node_type",
-            "Value": "bastion"
+            "Value": "gateway"
           },
           {
             "Key": "node_idx",
@@ -130,7 +128,11 @@
         "BlockDeviceMappings" : [
           {
               "DeviceName" : "/dev/sda1",
-              "Ebs" : { "VolumeSize" : "50" }
+              "Ebs" : { "VolumeSize" : "30" }
+          },
+          {
+              "DeviceName" : "/dev/sdc",
+              "Ebs" : { "VolumeSize" : {"Ref": "logVolumeSizeGb"} }
           }
         ],
         "NetworkInterfaces": [

@@ -1,5 +1,4 @@
 {
-    "ssh": {"role": "bastion", "port": "22"},
     "hadoop_manager": {"role": "hadoop_manager", "port": "8080"},
     "console_frontend": {"role": "console_frontend", "port": "80"},
     "deployment_manager": {"role": "deployment_manager", "port": "5000"},

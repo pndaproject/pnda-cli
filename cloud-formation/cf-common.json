@@ -1,5 +1,5 @@
 {
-  "Description" : "AWS CloudFormation Template for PNDA. Creates a VPC with Public IP subnets, with access to most instances via a single public bastion node.",
+  "Description" : "AWS CloudFormation Template for PNDA. Creates a VPC with Public IP subnets.",
   "AWSTemplateFormatVersion": "2010-09-09",
   "Parameters" : {
     "pndaCluster" : {

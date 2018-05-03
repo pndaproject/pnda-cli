@@ -35,14 +35,10 @@ pillar_roots:
 top_file_merging_strategy: same
 
 # To autoload new created modules, states add and remove salt keys,
-# update bastion /etc/hosts file automatically ... add the following reactor configuration
+# add the following reactor configuration
 reactor:
   - 'minion_start':
     - salt://reactor/sync_all.sls
-  - 'salt/cloud/*/created':
-    - salt://reactor/create_bastion_host_entry.sls
-  - 'salt/cloud/*/destroying':
-    - salt://reactor/delete_bastion_host_entry.sls
   - 'fqdn/updated/jupyter':
     - salt://reactor/fqdn_update.sls
 ## end of specific PNDA saltmaster config
