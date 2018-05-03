@@ -1,0 +1,98 @@
+# Definition for the datanode instance type
+heat_template_version: 2015-04-30
+
+parameters:
+  Flavor:
+    description: Flavor of the datanode server
+    type: string
+  Image:
+    type: string
+  KeyName:
+    description: Name of an existing ssh keypair
+    type: string
+  name:
+    type: string
+  NodeIndex:
+    type: number
+  pnda_private_network:
+    description: Private network for pnda deployment
+    type: string
+  pnda_private_subnet:
+    description: Private network for pnda deployment
+    type: string
+  pnda_security_group_pnda:
+    type: string
+  DatanodeVolumeSize:
+    type: number
+  LogVolumeSize:
+    type: number
+  stack_name:
+    type: string
+
+resources:
+  dn_port:
+    type: OS::Neutron::Port
+    properties:
+      network: { get_param: pnda_private_network }
+      fixed_ips:
+        - subnet_id: { get_param: pnda_private_subnet }
+      security_groups: [{ get_param: pnda_security_group_pnda }]
+
+  dn_server:
+    type: OS::Nova::Server
+    depends_on: [ dn_port ]
+    properties:
+      name: { get_param: name }
+      image: { get_param: Image }
+      flavor: { get_param: Flavor }
+      key_name: { get_param: KeyName }
+      metadata: {'node_type': 'hadoop-dn',
+                 'pnda_cluster': {get_param: stack_name},
+                 'node_idx': {get_param: NodeIndex},
+                 'Name': {get_param: name}}
+      networks:
+        - port: { get_resource: dn_port }
+
+  pnda_volume_data:
+    type: OS::Cinder::Volume
+    properties:
+      size: { get_param: DatanodeVolumeSize }
+      description: Volume for datanode
+  pnda_volume_attachment_data:
+    type: OS::Cinder::VolumeAttachment
+    depends_on: pnda_volume_attachment_log_data
+    properties:
+      volume_id: { get_resource: pnda_volume_data }
+      instance_uuid: { get_resource: dn_server }
+
+  pnda_volume_log_data:
+    type: OS::Cinder::Volume
+    properties:
+      size: { get_param: LogVolumeSize }
+      description: Volume for datanode logs
+  pnda_volume_attachment_log_data:
+    depends_on: dn_server
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      volume_id: { get_resource: pnda_volume_log_data }
+      instance_uuid: { get_resource: dn_server }
+
+outputs:
+  port_resource:
+    description: Heat resource handle for the Neutron port
+    value:
+      { get_resource: dn_port }
+  server_resource:
+    description: Heat resource handle for the Nova compute server
+    value:
+      {get_resource: dn_server}
+  hosts_entry:
+    description: >
+      Server's IP address and hostname in the /etc/hosts format
+    value:
+      str_replace:
+        template: |
+          PRIMARYIP PRIMARYHOST
+        params:
+          PRIMARYIP: {get_attr: [dn_server, first_address]}
+          PRIMARYHOST: {get_attr: [dn_server, name]}

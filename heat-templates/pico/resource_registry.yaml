@@ -1,0 +1,9 @@
+# resource_registry.yaml contains the rules for which yaml file is
+# used to create each type of PNDA instance
+resource_registry:
+  OS::Pnda::cluster: pnda_cluster.yaml
+  OS::Pnda::bastion: bastion.yaml
+  OS::Pnda::dn: dn.yaml
+  OS::Pnda::kafka: kafka.yaml
+  OS::Pnda::edge: edge.yaml
+  OS::Pnda::manager1: mgr1.yaml

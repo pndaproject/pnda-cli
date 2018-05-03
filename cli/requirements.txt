@@ -1,3 +1,7 @@
 boto==2.48.0
 PyYAML==3.12
-requests==2.12.4
+requests==2.14.2
+python-heatclient==1.14.0
+ruamel.yaml==0.15.37
+python-novaclient==3.3.0
+Jinja2==2.10
