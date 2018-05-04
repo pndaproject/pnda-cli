@@ -137,6 +137,7 @@ class BaseBackend(object):
 
     def get_ip_addr(self, instance_props):
         '''
+        Select which IP address to use to contact a host
         '''
         return instance_props['ip_address'] if 'ip_address' in instance_props else instance_props['private_ip_address']
 
@@ -486,7 +487,7 @@ class BaseBackend(object):
         CONSOLE.info('Bootstrapping other instances. Expect this to take a few minutes, check the debug log for progress (%s).', LOG_FILE_NAME)
         for key, instance in instance_map.iteritems():
             if '-' + self._node_config['salt-master-instance'] not in key:
-                thread = Thread(target=self._bootstrap, args=[instance, saltmaster_ip_internal, 
+                thread = Thread(target=self._bootstrap, args=[instance, saltmaster_ip_internal,
                                                               self._cluster, self._flavor, self._branch,
                                                               platform_salt_tarball, None, bootstrap_errors,
                                                               bootstrap_files, bootstrap_commands])
@@ -512,7 +513,7 @@ class BaseBackend(object):
         self._ssh_client.ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" mine.update 2>&1) | tee -a pnda-salt.log; %s'
                               % THROW_BASH_ERROR], saltmaster_ip)
 
-        self._register_public_services(saltmaster_ip)
+        self._register_services(saltmaster_ip)
 
         CONSOLE.info('Continuing with installation of PNDA')
         self._ssh_client.ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*"'
@@ -520,23 +521,25 @@ class BaseBackend(object):
                               '(sudo CLUSTER=%s salt-run --log-level=debug state.orchestrate orchestrate.pnda 2>&1) | tee -a pnda-salt.log; %s'
                               % (self._cluster, THROW_BASH_ERROR)], saltmaster_ip)
 
-    def _register_public_services(self, saltmaster_ip):
+    def _register_services(self, saltmaster_ip):
         CONSOLE.info('Populating %s with services', self._service_registry.name)
-        CONSOLE.debug('Populating %s with public services', self._service_registry.name)
         # Read descriptor
         service_to_role_descriptor = self._get_service_to_role_descriptor()
         # Find hosts with those roles using grains
+        instances = self.get_instance_map()
+        affected_hosts = []
         for service in service_to_role_descriptor:
             role = service_to_role_descriptor[service]['role']
             port = service_to_role_descriptor[service]['port']
             hosts_for_role = self._get_hosts_for_role(saltmaster_ip, role)
-            # Get the public addresses for those hosts
-            public_addresses_for_role = [instance_properties['ip_address']
-                                         for instance_name, instance_properties in self.get_instance_map().iteritems()
-                                         if instance_name in hosts_for_role and instance_properties['ip_address'] is not None]
-            # Push records into registry mapping service->public address
-            self._service_registry.register_service_record(service, public_addresses_for_role, port)
-        self._service_registry.commit()
+            # Get the addresses for those hosts
+            def ip_for_service(name, props):
+                return 'private_ip_address' if name.endswith('-internal' or not props['ip_address']) else 'ip_address'
+            addresses_for_service = [instances[host][ip_for_service(service, instances[host])] for host in hosts_for_role]
+            # Push records into registry mapping service->address
+            affected_hosts.extend(hosts_for_role)
+            self._service_registry.register_service_record(service, addresses_for_service, port)
+        self._service_registry.commit([instances[host]['private_ip_address'] for host in set(affected_hosts)])
 
     def _get_service_to_role_descriptor(self):
         rts_filepath = 'bootstrap-scripts/service_to_role.json'
@@ -560,7 +563,7 @@ class BaseBackend(object):
         saltmaster = instance_map[self._cluster + '-' + self._node_config['salt-master-instance']]
         saltmaster_ip = self.get_ip_addr(saltmaster)
         saltmaster_ip_internal = saltmaster['private_ip_address']
-        
+
         self._ssh_client.ssh(['rm -rf /tmp/%s || true' % self._keyfile], saltmaster_ip)
         self._ssh_client.scp([self._keyfile, 'cli/pnda_env_%s.sh' % self._cluster, 'bootstrap-scripts/saltmaster-gen-keys.sh'], saltmaster_ip)
         self._ssh_client.ssh(['echo \'%s\' | tee /tmp/minions_list' % '\n'.join(self._get_minions_to_bootstrap()),
@@ -574,7 +577,8 @@ class BaseBackend(object):
         bootstrap_errors = Queue.Queue()
         for _, instance in instance_map.iteritems():
             if instance['node_type'] and not instance['bootstrapped']:
-                thread = Thread(target=self._bootstrap, args=[instance, saltmaster_ip_internal, self._cluster, self._flavor, self._branch, None, None, bootstrap_errors])
+                thread = Thread(target=self._bootstrap,
+                                args=[instance, saltmaster_ip_internal, self._cluster, self._flavor, self._branch, None, None, bootstrap_errors])
                 bootstrap_threads.append(thread)
                 thread.daemon = True
 

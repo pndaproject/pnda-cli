@@ -32,8 +32,10 @@ class ServiceRegistry(object):
         '''
         pass
 
-    def commit(self):
+    def commit(self, to_commit):
         '''
         Commit changes made with register_service_record
+        Parameters:
+         - to_commit: list of hosts to commit changes to
         '''
         pass

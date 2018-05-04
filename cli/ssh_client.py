@@ -34,6 +34,7 @@ class SshClient(object):
         self._cluster = cluster
         self._bastion_used = False
         self._public_ip_map = {}
+        self._private_ip_map = {}
 
     def write_ssh_config(self, bastion_ip, os_user, keyfile):
         '''
@@ -115,13 +116,18 @@ fi\n''')
 
     def set_ip_mappings(self, instance_map):
         self._public_ip_map = {}
+        self._private_ip_map = {}
         for _, instance_properties in instance_map.iteritems():
-            if 'ip_address' in instance_properties and 'private_ip_address' in instance_properties:
+            if instance_properties['ip_address'] and instance_properties['private_ip_address']:
                 self._public_ip_map[instance_properties['ip_address']] = instance_properties['private_ip_address']
+                self._private_ip_map[instance_properties['private_ip_address']] = instance_properties['ip_address']
 
     def _subsitute_host_if_bastion(self, host):
         subs_host = host
         if self._bastion_used and host in self._public_ip_map:
             subs_host = self._public_ip_map[host]
             CONSOLE.debug('Switching public IP %s for private IP %s', host, subs_host)
+        elif not self._bastion_used and host in self._private_ip_map:
+            subs_host = self._private_ip_map[host]
+            CONSOLE.debug('Switching private IP %s for public IP %s', host, subs_host)
         return subs_host

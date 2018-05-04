@@ -1,12 +1,13 @@
 {
-    "hadoop_manager": {"role": "hadoop_manager", "port": "8080"},
-    "console_frontend": {"role": "console_frontend", "port": "80"},
-    "deployment_manager": {"role": "deployment_manager", "port": "5000"},
-    "package_repository": {"role": "package_repository", "port": "8888"},
-    "data_service": {"role": "data_service", "port": "7000"},
+    "hadoop-manager": {"role": "hadoop_manager", "port": "8080"},
+    "console-frontend": {"role": "console_frontend", "port": "80"},
+    "deployment-manager": {"role": "knox", "port": "8843"},
+    "deployment-manager-internal": {"role": "deployment_manager", "port": "5000"},
+    "package-repository": {"role": "package_repository", "port": "8888"},
+    "data-service": {"role": "data_service", "port": "7000"},
     "jupyter": {"role": "jupyter", "port": "8000"},
     "kafka": {"role": "kafka", "port": "9092"},
-    "kafka_manager": {"role": "kafka_manager", "port": "10900"},
+    "kafka-manager": {"role": "kafka_manager", "port": "10900"},
     "logserver": {"role": "logserver", "port": "5601"},
     "opentsdb": {"role": "opentsdb", "port": "4242"}
 }
