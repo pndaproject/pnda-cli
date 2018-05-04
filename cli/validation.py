@@ -24,6 +24,10 @@ import os
 import argparse
 from argparse import RawTextHelpFormatter, ArgumentTypeError
 
+import pnda_cli_utils as utils
+utils.init_logging()
+CONSOLE = utils.CONSOLE_LOGGER
+
 class RangeValidator(object):
     '''
     Simple field validator based on rules specification file
@@ -188,10 +192,10 @@ class UserInputValidator(object):
                     if self._range_validate_field(field, val):
                         self._field_validator_action(field)(val)
                     else:
-                        print "'%s' not in valid range (%s)" % (val, rule)
+                        CONSOLE.error("'%s' not in valid range (%s)", val, rule)
                         val = None
                 except ArgumentTypeError: # field validator raises this if problem with format
-                    print "'%s' %s" % (field, hint)
+                    CONSOLE.error("'%s' %s", field, hint)
                     val = None
                 except EOFError: # raw_input raises this if no stdin e.g. automation environment
                     raise ArgumentTypeError("%s: must be specified on command line" % field)

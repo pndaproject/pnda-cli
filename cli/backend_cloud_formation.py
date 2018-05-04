@@ -38,7 +38,7 @@ class CloudFormationBackend(BaseBackend):
     '''
     def __init__(self, pnda_env, cluster, no_config_check, flavor, keyname, branch, dry_run):
         self._dry_run = dry_run
-
+        self._exclude_cfn_params = ['AWS_SECRET_ACCESS_KEY', 'AWS_AVAILABILITY_ZONE', 'AWS_REGION', 'AWS_ACCESS_KEY_ID']
         super(CloudFormationBackend, self).__init__(
             pnda_env, cluster, no_config_check, flavor, self._keyfile_from_keyname(keyname), branch)
 
@@ -94,9 +94,8 @@ class CloudFormationBackend(BaseBackend):
         region = self._pnda_env['aws_parameters']['AWS_REGION']
         aws_availability_zone = self._pnda_env['aws_parameters']['AWS_AVAILABILITY_ZONE']
         cf_parameters = [('keyName', self._keyname_from_keyfile(self._keyfile)), ('pndaCluster', self._cluster), ('awsAvailabilityZone', aws_availability_zone)]
-        exclude=['AWS_SECRET_ACCESS_KEY','AWS_AVAILABILITY_ZONE','AWS_REGION','AWS_ACCESS_KEY_ID']
         for parameter in self._pnda_env['aws_parameters']:
-            if parameter not in exclude:
+            if parameter not in self._exclude_cfn_params:
                 cf_parameters.append((parameter, self._pnda_env['aws_parameters'][parameter]))
 
         self._save_cf_resources('create_%s' % utils.MILLI_TIME(), self._cluster, cf_parameters, template_data)
@@ -141,9 +140,8 @@ class CloudFormationBackend(BaseBackend):
 
         region = self._pnda_env['aws_parameters']['AWS_REGION']
         cf_parameters = [('keyName', self._keyname_from_keyfile(self._keyfile)), ('pndaCluster', self._cluster)]
-        exclude=['AWS_SECRET_ACCESS_KEY','AWS_AVAILABILITY_ZONE','AWS_REGION','AWS_ACCESS_KEY_ID']
         for parameter in self._pnda_env['aws_parameters']:
-            if parameter not in exclude:
+            if parameter not in self._exclude_cfn_params:
                 cf_parameters.append((parameter, self._pnda_env['aws_parameters'][parameter]))
 
         self._save_cf_resources('expand_%s' % utils.MILLI_TIME(), self._cluster, cf_parameters, template_data)
