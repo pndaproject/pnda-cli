@@ -38,12 +38,12 @@ PNDA_ENV = None
 START = datetime.datetime.now()
 
 def banner():
-    print r"    ____  _   ______  ___ "
-    print r"   / __ \/ | / / __ \/   |"
-    print r"  / /_/ /  |/ / / / / /| |"
-    print r" / ____/ /|  / /_/ / ___ |"
-    print r"/_/   /_/ |_/_____/_/  |_|"
-    print r""
+    CONSOLE.info(r"    ____  _   ______  ___ ")
+    CONSOLE.info(r"   / __ \/ | / / __ \/   |")
+    CONSOLE.info(r"  / /_/ /  |/ / / / / /| |")
+    CONSOLE.info(r" / ____/ /|  / /_/ / ___ |")
+    CONSOLE.info(r"/_/   /_/ |_/_____/_/  |_|")
+    CONSOLE.info(r"")
 
 @atexit.register
 def display_elasped():
@@ -88,7 +88,7 @@ def valid_flavors():
 
 def select_deployment_target_impl(fields):
     if fields['x_machines_definition'] is not None:
-        exclude_sections= ['aws_parameters','openstack_parameters']
+        exclude_sections = ['aws_parameters', 'openstack_parameters']
         CONSOLE.info('Installing to existing infra, defined in %s', fields['x_machines_definition'])
         deployment_target = ExistingMachinesBackend(
             PNDA_ENV, fields['pnda_cluster'], fields["no_config_check"], fields['flavor'], fields['keyname'], fields['branch'], fields['x_machines_definition'])
@@ -97,15 +97,11 @@ def select_deployment_target_impl(fields):
         fields['opentsdb_nodes'] = node_counts['opentsdb']
         fields['kafka_nodes'] = node_counts['kafka']
         fields['zk_nodes'] = node_counts['zk']
-        PNDA_ENV['infrastructure']['INFRASTRUCTURE_TYPE'] == 'existing_machine'
+        PNDA_ENV['infrastructure']['INFRASTRUCTURE_TYPE'] = 'existing_machines'
     elif PNDA_ENV['infrastructure']['INFRASTRUCTURE_TYPE'] == 'aws':
-        exclude_sections= ['openstack_parameters']
+        exclude_sections = ['openstack_parameters']
         os.environ['AWS_ACCESS_KEY_ID'] = PNDA_ENV['aws_parameters']['AWS_ACCESS_KEY_ID']
         os.environ['AWS_SECRET_ACCESS_KEY'] = PNDA_ENV['aws_parameters']['AWS_SECRET_ACCESS_KEY']
-        print 'Using ec2 credentials:'
-        print '  AWS_REGION = %s' % PNDA_ENV['aws_parameters']['AWS_REGION']
-        print '  AWS_ACCESS_KEY_ID = %s' % PNDA_ENV['aws_parameters']['AWS_ACCESS_KEY_ID']
-        print '  AWS_SECRET_ACCESS_KEY = %s' % PNDA_ENV['aws_parameters']['AWS_SECRET_ACCESS_KEY']
         if not os.path.isfile('git.pem'):
             with open('git.pem', 'w') as git_key_file:
                 git_key_file.write('If authenticated access to the platform-salt git repository is required then' +
@@ -116,11 +112,7 @@ def select_deployment_target_impl(fields):
         deployment_target = CloudFormationBackend(
             PNDA_ENV, fields['pnda_cluster'], fields["no_config_check"], fields['flavor'], fields['keyname'], fields['branch'], fields['dry_run'])
     elif PNDA_ENV['infrastructure']['INFRASTRUCTURE_TYPE'] == 'openstack':
-        exclude_sections= ['aws_parameters','existing_machines_parameters']
-        print 'selectiion is openstack target'
-        print '  KEYSTONE_USER = %s' % PNDA_ENV['openstack_parameters']['KEYSTONE_USER']
-        print '  KEYSTONE_TENANT = %s' % PNDA_ENV['openstack_parameters']['KEYSTONE_TENANT']
-        print '  KEYSTONE_AUTH_URL = %s' % PNDA_ENV['openstack_parameters']['KEYSTONE_AUTH_URL']
+        exclude_sections = ['aws_parameters', 'existing_machines_parameters']
         deployment_target = HeatBackend(
             PNDA_ENV, fields['pnda_cluster'], fields["no_config_check"], fields['flavor'], fields['keyname'], fields['branch'], fields['dry_run'])
     else:
@@ -131,10 +123,11 @@ def select_deployment_target_impl(fields):
     return deployment_target
 
 def main():
-    print 'Saving debug log to %s' % LOG_FILE_NAME
+    banner()
+    CONSOLE.info('Saving debug log to %s', LOG_FILE_NAME)
 
     if not os.path.basename(os.getcwd()) == "cli":
-        print 'Please run from inside the /cli directory'
+        CONSOLE.error('Please run from inside the /cli directory')
         sys.exit(1)
 
     ###
