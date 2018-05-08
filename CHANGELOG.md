@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4525: Deprecate Ubuntu 14.04
 - PNDA-4530: Refactor pnda_env.yaml to reflect that pnda-cli is no longer AWS specific
 - PNDA-4523: Write ssh config when starting CLI
+- PNDA-4558: Modify topology to use gateway instead of bastion
 
 ### Fixed
 - PNDA-4415: Update PyYAML and requests
