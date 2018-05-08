@@ -1,6 +1,6 @@
 #!/bin/bash -v
 
-# This script runs on instances with a node_type tag of "bastion"
+# This script runs on instances with a node_type tag of "gateway"
 # It sets the roles that determine what software is installed
 # on this instance by platform-salt scripts
 
