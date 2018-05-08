@@ -96,13 +96,3 @@ cat << EOF > /root/.pydistutils.cfg
 [easy_install]
 index_url=$PIP_INDEX_URL
 EOF
-
-if [ "x$ADD_ONLINE_REPOS" == "xYES" ]; then
-cat << EOF >> /etc/pip.conf
-extra-index-url=https://pypi.python.org/simple/
-EOF
-cat << EOF >> /root/.pydistutils.cfg
-find_links=https://pypi.python.org/simple/
-EOF
-fi
-
