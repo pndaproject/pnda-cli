@@ -82,7 +82,7 @@ class BaseBackend(object):
         self.post_install_pnda()
 
         instance_map = self.get_instance_map()
-        return self.get_ip_addr(instance_map[self._cluster + '-' + self._node_config['console-instance']])
+        return instance_map[self._cluster + '-' + self._node_config['console-instance']]['private_ip_address']
 
     def expand(self, node_counts, do_orchestrate):
         '''
@@ -100,7 +100,7 @@ class BaseBackend(object):
         self.post_expand_pnda()
 
         instance_map = self.get_instance_map()
-        return self.get_ip_addr(instance_map[self._cluster + '-' + self._node_config['console-instance']])
+        return instance_map[self._cluster + '-' + self._node_config['console-instance']]['private_ip_address']
 
     def destroy(self):
         '''
@@ -134,12 +134,6 @@ class BaseBackend(object):
         Clear the instance map cache so that the instance map will be recalculated on the next call to get_instance_map.
         '''
         self._cached_instance_map = None
-
-    def get_ip_addr(self, instance_props):
-        '''
-        Select which IP address to use to contact a host
-        '''
-        return instance_props['ip_address'] if 'ip_address' in instance_props else instance_props['private_ip_address']
 
     ### Methods that may be overridden in implementation class to introduce deployment
     ### specific behaviour
@@ -248,7 +242,7 @@ class BaseBackend(object):
                    bootstrap_files=None, bootstrap_commands=None):
         ret_val = None
         try:
-            ip_address = self.get_ip_addr(instance)
+            ip_address = instance['private_ip_address']
             CONSOLE.debug('bootstrapping %s', ip_address)
             node_type = instance['node_type']
             if len(node_type) <= 0:
@@ -420,7 +414,7 @@ class BaseBackend(object):
         bastion_ip = self._get_bastion_ip()
 
         CONSOLE.debug('The PNDA console will come up on: http://%s',
-                      self.get_ip_addr(instance_map[self._cluster + '-' + self._node_config['console-instance']]))
+                      instance_map[self._cluster + '-' + self._node_config['console-instance']]['private_ip_address'])
 
         def prepare_bastion():
             # Configure the bastion with the PNDA mirror and install nc on it
@@ -454,12 +448,11 @@ class BaseBackend(object):
 
         if bastion_ip:
             self._wait_for_host_connectivity([bastion_ip], False, prepare_bastion)
-        self._wait_for_host_connectivity([self.get_ip_addr(instance_map[h]) for h in instance_map], bastion_ip is not None)
+        self._wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], bastion_ip is not None)
 
         CONSOLE.info('Bootstrapping saltmaster. Expect this to take a few minutes, check the debug log for progress (%s).', LOG_FILE_NAME)
         saltmaster = instance_map[self._cluster + '-' + self._node_config['salt-master-instance']]
-        saltmaster_ip = self.get_ip_addr(saltmaster)
-        saltmaster_ip_internal = saltmaster['private_ip_address']
+        saltmaster_ip = saltmaster['private_ip_address']
 
         platform_salt_tarball = None
         if 'PLATFORM_SALT_LOCAL' in self._pnda_env['platform_salt']:
@@ -479,7 +472,7 @@ class BaseBackend(object):
         bootstrap_files = Queue.Queue()
         bootstrap_commands = Queue.Queue()
 
-        self._bootstrap(saltmaster, saltmaster_ip_internal, self._cluster, self._flavor, self._branch,
+        self._bootstrap(saltmaster, saltmaster_ip, self._cluster, self._flavor, self._branch,
                         platform_salt_tarball, platform_certs_tarball,
                         bootstrap_errors, bootstrap_files, bootstrap_commands)
         self._process_thread_errors('bootstrapping saltmaster', bootstrap_errors)
@@ -487,7 +480,7 @@ class BaseBackend(object):
         CONSOLE.info('Bootstrapping other instances. Expect this to take a few minutes, check the debug log for progress (%s).', LOG_FILE_NAME)
         for key, instance in instance_map.iteritems():
             if '-' + self._node_config['salt-master-instance'] not in key:
-                thread = Thread(target=self._bootstrap, args=[instance, saltmaster_ip_internal,
+                thread = Thread(target=self._bootstrap, args=[instance, saltmaster_ip,
                                                               self._cluster, self._flavor, self._branch,
                                                               platform_salt_tarball, None, bootstrap_errors,
                                                               bootstrap_files, bootstrap_commands])
@@ -508,7 +501,7 @@ class BaseBackend(object):
         self._ssh_client.ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" state.sls consul,consul.dns queue=True 2>&1)'
                               ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR], saltmaster_ip)
         CONSOLE.info('Restarting minions')
-        self._restart_minions([self.get_ip_addr(instance_map[h]) for h in instance_map], bastion_ip is not None)
+        self._restart_minions([instance_map[h]['private_ip_address'] for h in instance_map], bastion_ip is not None)
         CONSOLE.info('Refreshing salt mines')
         self._ssh_client.ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" mine.update 2>&1) | tee -a pnda-salt.log; %s'
                               % THROW_BASH_ERROR], saltmaster_ip)
@@ -561,8 +554,7 @@ class BaseBackend(object):
         instance_map = self.get_instance_map(True)
         bastion_ip = self._get_bastion_ip()
         saltmaster = instance_map[self._cluster + '-' + self._node_config['salt-master-instance']]
-        saltmaster_ip = self.get_ip_addr(saltmaster)
-        saltmaster_ip_internal = saltmaster['private_ip_address']
+        saltmaster_ip = saltmaster['private_ip_address']
 
         self._ssh_client.ssh(['rm -rf /tmp/%s || true' % self._keyfile], saltmaster_ip)
         self._ssh_client.scp([self._keyfile, 'cli/pnda_env_%s.sh' % self._cluster, 'bootstrap-scripts/saltmaster-gen-keys.sh'], saltmaster_ip)
@@ -571,14 +563,14 @@ class BaseBackend(object):
                               'sudo chmod a+x /tmp/saltmaster-gen-keys.sh',
                               'sudo -E /tmp/saltmaster-gen-keys.sh'], saltmaster_ip)
 
-        self._wait_for_host_connectivity([self.get_ip_addr(instance_map[h]) for h in instance_map], bastion_ip is not None)
+        self._wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], bastion_ip is not None)
         CONSOLE.info('Bootstrapping new instances. Expect this to take a few minutes, check the debug log for progress. (%s)', LOG_FILE_NAME)
         bootstrap_threads = []
         bootstrap_errors = Queue.Queue()
         for _, instance in instance_map.iteritems():
             if instance['node_type'] and not instance['bootstrapped']:
                 thread = Thread(target=self._bootstrap,
-                                args=[instance, saltmaster_ip_internal, self._cluster, self._flavor, self._branch, None, None, bootstrap_errors])
+                                args=[instance, saltmaster_ip, self._cluster, self._flavor, self._branch, None, None, bootstrap_errors])
                 bootstrap_threads.append(thread)
                 thread.daemon = True
 
@@ -597,7 +589,7 @@ class BaseBackend(object):
                               '-C "G@pnda:is_new_node" state.sls consul,consul.dns queue=True 2>&1)'
                               ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR], saltmaster_ip)
         CONSOLE.info('Restarting minions')
-        self._restart_minions([self.get_ip_addr(instance_map[h]) for h in instance_map], bastion_ip is not None)
+        self._restart_minions([instance_map[h]['private_ip_address'] for h in instance_map], bastion_ip is not None)
         CONSOLE.info('Refreshing salt mines')
         self._ssh_client.ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" mine.update 2>&1) | tee -a pnda-salt.log; %s'
                               % THROW_BASH_ERROR], saltmaster_ip)
@@ -640,7 +632,7 @@ class BaseBackend(object):
                 CONSOLE.debug('Host is not bootstrapped: %s.', host)
 
         for key, instance in instances.iteritems():
-            thread = Thread(target=do_check, args=[key, self.get_ip_addr(instance), cluster, check_results])
+            thread = Thread(target=do_check, args=[key, instance['private_ip_address'], cluster, check_results])
             thread.daemon = True
             check_threads.append(thread)
 

@@ -3,9 +3,9 @@
 This readme describes the elements found in the cloud formation templates and their purpose in the cloud formatation stack
 
 ## Overview
-The AWS Cloud Formation templates for PNDA create a VPC with Public IP subnets, with access to most instances via a single public bastion node.
+The AWS Cloud Formation templates for PNDA create a VPC with Private and Public IP subnets. Instances that have publicly accessibly user interfaces or REST APIs that a user of PNDA would want to use are given public IP addresses and placed on the public subnet. Instances that do not require a private IP address are placed on the private subnet.
 
-This arrangement is based on the AWS guide "Scenario 2: VPC with Public (NAT): http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Scenario2.html"
+This arrangement is based on the AWS guide "Scenario 2: VPC with Public and Private Subnets (NAT): http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Scenario2.html"
 
 ## cf-common.json
 cf-common.json contains the elements of the PNDA stack that are common to all flavors.
@@ -40,6 +40,13 @@ The ACL is an extra layer of firewall security group for the public route table.
  - Unlike a security group, ACL's are stateless so require the return paths for outbound connections to be open
  - There are no restrictions on outbound connections through the ACL
 
+#### Private subnet
+ A private subnet is created to instances that do not need public IPs. These instances cannot be directly accessed from the Internet.
+ 
+ The NAT gateway with an Elastic IP address enables instances in the private subnet to send requests to the Internet (for example, for software updates).
+ 
+ The route table for the private subnet contains an entry that enables instances in the subnet to communicate with the Internet through the NAT gateway. AWS automatically adds a rule that keeps local traffic on the subnet.
+
 #### Security Groups
 Security groups are used to restrict which ports are open to the outside world and to open all ports for internal communication.
 
@@ -67,7 +74,7 @@ The standard flavor is intended for PoC systems handling reasonable quantities o
 The main hadoop management services are run in HA.
 
 It consists of the following instances:
-  - bastion:     ssh access into the other instances
+  - gateway:     ssh access into the other instances
   - kafka:       the kafka databus, can be horizontally scaled using the -k parameter to pnda-cli.py
   - zookeeper:   zookeeper used by kafka, can be horizontally scaled using the -z parameter to pnda-cli.py
   - tools        hosts kafka manager and other tools for administering the databus
@@ -87,7 +94,7 @@ The pico flavor is intended for development and learning only.
 The main hadoop management services are *not* run in HA.
 
 It consists of the following instances:
-  - bastion:  ssh access into the other instances
+  - gateway:  ssh access into the other instances
   - kafka:    the kafka databus, can be horizontally scaled using the -k parameter to pnda-cli.py
   - hadoop-dn:   the hadoop worker nodes, can be horizontally scaled using the -n parameter to pnda-cli.py
   - hadoop-edge: an instance to access the hadoop services from, also hosts the pnda console, the saltmaster and hadoop manager

@@ -51,6 +51,16 @@
       "Type" : "String",
       "Default" : "10.0.0.0/24",
       "Description" : "CIDR specifying the address range for the public subnet"
+    },
+    "privateSubnetCidr" : {
+      "Type" : "String",
+      "Default" : "10.0.1.0/24",
+      "Description" : "CIDR specifying the address range for the private subnet"
+    },
+    "privateSubnetGateway" : {
+      "Type" : "String",
+      "Default" : "10.0.1.1",
+      "Description" : "Gateway on private subnet"
     }
   },
 
@@ -79,6 +89,20 @@
           { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "PublicSubnet" ] ]} },
           { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
           { "Key" : "Network", "Value" : "Public" }
+        ]
+      }
+    },
+
+    "PrivateSubnet" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+        "VpcId" : { "Ref" : "VPC" },
+        "CidrBlock" : { "Ref" : "privateSubnetCidr" },
+        "AvailabilityZone" : {"Ref": "awsAvailabilityZone"},
+        "Tags" : [
+          { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "PrivateSubnet" ] ]} },
+          { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
+          { "Key" : "Network", "Value" : "Private" }
         ]
       }
     },
@@ -130,6 +154,35 @@
         "SubnetId" : { "Ref" : "PublicSubnet" },
         "RouteTableId" : { "Ref" : "PublicRouteTable" }
       }
+    },
+
+    "PrivateRouteTable" : {
+      "Type" : "AWS::EC2::RouteTable",
+      "Properties" : {
+        "VpcId" : { "Ref" : "VPC" },
+        "Tags" : [
+          { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "PrivateRouteTable" ] ]} },
+          { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
+          { "Key" : "Network", "Value" : "Private" }
+        ]
+      }
+    },
+
+    "PrivateRoute" : {
+      "Type" : "AWS::EC2::Route",
+      "Properties" : {
+        "RouteTableId" : { "Ref" : "PrivateRouteTable" },
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "NatGatewayId" : { "Ref" : "NAT" }
+      }
+    },
+
+    "PrivateSubnetRouteTableAssociation" : {
+         "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+         "Properties" : {
+            "SubnetId" : { "Ref" : "PrivateSubnet" },
+            "RouteTableId" : { "Ref" : "PrivateRouteTable" }
+         }
     },
 
     "PublicNetworkAcl" : {
@@ -221,7 +274,20 @@
         "PortRange" : { "From" : "1024", "To" : "65535" }
       }
     },
-    
+
+    "InboundDnsPublicNetworkAclEntry" : {
+      "Type" : "AWS::EC2::NetworkAclEntry",
+      "Properties" : {
+        "NetworkAclId" : { "Ref" : "PublicNetworkAcl" },
+        "RuleNumber" : "106",
+        "Protocol" : "17",
+        "RuleAction" : "allow",
+        "Egress" : "false",
+        "CidrBlock" : { "Ref" : "whitelistSshAccess" },
+        "PortRange" : { "From" : "53", "To" : "53" }
+      }
+    },
+
     "OutboundPublicNetworkAclEntry" : {
       "Type" : "AWS::EC2::NetworkAclEntry",
       "Properties" : {
