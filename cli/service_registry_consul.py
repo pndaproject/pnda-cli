@@ -35,7 +35,6 @@ class ServiceRegistryConsul(ServiceRegistry):
     def __init__(self, ssh_client):
         self.name = 'Consul'
         self._ssh_client = ssh_client
-        self._to_commit = []
 
     ### Public interface
     def register_service_record(self, service_name, address_list, port):
@@ -52,12 +51,13 @@ class ServiceRegistryConsul(ServiceRegistry):
                 self._ssh_client.ssh(['sudo mkdir -p /etc/consul.d',
                                       'echo \'{"service": {"name": "%s", "address": "%s", "port": %s}}\''
                                       ' | sudo tee /etc/consul.d/%s.json' % (service_name, address, port, service_name)], address)
-                self._to_commit.append(address)
 
-    def commit(self):
+    def commit(self, to_commit):
         '''
         Restart consul on any hosts that had services added with register_service_record
+        Parameters:
+         - to_commit: list of hosts to commit changes to
         '''
-        CONSOLE.debug('ServiceRegistryConsul:commit: %s', json.dumps(self._to_commit))
-        for address in set(self._to_commit):
+        CONSOLE.debug('ServiceRegistryConsul:commit: %s', json.dumps(to_commit))
+        for address in set(to_commit):
             self._ssh_client.ssh(['sudo service consul restart'], address)
