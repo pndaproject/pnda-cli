@@ -31,7 +31,10 @@ NTP_SERVERS=$(echo "$NTP_SERVERS" | sed -e 's|[]"'\''\[ ]||g')
 iptables -A LOGGING -d  $NTP_SERVERS -j ACCEPT # NTP server
 fi
 if [ "x$networkCidr" != "x" ]; then
-iptables -A LOGGING -d  ${networkCidr} -j ACCEPT # PNDA network for AWS
+iptables -A LOGGING -d  ${networkCidr} -j ACCEPT
+fi
+if [ "x$privateSubnetCidr" != "x" ]; then
+iptables -A LOGGING -d  ${privateSubnetCidr} -j ACCEPT
 fi
 iptables -A LOGGING -j REJECT --reject-with icmp-net-unreachable
 iptables-save > /etc/iptables.conf

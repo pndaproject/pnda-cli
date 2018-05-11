@@ -382,9 +382,9 @@
             "DeleteOnTermination": "true",
             "Description": "Primary network interface",
             "DeviceIndex": 0,
-            "SubnetId": {"Ref": "PublicSubnet"},
+            "SubnetId": {"Ref": "PrivateSubnet"},
             "GroupSet": [{"Ref": "pndaSg"}],
-            "AssociatePublicIpAddress": "true"
+            "AssociatePublicIpAddress": "false"
           }
         ]
       }
@@ -436,9 +436,9 @@
             "DeleteOnTermination": "true",
             "Description": "Primary network interface",
             "DeviceIndex": 0,
-            "SubnetId": {"Ref": "PublicSubnet"},
+            "SubnetId": {"Ref": "PrivateSubnet"},
             "GroupSet": [{"Ref": "pndaSg"}],
-            "AssociatePublicIpAddress": "true"
+            "AssociatePublicIpAddress": "false"
           }
         ]
       }
