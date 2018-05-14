@@ -123,7 +123,7 @@ class BaseBackend(object):
             instance_map = self.fill_instance_map()
             self._ssh_client.set_ip_mappings(instance_map)
             if check_bootstrapped:
-                self._check_hosts_bootstrapped(instance_map, self._cluster, self._cluster + '-' + self._node_config['bastion-instance'] in instance_map)
+                self._check_hosts_bootstrapped(instance_map, self._cluster + '-' + self._node_config['bastion-instance'] in instance_map)
 
             self._cached_instance_map = instance_map
 
@@ -618,21 +618,21 @@ class BaseBackend(object):
         if os.path.exists(env_sh_file):
             os.remove(env_sh_file)
 
-    def _check_hosts_bootstrapped(self, instances, cluster, bastion_used):
+    def _check_hosts_bootstrapped(self, instances, bastion_used):
         check_threads = []
         check_results = Queue.Queue()
 
-        def do_check(host_key, host, cluster, check_results):
+        def do_check(host_key, host, check_results):
             try:
                 CONSOLE.info('Checking bootstrap status for %s', host)
-                self._ssh_client.ssh(['ls ~/.bootstrap_complete'], cluster, host)
+                self._ssh_client.ssh(['ls ~/.bootstrap_complete'], host)
                 CONSOLE.debug('Host is bootstrapped: %s.', host)
                 check_results.put(host_key)
             except:
                 CONSOLE.debug('Host is not bootstrapped: %s.', host)
 
         for key, instance in instances.iteritems():
-            thread = Thread(target=do_check, args=[key, instance['private_ip_address'], cluster, check_results])
+            thread = Thread(target=do_check, args=[key, instance['private_ip_address'], check_results])
             thread.daemon = True
             check_threads.append(thread)
 
