@@ -219,3 +219,9 @@ dataset_compaction:
   # M - monthly compaction.
   # Y - yearly compaction.
   PATTERN: d
+
+datanode:
+  # DATANODE_VOLUME_COUNT sets the number of data volumes on each hadoop datanode
+  DATA_VOLUME_COUNT: 1
+  # DEVICE_ROOT sets the disk device root name
+  DEVICE_ROOT: xvdb

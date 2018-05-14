@@ -1,7 +1,13 @@
 classes:
   datanode:
     volumes:
-      - /data0 xfs
+{%- for n in range(pnda_env['datanode']['DATA_VOLUME_COUNT']) %}
+    {%- if pnda_env['datanode']['DATA_VOLUME_COUNT'] > 10 and n < 10 %}
+      - /data0{{ n }} xfs
+    {%- else %}
+      - /data{{ n }} xfs
+    {%- endif %}
+{%- endfor %}
       - /var/log/pnda xfs
 
   no_additonal_volumes:

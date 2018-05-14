@@ -32,6 +32,7 @@ from threading import Thread
 
 import yaml
 import requests
+import jinja2
 import pnda_cli_utils as utils
 from pnda_cli_utils import PNDAConfigException
 from pnda_cli_utils import MILLI_TIME
@@ -382,10 +383,15 @@ subjectAltName = @alt_names
     def _get_volume_info(self, node_type, config_file):
         volumes = None
         if node_type:
-            with open(config_file, 'r') as infile:
-                volume_config = yaml.load(infile)
-                volume_class = volume_config['instances'][node_type]
-                volumes = volume_config['classes'][volume_class]
+            config_file_list = config_file.split("/")
+            config_file_path = "%s/%s" % (config_file_list[0], config_file_list[1])
+            template_loader = jinja2.FileSystemLoader(searchpath=config_file_path)
+            template_env = jinja2.Environment(loader=template_loader)
+            template = template_env.get_template(config_file_list[2])
+            volume_config = yaml.safe_load(template.render(pnda_env=self._pnda_env))
+            volume_class = volume_config['instances'][node_type]
+            volumes = volume_config['classes'][volume_class]
+
         return volumes
 
     def _set_up_env_conf(self):
@@ -813,6 +819,7 @@ subjectAltName = @alt_names
         self._check_private_key_exists(keyfile)
         self._check_pnda_mirror()
         self.check_target_specific_config()
+        self._check_data_volume_count()
 
     def _check_private_key_exists(self, keyfile):
         if not os.path.isfile(keyfile):
@@ -843,3 +850,9 @@ subjectAltName = @alt_names
         except:
             raise_error("Failed to connect to PNDA mirror. Verify connection "
                         "to %s, check mirror in pnda_env.yaml and try again." % mirror)
+
+    def _check_data_volume_count(self):
+        data_volume_count = int(self._pnda_env['datanode']['DATA_VOLUME_COUNT'])
+        if data_volume_count == 0:
+            CONSOLE.error('Datanode volume count should not be zero')
+            sys.exit(1)

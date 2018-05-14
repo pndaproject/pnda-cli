@@ -223,4 +223,11 @@ dataset_compaction:
 EOF
 fi
 
+if [ "x$DATA_VOLUME_COUNT" != "x" ] ; then
+cat << EOF >> /srv/salt/platform-salt/pillar/env_parameters.sls
+datanode:
+  data_volume_count: $DATA_VOLUME_COUNT
+EOF
+fi
+
 /tmp/saltmaster-gen-keys.sh
