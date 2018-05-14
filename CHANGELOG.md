@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4448: Fixes to ADD_ONLINE_REPOS for redhat/centos
 - PNDA-4498: Use wget instead of curl with apt-key
 - PNDA-4441: Removed "extra-index-url" and "find_links" directives from pip and easy_install configurations
+- PNDA-4624: Fix expand operation
 
 ## [1.1.0] 2018-02-10
 ### Added
