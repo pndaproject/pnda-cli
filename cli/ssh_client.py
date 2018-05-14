@@ -100,7 +100,7 @@ fi\n''')
         host = self._subsitute_host_if_bastion(host)
         cmd = "scp -F cli/ssh_config-%s %s %s:%s" % (self._cluster, ' '.join(files), host, '/tmp')
         CONSOLE.debug(cmd)
-        ret_val = subprocess_to_log.call(cmd.split(' '), LOG, host)
+        ret_val = subprocess_to_log.call(cmd.split(' '), LOG, log_id=host)
         if ret_val != 0:
             raise Exception("Error transferring files to new host %s via SCP. See debug log (%s) for details." % (host, LOG_FILE_NAME))
 
@@ -110,7 +110,7 @@ fi\n''')
         parts = cmd.split(' ')
         parts.append(' && '.join(cmds))
         CONSOLE.debug(json.dumps(parts))
-        ret_val = subprocess_to_log.call(parts, LOG, host, output=output, scan_for_errors=[r'lost connection', r'\s*Failed:\s*[1-9].*'])
+        ret_val = subprocess_to_log.call(parts, LOG, log_id=host, output=output, scan_for_errors=[r'lost connection', r'\s*Failed:\s*[1-9].*'])
         if ret_val != 0:
             raise Exception("Error running ssh commands on host %s. See debug log (%s) for details." % (host, LOG_FILE_NAME))
 
