@@ -112,7 +112,7 @@ def select_deployment_target_impl(fields):
         deployment_target = CloudFormationBackend(
             PNDA_ENV, fields['pnda_cluster'], fields["no_config_check"], fields['flavor'], fields['keyname'], fields['branch'], fields['dry_run'])
     elif PNDA_ENV['infrastructure']['INFRASTRUCTURE_TYPE'] == 'openstack':
-        exclude_sections = ['aws_parameters', 'existing_machines_parameters']
+        exclude_sections = ['aws_parameters']
         deployment_target = HeatBackend(
             PNDA_ENV, fields['pnda_cluster'], fields["no_config_check"], fields['flavor'], fields['keyname'], fields['branch'], fields['dry_run'])
     else:

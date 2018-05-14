@@ -1,32 +1,30 @@
-# Definition for the hadoop manager instance type
+# Definition for gateway instance type
 heat_template_version: 2015-04-30
 
 parameters:
-  stackName:
-    type: string
   flavor:
-    description: Flavor of the hadoop manager server
-    type: string
-  keyName:
-    description: Name of an existing ssh keypair
-    type: string
-  publicNetworkId:
-    description: Private network for pnda deployment
-    type: string
-  publicSubnetId:
-    description: Private network for pnda deployment
     type: string
   imageId:
     type: string
+  keyName:
+    type: string
   instanceName:
     type: string
+  externalPublicNetworkId:
+    type: string
+  publicNetworkId:
+    type: string
+  publicSubnetId:
+    type: string
   pndaSecurityGroupPnda:
+    type: string
+  stackName:
     type: string
   logVolumeSize:
     type: number
 
 resources:
-  cmPort:
+  gatewayPort:
     type: OS::Neutron::Port
     properties:
       network: { get_param: publicNetworkId }
@@ -34,36 +32,37 @@ resources:
         - subnet_id: { get_param: publicSubnetId }
       security_groups: [{ get_param: pndaSecurityGroupPnda }]
 
+  floatingIP:
+    type: OS::Neutron::FloatingIP
+    depends_on: [ gatewayPort ]
+    properties:
+      floating_network_id: { get_param: externalPublicNetworkId }
+      port_id: { get_resource: gatewayPort}
+
   pndaVolumeLogData:
     type: OS::Cinder::Volume
     properties:
       size: { get_param: logVolumeSize }
-      description: Volume for hadoop manager logs
+      description: "Volume for gateway logs"
 
   pndaVolumeAttachmentLogData:
-    depends_on: cmServer
+    depends_on: gatewayServer
     type: OS::Cinder::VolumeAttachment
     properties:
       volume_id: { get_resource: pndaVolumeLogData }
-      instance_uuid: { get_resource: cmServer }
+      instance_uuid: { get_resource: gatewayServer }
 
-
-  cmServer:
+  gatewayServer:
     type: OS::Nova::Server
+    depends_on: floatingIP
     properties:
       name: { get_param: instanceName }
       image: { get_param: imageId }
-      flavor: { get_param: flavor}
       key_name: { get_param: keyName }
-      metadata: {'node_type': 'hadoop-cm',
+      flavor: { get_param: flavor }
+      metadata: {'node_type': 'gateway',
                  'pnda_cluster': {get_param: stackName},
-                 'node_idx': "",
-                 'Name': {get_param: instanceName }}
+                 'node_idx':'',
+                 'Name': {get_param: instanceName}}
       networks:
-        - port: { get_resource: cmPort }
-
-outputs:
-  serverResource:
-    description: Heat resource handle for the Nova compute server
-    value:
-      {get_resource: cmServer}
+        - port: { get_resource: gatewayPort }

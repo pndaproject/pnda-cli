@@ -6,359 +6,353 @@
 heat_template_version: 2015-04-30
 
 parameters:
-  image_id:
+  imageId:
     type: string
-  BastionFlavor:
+  gatewayFlavor:
     type: string
-    description: Flavor for the bastion nodes
-  EdgeFlavor:
+    description: Flavor for the gateway nodes
+  edgeFlavor:
     type: string
     description: Flavor for the edge node
-  CMFlavor:
+  cmFlavor:
     type: string
     description: Flavor for the data nodes
-  Manager1Flavor:
+  manager1Flavor:
     type: string
     description: Flavor for the manager nodes
-  Manager2Flavor:
+  manager2Flavor:
     type: string
     description: Flavor for the manager nodes
-  Manager3Flavor:
+  manager3Flavor:
     type: string
     description: Flavor for the manager nodes
-  Manager4Flavor:
+  manager4Flavor:
     type: string
     description: Flavor for the manager nodes
-  ToolsFlavor:
+  toolsFlavor:
     type: string
     description: Flavor for the tools nodes
-  SaltmasterFlavor:
+  saltmasterFlavor:
     type: string
     description: Flavor for the Saltmaster nodes
-  JupyterFlavor:
+  jupyterFlavor:
     type: string
     description: Flavor for the Jupyter nodes
-  LogserverFlavor:
+  logserverFlavor:
     type: string
     description: Flavor for the logserver node
-  DatanodeFlavor:
+  datanodeFlavor:
     type: string
     description: Flavor for the data nodes
-  KafkaFlavor:
+  kafkaFlavor:
     type: string
     description: Flavor for the kafka nodes
-  OpentsdbFlavor:
+  opentsdbFlavor:
     type: string
     description: Flavor for the opentsdb node
-  ZookeeperFlavor:
+  zookeeperFlavor:
     type: string
     description: Flavor for the zookeeper nodes
    
-  DataNodes:
+  dataNodes:
     description: Number of DATA nodes
     type: string
-  KafkaNodes:
+  kafkaNodes:
     description: Number of KAFKA nodes
     type: string
-  OpentsdbNodes:
+  opentsdbNodes:
     description: Number of Opentsdb nodes
     type: number
-  ZookeeperNodes:
+  zookeeperNodes:
     description: Number of ZOOKEEPER nodes
     type: string
-  DatanodeVolumeSize:
+  datanodeVolumeSize:
     type: number
-  LogVolumeSize:
+  logVolumeSize:
     type: number
-  public_net_id:
+  externalPublicNetworkId:
     type: string
-  pnda_private_network:
+  publicNetworkId:
     type: string
-  pnda_private_subnet:
+  publicSubnetId:
     type: string
-  pnda_ingest_network:
+  keyName:
     type: string
-  pnda_ingest_subnet:
+  pndaSecurityGroupPnda:
     type: string
-  KeyName:
-    type: string
-  pnda_security_group_pnda:
-    type: string
-  pnda_security_group_kafka_ingest:
-    type: string
-  stack_name:
+  stackName:
     type: string
 
 resources:
-  bastion:
-    type: OS::Pnda::bastion
+  gateway:
+    type: OS::Pnda::gateway
     properties:
-      Flavor: { get_param: BastionFlavor }
-      Image: { get_param: image_id }
-      KeyName: { get_param: KeyName }
-      stack_name: { get_param: stack_name }
-      pnda_private_network: { get_param: pnda_private_network }
-      pnda_private_subnet: { get_param: pnda_private_subnet }
-      public_net_id: { get_param: public_net_id }
-      pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
-      name:
+      flavor: { get_param: gatewayFlavor }
+      imageId: { get_param: imageId }
+      keyName: { get_param: keyName }
+      stackName: { get_param: stackName }
+      publicNetworkId: { get_param: publicNetworkId }
+      publicSubnetId: { get_param: publicSubnetId }
+      externalPublicNetworkId: { get_param: externalPublicNetworkId }
+      pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+      logVolumeSize: { get_param: logVolumeSize }
+      instanceName:
         str_replace:
-          template: '%stackname%-bastion'
+          template: '%stackname%-gateway'
           params:
-            '%stackname%': { get_param: stack_name  }
+            '%stackname%': { get_param: stackName  }
 
   edge:
     type: OS::Pnda::edge
     properties:
-      Flavor: { get_param: EdgeFlavor }
-      Image: { get_param: image_id }
-      KeyName: { get_param: KeyName }
-      stack_name: { get_param: stack_name }
-      pnda_private_network: { get_param: pnda_private_network }
-      pnda_private_subnet: { get_param: pnda_private_subnet }
-      pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
-      LogVolumeSize: { get_param: LogVolumeSize }
-      name:
+      flavor: { get_param: edgeFlavor }
+      imageId: { get_param: imageId }
+      keyName: { get_param: keyName }
+      stackName: { get_param: stackName }
+      publicNetworkId: { get_param: publicNetworkId }
+      publicSubnetId: { get_param: publicSubnetId }
+      pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+      logVolumeSize: { get_param: logVolumeSize }
+      instanceName:
         str_replace:
           template: '%stackname%-hadoop-edge'
           params:
-            '%stackname%': { get_param: stack_name }
+            '%stackname%': { get_param: stackName }
 
   cm:
     type: OS::Pnda::cm
     properties:
-      Flavor: { get_param: CMFlavor }
-      Image: { get_param: image_id }
-      KeyName: { get_param: KeyName }
-      stack_name: { get_param: stack_name }
-      pnda_private_network: { get_param: pnda_private_network }
-      pnda_private_subnet: { get_param: pnda_private_subnet }
-      pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
-      LogVolumeSize: { get_param: LogVolumeSize }
-      name:
+      flavor: { get_param: cmFlavor }
+      imageId: { get_param: imageId }
+      keyName: { get_param: keyName }
+      stackName: { get_param: stackName }
+      publicNetworkId: { get_param: publicNetworkId }
+      publicSubnetId: { get_param: publicSubnetId }
+      pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+      logVolumeSize: { get_param: logVolumeSize }
+      instanceName:
         str_replace:
           template: '%stackname%-hadoop-cm'
           params:
-            '%stackname%': { get_param: stack_name }
+            '%stackname%': { get_param: stackName }
+
   manager1:
     type: OS::Pnda::manager1
     properties:
-      Flavor: { get_param: Manager1Flavor }
-      Image: { get_param: image_id }
-      KeyName: { get_param: KeyName }
-      stack_name: { get_param: stack_name }
-      pnda_private_network: { get_param: pnda_private_network }
-      pnda_private_subnet: { get_param: pnda_private_subnet }
-      pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
-      LogVolumeSize: { get_param: LogVolumeSize }
-      name:
+      flavor: { get_param: manager1Flavor }
+      imageId: { get_param: imageId }
+      keyName: { get_param: keyName }
+      stackName: { get_param: stackName }
+      publicNetworkId: { get_param: publicNetworkId }
+      publicSubnetId: { get_param: publicSubnetId }
+      pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+      logVolumeSize: { get_param: logVolumeSize }
+      instanceName:
         str_replace:
           template: '%stackname%-hadoop-mgr-1'
           params:
-            '%stackname%': { get_param: stack_name }
+            '%stackname%': { get_param: stackName }
+
   manager2:
     type: OS::Pnda::manager2
     properties:
-      Flavor: { get_param: Manager2Flavor }
-      Image: { get_param: image_id }
-      KeyName: { get_param: KeyName }
-      stack_name: { get_param: stack_name }
-      pnda_private_network: { get_param: pnda_private_network }
-      pnda_private_subnet: { get_param: pnda_private_subnet }
-      pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
-      LogVolumeSize: { get_param: LogVolumeSize }
-      name:
+      flavor: { get_param: manager2Flavor }
+      imageId: { get_param: imageId }
+      keyName: { get_param: keyName }
+      stackName: { get_param: stackName }
+      publicNetworkId: { get_param: publicNetworkId }
+      publicSubnetId: { get_param: publicSubnetId }
+      pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+      logVolumeSize: { get_param: logVolumeSize }
+      instanceName:
         str_replace:
           template: '%stackname%-hadoop-mgr-2'
           params:
-            '%stackname%': { get_param: stack_name }
+            '%stackname%': { get_param: stackName }
+
   manager3:
     type: OS::Pnda::manager3
     properties:
-      Flavor: { get_param: Manager3Flavor }
-      Image: { get_param: image_id }
-      KeyName: { get_param: KeyName }
-      stack_name: { get_param: stack_name }
-      pnda_private_network: { get_param: pnda_private_network }
-      pnda_private_subnet: { get_param: pnda_private_subnet }
-      pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
-      LogVolumeSize: { get_param: LogVolumeSize }
-      name:
+      flavor: { get_param: manager3Flavor }
+      imageId: { get_param: imageId }
+      keyName: { get_param: keyName }
+      stackName: { get_param: stackName }
+      publicNetworkId: { get_param: publicNetworkId }
+      publicSubnetId: { get_param: publicSubnetId }
+      pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+      logVolumeSize: { get_param: logVolumeSize }
+      instanceName:
         str_replace:
           template: '%stackname%-hadoop-mgr-3'
           params:
-            '%stackname%': { get_param: stack_name }
+            '%stackname%': { get_param: stackName }
+
   manager4:
     type: OS::Pnda::manager4
     properties:
-      Flavor: { get_param: Manager4Flavor }
-      Image: { get_param: image_id }
-      KeyName: { get_param: KeyName }
-      stack_name: { get_param: stack_name }
-      pnda_private_network: { get_param: pnda_private_network }
-      pnda_private_subnet: { get_param: pnda_private_subnet }
-      pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
-      LogVolumeSize: { get_param: LogVolumeSize }
-      name:
+      flavor: { get_param: manager4Flavor }
+      imageId: { get_param: imageId }
+      keyName: { get_param: keyName }
+      stackName: { get_param: stackName }
+      publicNetworkId: { get_param: publicNetworkId }
+      publicSubnetId: { get_param: publicSubnetId }
+      pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+      logVolumeSize: { get_param: logVolumeSize }
+      instanceName:
         str_replace:
           template: '%stackname%-hadoop-mgr-4'
           params:
-            '%stackname%': { get_param: stack_name }
+            '%stackname%': { get_param: stackName }
 
   tools:
     type: OS::Pnda::tools
     properties:
-      Flavor: { get_param: ToolsFlavor }
-      Image: { get_param: image_id }
-      KeyName: { get_param: KeyName }
-      stack_name: { get_param: stack_name }
-      pnda_private_network: { get_param: pnda_private_network }
-      pnda_private_subnet: { get_param: pnda_private_subnet }
-      pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
-      name:
+      flavor: { get_param: toolsFlavor }
+      imageId: { get_param: imageId }
+      keyName: { get_param: keyName }
+      stackName: { get_param: stackName }
+      publicNetworkId: { get_param: publicNetworkId }
+      publicSubnetId: { get_param: publicSubnetId }
+      pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+      instanceName:
           str_replace:
             template: '%stackname%-tools'
             params:
-              '%stackname%': { get_param: stack_name }
+              '%stackname%': { get_param: stackName }
   logserver:
     type: OS::Pnda::logserver
     properties:
-      Flavor: { get_param: LogserverFlavor }
-      Image: { get_param: image_id }
-      KeyName: { get_param: KeyName }
-      stack_name: { get_param: stack_name }
-      pnda_private_network: { get_param: pnda_private_network }
-      pnda_private_subnet: { get_param: pnda_private_subnet }
-      pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
-      LogVolumeSize: { get_param: LogVolumeSize }
-      name:
+      flavor: { get_param: logserverFlavor }
+      imageId: { get_param: imageId }
+      keyName: { get_param: keyName }
+      stackName: { get_param: stackName }
+      publicNetworkId: { get_param: publicNetworkId }
+      publicSubnetId: { get_param: publicSubnetId }
+      pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+      logVolumeSize: { get_param: logVolumeSize }
+      instanceName:
         str_replace:
           template: '%stackname%-logserver'
           params:
-            '%stackname%': { get_param: stack_name }
+            '%stackname%': { get_param: stackName }
   saltmaster:
     type: OS::Pnda::saltmaster
     properties:
-      Flavor: { get_param: SaltmasterFlavor }
-      Image: { get_param: image_id }
-      KeyName: { get_param: KeyName }
-      stack_name: { get_param: stack_name }
-      pnda_private_network: { get_param: pnda_private_network }
-      pnda_private_subnet: { get_param: pnda_private_subnet }
-      pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
-      name:
+      flavor: { get_param: saltmasterFlavor }
+      imageId: { get_param: imageId }
+      keyName: { get_param: keyName }
+      stackName: { get_param: stackName }
+      publicNetworkId: { get_param: publicNetworkId }
+      publicSubnetId: { get_param: publicSubnetId }
+      pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+      instanceName:
         str_replace:
           template: '%stackname%-saltmaster'
           params:
-            '%stackname%': { get_param: stack_name }
+            '%stackname%': { get_param: stackName }
   jupyter:
     type: OS::Pnda::jupyter
     properties:
-      Flavor: { get_param: JupyterFlavor }
-      Image: { get_param: image_id }
-      KeyName: { get_param: KeyName }
-      stack_name: { get_param: stack_name }
-      pnda_private_network: { get_param: pnda_private_network }
-      pnda_private_subnet: { get_param: pnda_private_subnet }
-      pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
-      LogVolumeSize: { get_param: LogVolumeSize }
-      name:
+      flavor: { get_param: jupyterFlavor }
+      imageId: { get_param: imageId }
+      keyName: { get_param: keyName }
+      stackName: { get_param: stackName }
+      publicNetworkId: { get_param: publicNetworkId }
+      publicSubnetId: { get_param: publicSubnetId }
+      pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+      logVolumeSize: { get_param: logVolumeSize }
+      instanceName:
         str_replace:
           template: '%stackname%-hadoop-jupyter'
           params:
-            '%stackname%': { get_param: stack_name }
+            '%stackname%': { get_param: stackName }
 
   dn:
     type: OS::Heat::ResourceGroup
     properties:
-      count: { get_param: DataNodes }
+      count: { get_param: dataNodes }
       resource_def:
         type: OS::Pnda::dn
         properties:
-          Flavor: { get_param: DatanodeFlavor }
-          Image: { get_param: image_id }
-          KeyName: { get_param: KeyName }
-          stack_name: { get_param: stack_name }
-          pnda_private_network: { get_param: pnda_private_network }
-          pnda_private_subnet: { get_param: pnda_private_subnet }
-          pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
-          DatanodeVolumeSize: { get_param: DatanodeVolumeSize }
-          LogVolumeSize: { get_param: LogVolumeSize }
-          NodeIndex: '%index%'
-          name:
+          flavor: { get_param: datanodeFlavor }
+          imageId: { get_param: imageId }
+          keyName: { get_param: keyName }
+          stackName: { get_param: stackName }
+          publicNetworkId: { get_param: publicNetworkId }
+          publicSubnetId: { get_param: publicSubnetId }
+          pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+          datanodeVolumeSize: { get_param: datanodeVolumeSize }
+          logVolumeSize: { get_param: logVolumeSize }
+          nodeIndex: '%index%'
+          instanceName:
             str_replace:
               template: '%stackname%-hadoop-dn-%index%'
               params:
-                '%stackname%': { get_param: stack_name }
+                '%stackname%': { get_param: stackName }
 
   kafka:
     type: OS::Heat::ResourceGroup
     properties:
-      count: { get_param: KafkaNodes }
+      count: { get_param: kafkaNodes }
       resource_def:
         type: OS::Pnda::kafka
         properties:
-          stack_name: { get_param: stack_name }
-          Flavor: { get_param: KafkaFlavor }
-          Image: { get_param: image_id }
-          KeyName: { get_param: KeyName }
-          stack_name: { get_param: stack_name }
-          pnda_private_network: { get_param: pnda_private_network }
-          pnda_private_subnet: { get_param: pnda_private_subnet }
-          pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
-          pnda_security_group_kafka_ingest: { get_param: pnda_security_group_kafka_ingest }
-          NodeIndex: '%index%'
-          pnda_ingest_network: { get_param: pnda_ingest_network }
-          pnda_ingest_subnet: { get_param: pnda_ingest_subnet }
-          LogVolumeSize: { get_param: LogVolumeSize }
-          name:
+          flavor: { get_param: kafkaFlavor }
+          imageId: { get_param: imageId }
+          keyName: { get_param: keyName }
+          stackName: { get_param: stackName }
+          publicNetworkId: { get_param: publicNetworkId }
+          publicSubnetId: { get_param: publicSubnetId }
+          pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+          nodeIndex: '%index%'
+          logVolumeSize: { get_param: logVolumeSize }
+          instanceName:
             str_replace:
               template: '%stackname%-kafka-%index%'
               params:
-                '%stackname%': { get_param: stack_name }
+                '%stackname%': { get_param: stackName }
   opentsdb:
     type: OS::Heat::ResourceGroup
     properties:
-      count: { get_param: OpentsdbNodes }
+      count: { get_param: opentsdbNodes }
       resource_def:
         type: OS::Pnda::opentsdb
         properties:
-          Flavor: { get_param: OpentsdbFlavor }
-          Image: { get_param: image_id }
-          KeyName: { get_param: KeyName }
-          stack_name: { get_param: stack_name }
-          pnda_private_network: { get_param: pnda_private_network }
-          pnda_private_subnet: { get_param: pnda_private_subnet }
-          pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
-          NodeIndex: '%index%'
-          LogVolumeSize: { get_param: LogVolumeSize }
-          name:
+          flavor: { get_param: opentsdbFlavor }
+          imageId: { get_param: imageId }
+          keyName: { get_param: keyName }
+          stackName: { get_param: stackName }
+          publicNetworkId: { get_param: publicNetworkId }
+          publicSubnetId: { get_param: publicSubnetId }
+          pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+          nodeIndex: '%index%'
+          logVolumeSize: { get_param: logVolumeSize }
+          instanceName:
             str_replace:
               template: '%stackname%-opentsdb-%index%'
               params:
-                '%stackname%': { get_param: stack_name }
+                '%stackname%': { get_param: stackName }
 
   zookeeper:
     type: OS::Heat::ResourceGroup
     properties:
-      count: { get_param: ZookeeperNodes }
+      count: { get_param: zookeeperNodes }
       resource_def:
         type: OS::Pnda::zookeeper
         properties:
-          stack_name: { get_param: stack_name }
-          Flavor: { get_param: ZookeeperFlavor }
-          Image: { get_param: image_id }
-          KeyName: { get_param: KeyName }
-          stack_name: { get_param: stack_name }
-          pnda_private_network: { get_param: pnda_private_network }
-          pnda_private_subnet: { get_param: pnda_private_subnet }
-          pnda_security_group_pnda: { get_param: pnda_security_group_pnda }
-          NodeIndex: '%index%'
-          LogVolumeSize: { get_param: LogVolumeSize }
-          name:
+          flavor: { get_param: zookeeperFlavor }
+          imageId: { get_param: imageId }
+          keyName: { get_param: keyName }
+          stackName: { get_param: stackName }
+          publicNetworkId: { get_param: publicNetworkId }
+          publicSubnetId: { get_param: publicSubnetId }
+          pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+          nodeIndex: '%index%'
+          logVolumeSize: { get_param: logVolumeSize }
+          instanceName:
             str_replace:
               template: '%stackname%-zookeeper-%index%'
               params:
-                '%stackname%': { get_param: stack_name }
+                '%stackname%': { get_param: stackName }
 
 

@@ -1,113 +1,107 @@
 # This flavor specific pnda.yaml 
 
 parameters:
-  BastionFlavor:
+  gatewayFlavor:
     type: string
-    description: Flavor for the bastion nodes
-  EdgeFlavor:
+    description: Flavor for the gateway node
+  edgeFlavor:
     type: string
     description: Flavor for the edge node
-  CMFlavor:
+  cmFlavor:
     type: string
     description: Flavor for the data nodes
-  Manager1Flavor:
+  manager1Flavor:
     type: string
     description: Flavor for the manager nodes
-  Manager2Flavor:
+  manager2Flavor:
     type: string
     description: Flavor for the manager nodes
-  Manager3Flavor:
+  manager3Flavor:
     type: string
     description: Flavor for the manager nodes
-  Manager4Flavor:
+  manager4Flavor:
     type: string
     description: Flavor for the manager nodes
-  ToolsFlavor:
+  toolsFlavor:
     type: string
     description: Flavor for the tools nodes
-  SaltmasterFlavor:
+  saltmasterFlavor:
     type: string
     description: Flavor for the Saltmaster nodes
-  JupyterFlavor:
+  jupyterFlavor:
     type: string
     description: Flavor for the Jupyter nodes
-  LogserverFlavor:
+  logserverFlavor:
     type: string
     description: Flavor for the logserver node
-  DatanodeFlavor:
+  datanodeFlavor:
     type: string
     description: Flavor for the data nodes
-  KafkaFlavor:
+  kafkaFlavor:
     type: string
     description: Flavor for the kafka nodes
-  OpentsdbFlavor:
+  opentsdbFlavor:
     type: string
     description: Flavor for the opentsdb node
-  ZookeeperFlavor:
+  zookeeperFlavor:
     type: string
     description: Flavor for the zookeeper nodes
-   
-  DataNodes:
+  dataNodes:
     description: Number of DATA nodes
     type: string
-  KafkaNodes:
+  kafkaNodes:
     description: Number of KAFKA nodes
     type: string
-  OpentsdbNodes:
+  opentsdbNodes:
     description: Number of Opentsdb nodes
     type: number
-  ZookeeperNodes:
+  zookeeperNodes:
     description: Number of ZOOKEEPER nodes
     type: string
-  
-  DatanodeVolumeSize:
+  datanodeVolumeSize:
     type: number
-  LogVolumeSize:
+  logVolumeSize:
     type: number
 
 resources:
-
-  pnda_cluster:
+  pndaCluster:
     type: OS::Pnda::cluster
-    depends_on: [ private_network_router_interface, ingest_network_router_interface ]
+    depends_on: [ publicNetworkRouterInterface ]
     properties:
-      stack_name: { get_param: 'OS::stack_name' }
-      KeyName: { get_param: KeyName }
-      image_id: { get_param: IMAGE_ID }
+      stackName: { get_param: 'OS::stack_name' }
+      keyName: { get_param: keyName }
+      imageId: { get_param: imageId }
       
-      ZookeeperNodes: { get_param: ZookeeperNodes }
-      KafkaNodes: { get_param: KafkaNodes }
-      DataNodes: { get_param: DataNodes }
-      OpentsdbNodes: { get_param: OpentsdbNodes }
+      zookeeperNodes: { get_param: zookeeperNodes }
+      kafkaNodes: { get_param: kafkaNodes }
+      dataNodes: { get_param: dataNodes }
+      opentsdbNodes: { get_param: opentsdbNodes }
       
-      DatanodeVolumeSize : { get_param: DatanodeVolumeSize }
-      LogVolumeSize: { get_param: LogVolumeSize }
+      datanodeVolumeSize : { get_param: datanodeVolumeSize }
+      logVolumeSize: { get_param: logVolumeSize }
       
-      pnda_private_network: { get_resource: pnda_private_network }
-      pnda_private_subnet: { get_resource: pnda_private_subnet }
-      pnda_ingest_network: { get_resource: pnda_ingest_network }
-      pnda_ingest_subnet: { get_resource: pnda_ingest_subnet }
-      public_net_id: { get_param: PUBLIC_NETWORK_ID  }
-      pnda_security_group_pnda: { get_resource: pnda_security_group_pnda }
-      pnda_security_group_kafka_ingest: { get_resource: pnda_security_group_kafka_ingest}
+      publicNetworkId: { get_resource: publicNetwork }
+      publicSubnetId: { get_resource: publicSubnet }
+      externalPublicNetworkId: { get_param: externalPublicNetworkId  }
+      pndaSecurityGroupPnda: { get_resource: pndaSecurityGroupPnda }
       
-      BastionFlavor: { get_param: BastionFlavor }
-      EdgeFlavor: { get_param: EdgeFlavor }
-      CMFlavor: { get_param: CMFlavor }
-      Manager1Flavor: { get_param: Manager1Flavor }
-      Manager2Flavor: { get_param: Manager2Flavor }
-      Manager3Flavor: { get_param: Manager3Flavor }
-      Manager4Flavor: { get_param: Manager4Flavor }
+      gatewayFlavor: { get_param: gatewayFlavor }
+      edgeFlavor: { get_param: edgeFlavor }
+      cmFlavor: { get_param: cmFlavor }
+      manager1Flavor: { get_param: manager1Flavor }
+      manager2Flavor: { get_param: manager2Flavor }
+      manager3Flavor: { get_param: manager3Flavor }
+      manager4Flavor: { get_param: manager4Flavor }
       
-      JupyterFlavor: { get_param: JupyterFlavor }
-      SaltmasterFlavor: { get_param: SaltmasterFlavor }
-      LogserverFlavor: { get_param: LogserverFlavor }
-      ToolsFlavor: { get_param: ToolsFlavor }
+      jupyterFlavor: { get_param: jupyterFlavor }
+      saltmasterFlavor: { get_param: saltmasterFlavor }
+      logserverFlavor: { get_param: logserverFlavor }
+      toolsFlavor: { get_param: toolsFlavor }
       
-      DatanodeFlavor: { get_param: DatanodeFlavor }
-      KafkaFlavor: { get_param: KafkaFlavor }
-      OpentsdbFlavor: { get_param: OpentsdbFlavor }
-      ZookeeperFlavor: { get_param: ZookeeperFlavor }
+      datanodeFlavor: { get_param: datanodeFlavor }
+      kafkaFlavor: { get_param: kafkaFlavor }
+      opentsdbFlavor: { get_param: opentsdbFlavor }
+      zookeeperFlavor: { get_param: zookeeperFlavor }
 
 
 

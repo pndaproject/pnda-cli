@@ -2,7 +2,7 @@
 # used to create each type of PNDA instance
 resource_registry:
   OS::Pnda::cluster: pnda_cluster.yaml
-  OS::Pnda::bastion: bastion.yaml
+  OS::Pnda::gateway: gateway.yaml
   OS::Pnda::cm: cm.yaml
   OS::Pnda::dn: dn.yaml
   OS::Pnda::zookeeper: zookeeper.yaml
