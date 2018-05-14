@@ -586,7 +586,7 @@ class BaseBackend(object):
         # An improvement would be running a test.ping and waiting for all expected minions to be ready
         CONSOLE.info('Installing Consul')
         self._ssh_client.ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed'
-                              '-C "G@pnda:is_new_node" state.sls consul,consul.dns queue=True 2>&1)'
+                              ' -C "G@pnda:is_new_node" state.sls consul,consul.dns queue=True 2>&1)'
                               ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR], saltmaster_ip)
         CONSOLE.info('Restarting minions')
         self._restart_minions([instance_map[h]['private_ip_address'] for h in instance_map], bastion_ip is not None)
