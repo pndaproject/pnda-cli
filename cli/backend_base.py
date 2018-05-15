@@ -433,7 +433,7 @@ class BaseBackend(object):
             nc_scp_cmd = "scp -i %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s %s@%s:%s" % (
                 self._keyfile, ' '.join(files_to_scp), self._pnda_env['infrastructure']['OS_USER'], bastion_ip, '/tmp')
             CONSOLE.debug(nc_scp_cmd)
-            ret_val = subprocess_to_log.call(nc_scp_cmd.split(' '), LOG, bastion_ip)
+            ret_val = subprocess_to_log.call(nc_scp_cmd.split(' '), LOG, log_id=bastion_ip)
             if ret_val != 0:
                 raise Exception("Error transferring files to new host %s via SCP. See debug log (%s) for details." % (bastion_ip, LOG_FILE_NAME))
 
@@ -442,7 +442,7 @@ class BaseBackend(object):
             nc_install_cmd = nc_ssh_cmd.split(' ')
             nc_install_cmd.append(' && '.join(cmds_to_run))
             CONSOLE.debug(nc_install_cmd)
-            ret_val = subprocess_to_log.call(nc_install_cmd, LOG, bastion_ip)
+            ret_val = subprocess_to_log.call(nc_install_cmd, LOG, log_id=bastion_ip)
             if ret_val != 0:
                 raise Exception("Error running ssh commands on host %s. See debug log (%s) for details." % (bastion_ip, LOG_FILE_NAME))
 
