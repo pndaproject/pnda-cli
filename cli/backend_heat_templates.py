@@ -85,7 +85,7 @@ class HeatBackend(BaseBackend):
             public_ip_address = None
 
             for net, net_details in instance.addresses.items():
-                if net != '{}_private_network'.format(self._cluster):
+                if net != '{}_publicNetwork'.format(self._cluster):
                     continue
                 private_ip_address = None
                 public_ip_address = None
@@ -127,12 +127,13 @@ class HeatBackend(BaseBackend):
         env_file = templates_path + "/pnda_env.yaml"
         config, ind, bsi = load_yaml_guess_indent(open(env_file))
         parameters = config['parameters']
-        parameters['KeyName'] = node_counts['keyname']
+        parameters['keyName'] = node_counts['keyname']
         # remove extra parmeters for heat template
         exclude_section = [
             'INFRASTRUCTURE_TYPE',
             'SSH_KEY',
             'OS_USER',
+            'networkCidr',
             'KEYSTONE_AUTH_URL',
             'KEYSTONE_USER',
             'KEYSTONE_PASSWORD',
@@ -348,10 +349,10 @@ class HeatBackend(BaseBackend):
             pnda_env_yaml = dest_dir + "/pnda_env.yaml"
             config, ind, bsi = load_yaml_guess_indent(open(pnda_env_yaml))
             parameters = config['parameters']
-            if datanodes > parameters['DataNodes']:
-                parameters['DataNodes'] = datanodes
-            if kafkas > parameters['KafkaNodes']:
-                parameters['KafkaNodes'] = kafkas
+            if datanodes > parameters['dataNodes']:
+                parameters['dataNodes'] = datanodes
+            if kafkas > parameters['kafkaNodes']:
+                parameters['kafkaNodes'] = kafkas
             ruamel.yaml.round_trip_dump(config, open(pnda_env_yaml, 'w'), indent=ind, block_seq_indent=bsi)
         else:
             CONSOLE.error('Stack %s does not exist', self._cluster)
@@ -359,10 +360,10 @@ class HeatBackend(BaseBackend):
 
     def _generate_template_file(self, flavor, datanodes, opentsdbs, kafkas, zookeepers):
         stack_params = []
-        stack_params.append('ZookeeperNodes: {}'.format(zookeepers))
-        stack_params.append('KafkaNodes: {}'.format(kafkas))
-        stack_params.append('DataNodes: {}'.format(datanodes))
-        stack_params.append('OpentsdbNodes: {}'.format(opentsdbs))
+        stack_params.append('zookeeperNodes: {}'.format(zookeepers))
+        stack_params.append('kafkaNodes: {}'.format(kafkas))
+        stack_params.append('dataNodes: {}'.format(datanodes))
+        stack_params.append('opentsdbNodes: {}'.format(opentsdbs))
 
         resources_dir = '_resources_{}-{}'.format(flavor, self._cluster)
         dest_dir = '{}/{}'.format(os.getcwd() + '/cli', resources_dir)

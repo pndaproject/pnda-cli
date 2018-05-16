@@ -74,6 +74,9 @@ openstack_parameters:
   #name_servers: DNS server(s) to use, this should be provided in the environment
   dns_nameservers: '8.8.8.8'
 
+  # CIDR specifying the address range for the public subnet (bastion access)
+  publicSubnetCidr: 10.0.0.0/24
+
 platform_salt:
   # Use either PLATFORM_GIT_REPO_URI + PLATFORM_GIT_BRANCH or PLATFORM_SALT_LOCAL
 

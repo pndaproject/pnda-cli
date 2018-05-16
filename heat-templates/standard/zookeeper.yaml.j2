@@ -3,76 +3,74 @@
 heat_template_version: 2015-04-30
 
 parameters:
-  stack_name:
+  stackName:
     type: string
-  Flavor:
+  flavor:
     description: Flavor of the zookeeper server
     type: string
-  KeyName:
+  keyName:
     description: Name of an existing ssh keypair
     type: string
-  pnda_private_network:
-    description: Private network for pnda deployment
+  publicNetworkId:
     type: string
-  pnda_private_subnet :
-    description: Private network for pnda deployment
+  publicSubnetId:
     type: string
-  Image:
+  imageId:
     type: string
-  name:
+  instanceName:
     type: string
-  NodeIndex:
+  nodeIndex:
     type: number
-  pnda_security_group_pnda :
+  pndaSecurityGroupPnda:
     type: string
-  LogVolumeSize:
+  logVolumeSize:
     type: number
 
 resources:
-  zookeeper_port:
+  zookeeperPort:
     type: OS::Neutron::Port
     properties:
-      network: { get_param: pnda_private_network  }
+      network: { get_param: publicNetworkId }
       fixed_ips:
-        - subnet_id: { get_param: pnda_private_subnet  }
-      security_groups: [{ get_param: pnda_security_group_pnda  }]
+        - subnet_id: { get_param: publicSubnetId }
+      security_groups: [{ get_param: pndaSecurityGroupPnda }]
 
-  logvolume:
+  pndaVolumeLogData:
     type: OS::Cinder::Volume
     properties:
-      size: { get_param: LogVolumeSize }
+      size: { get_param: logVolumeSize }
       description: Volume for zookeeper logs
 
-  logvolume_attachment:
+  pndaVolumeAttachmentLogData:
     type: OS::Cinder::VolumeAttachment
     properties:
-      volume_id: { get_resource: logvolume }
-      instance_uuid: { get_resource: zookeeper_server }
+      volume_id: { get_resource: pndaVolumeLogData }
+      instance_uuid: { get_resource: zookeeperServer }
 
-  zookeeper_server:
+  zookeeperServer:
     type: OS::Nova::Server
     properties:
-      name: { get_param: name }
-      image: { get_param: Image }
-      flavor: { get_param: Flavor }
-      key_name: { get_param: KeyName }
+      name: { get_param: instanceName }
+      image: { get_param: imageId }
+      flavor: { get_param: flavor }
+      key_name: { get_param: keyName }
       metadata: {'node_type': 'zk',
-                 'pnda_cluster': {get_param: stack_name},
-                 'node_idx': {get_param: NodeIndex},
-                 'Name': {get_param: name}}
+                 'pnda_cluster': {get_param: stackName},
+                 'node_idx': {get_param: nodeIndex},
+                 'Name': {get_param: instanceName }}
       networks:
-        - port: { get_resource: zookeeper_port }
+        - port: { get_resource: zookeeperPort }
 
 outputs:
-  port_resource:
+  portResource:
     description: Heat resource handle for the Neutron port
     value:
-      { get_resource: zookeeper_port }
-  server_resource:
+      { get_resource: zookeeperPort }
+  serverResource:
     description: Heat resource handle for the Nova compute server
     value:
-      {get_resource: zookeeper_server}
-  hosts_entry:
+      {get_resource: zookeeperServer}
+  hostsEntry:
     description: >
       Server's IP address and hostname in the /etc/hosts format
     value:
@@ -80,5 +78,5 @@ outputs:
         template: |
           PRIMARYIP PRIMARYHOST
         params:
-          PRIMARYIP: {get_attr: [zookeeper_server, first_address]}
-          PRIMARYHOST: {get_attr: [zookeeper_server, name]}
+          PRIMARYIP: {get_attr: [zookeeperServer, first_address]}
+          PRIMARYHOST: {get_attr: [zookeeperServer, name]}

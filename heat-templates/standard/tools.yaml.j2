@@ -2,56 +2,54 @@
 heat_template_version: 2015-04-30
 
 parameters:
-  stack_name:
+  stackName:
     type: string
-  Flavor:
+  flavor:
     description: Flavor of the tools server
     type: string
-  KeyName:
+  keyName:
     description: Name of an existing ssh keypair
     type: string
-  pnda_private_network:
-    description: Private network for pnda deployment
+  publicNetworkId:
     type: string
-  pnda_private_subnet:
-    description: Private network for pnda deployment
+  publicSubnetId:
     type: string
-  Image:
+  imageId:
     type: string
-  name:
+  instanceName:
     type: string
-  pnda_security_group_pnda:
+  pndaSecurityGroupPnda:
     type: string
 
 resources:
-  tools_port:
+  toolsPort:
     type: OS::Neutron::Port
     properties:
-      network: { get_param: pnda_private_network }
+      network: { get_param: publicNetworkId }
       fixed_ips:
-        - subnet_id: { get_param: pnda_private_subnet }
-      security_groups: [{ get_param: pnda_security_group_pnda }]
+        - subnet_id: { get_param: publicSubnetId }
+      security_groups: [{ get_param: pndaSecurityGroupPnda }]
 
-  tools_server:
+  toolsServer:
     type: OS::Nova::Server
     properties:
-      name: { get_param: name }
-      image: { get_param: Image }
-      flavor: { get_param: Flavor }
-      key_name: { get_param: KeyName }
+      name: { get_param: instanceName }
+      image: { get_param: imageId }
+      flavor: { get_param: flavor }
+      key_name: { get_param: keyName }
       metadata: {'node_type': 'tools',
-                 'pnda_cluster': {get_param: stack_name},
+                 'pnda_cluster': {get_param: stackName},
                  'node_idx': "",
-                 'Name': {get_param: name}}
+                 'Name': {get_param: instanceName }}
       networks:
-        - port: { get_resource: tools_port }
+        - port: { get_resource: toolsPort }
 
 outputs:
-  server_resource:
+  serverResource:
     description: Heat resource handle for the Nova compute server
     value:
-      {get_resource: tools_server}
-  hosts_entry:
+      {get_resource: toolsServer}
+  hostsEntry:
     description: >
       Server's IP address and hostname in the /etc/hosts format
     value:
@@ -59,5 +57,5 @@ outputs:
         template: |
           PRIMARYIP PRIMARYHOST
         params:
-          PRIMARYIP: {get_attr: [tools_server, first_address]}
-          PRIMARYHOST: {get_attr: [tools_server, name]}
+          PRIMARYIP: {get_attr: [toolsServer, first_address]}
+          PRIMARYHOST: {get_attr: [toolsServer, name]}

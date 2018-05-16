@@ -2,101 +2,80 @@
 heat_template_version: 2015-04-30
 
 parameters:
-  Flavor:
-    description: Flavor of the kafka server
-    type: string
-  KeyName:
-    description: Name of an existing ssh keypair
-    type: string
-  pnda_private_network:
-    description: Private network for pnda deployment
-    type: string
-  pnda_private_subnet:
-    description: Private network for pnda deployment
-    type: string
-  pnda_ingest_network:
-    description: Private network for pnda deployment
-    type: string
-  pnda_ingest_subnet:
-    description: Private network for pnda deployment
-    type: string
-  pnda_security_group_pnda:
-    type: string
-  pnda_security_group_kafka_ingest:
-    type: string
-  Image:
-    type: string
-  name:
-    type: string
-  NodeIndex:
-    type: number
-  LogVolumeSize:
-    type: number
-  stack_name:
-    type: string
+  flavor:
+    type: "string"
+  keyName:
+    type: "string"
+  publicNetworkId:
+    type: "string"
+  publicSubnetId:
+    type: "string"
+  pndaSecurityGroupPnda:
+    type: "string"
+  imageId:
+    type: "string"
+  instanceName:
+    type: "string"
+  nodeIndex:
+    type: "number"
+  logVolumeSize:
+    type: "number"
+  stackName:
+    type: "string"
 
 resources:
-  kafka_port:
+  kafkaPort:
     type: OS::Neutron::Port
     properties:
-      network: { get_param: pnda_private_network }
+      network: { get_param: publicNetworkId }
       fixed_ips:
-        - subnet_id: { get_param: pnda_private_subnet }
-      security_groups: [{ get_param: pnda_security_group_pnda }]
+        - subnet_id: { get_param: publicSubnetId }
+      security_groups: [{ get_param: pndaSecurityGroupPnda }]
 
-  kafka_ingest_port:
-    type: OS::Neutron::Port
-    properties:
-      network: { get_param: pnda_ingest_network }
-      fixed_ips:
-        - subnet_id: { get_param: pnda_ingest_subnet }
-      security_groups: [{ get_param: pnda_security_group_kafka_ingest }]
-
-  logvolume:
+  logVolume:
     type: OS::Cinder::Volume
     properties:
-      size: { get_param: LogVolumeSize }
-      description: Volume for kafka logs
+      size: { get_param: logVolumeSize }
+      description: "Volume for kafka logs"
 
   logvolume_attachment:
     type: OS::Cinder::VolumeAttachment
-    depends_on: [ kafka_server ]
+    depends_on: [ kafkaServer ]
     properties:
-      volume_id: { get_resource: logvolume }
-      instance_uuid: { get_resource: kafka_server }
+      volume_id: { get_resource: logVolume }
+      instance_uuid: { get_resource: kafkaServer }
 
-  kafka_server:
+  kafkaServer:
     type: OS::Nova::Server
-    depends_on: [ kafka_port, kafka_ingest_port]
+    depends_on: [ kafkaPort]
     properties:
-      name: { get_param: name }
-      image: { get_param: Image }
-      flavor: { get_param: Flavor }
-      key_name: { get_param: KeyName }
+      name: { get_param: instanceName }
+      image: { get_param: imageId }
+      flavor: { get_param: flavor }
+      key_name: { get_param: keyName }
       metadata: {'node_type': 'kafka',
-                 'pnda_cluster': {get_param: stack_name},
-                 'node_idx': {get_param: NodeIndex},
-                 'Name': {get_param: name}}
+                 'pnda_cluster': {get_param: stackName},
+                 'node_idx': {get_param: nodeIndex},
+                 'Name': {get_param: instanceName}}
       networks:
-        - port: { get_resource: kafka_port }
-        - port: { get_resource: kafka_ingest_port }
+        - port: { get_resource: kafkaPort }
 
 outputs:
-  port_resource:
-    description: Heat resource handle for the Neutron port
+  portResource:
+    description: "Heat resource handle for the Neutron port"
     value:
-      { get_resource: kafka_port }
-  server_resource:
-    description: Heat resource handle for the Nova compute server
+      { get_resource: kafkaPort }
+  serverResource:
+    description: "Heat resource handle for the Nova compute server"
     value:
-      {get_resource: kafka_server}
-  hosts_entry:
+      {get_resource: kafkaServer}
+  hostsEntry:
     description: >
-      Server's IP address and hostname in the /etc/hosts format
+      "Server's IP address and hostname in the /etc/hosts format"
     value:
       str_replace:
         template: |
           PRIMARYIP PRIMARYHOST
         params:
-          PRIMARYIP: {get_attr: [kafka_server, first_address]}
-          PRIMARYHOST: {get_attr: [kafka_server, name]}
+          PRIMARYIP: {get_attr: [kafkaServer, first_address]}
+          PRIMARYHOST: {get_attr: [kafkaServer, name]}

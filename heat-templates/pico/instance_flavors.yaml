@@ -1,10 +1,10 @@
 # instance_flavors.yaml contains the default instance type for each
 # PNDA instance type
 parameter_defaults:
-  Manager1Flavor: ec2.m4.xlarge
-  EdgeFlavor: ec2.m4.2xlarge
-  KafkaFlavor: ec2.m4.large
-  DatanodeFlavor: ec2.c4.xlarge
-  BastionFlavor: ec2.t2.medium
-  DatanodeVolumeSize: 35
-  LogVolumeSize: 10
+  mgr1Flavor: ec2.m4.xlarge
+  edgeFlavor: ec2.m4.2xlarge
+  kafkaFlavor: ec2.m4.large
+  datanodeFlavor: ec2.c4.xlarge
+  gatewayFlavor: ec2.t2.medium
+  datanodeVolumeSize: 35
+  logVolumeSize: 10

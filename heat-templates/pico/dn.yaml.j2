@@ -2,97 +2,95 @@
 heat_template_version: 2015-04-30
 
 parameters:
-  Flavor:
-    description: Flavor of the datanode server
-    type: string
-  Image:
-    type: string
-  KeyName:
-    description: Name of an existing ssh keypair
-    type: string
-  name:
-    type: string
-  NodeIndex:
-    type: number
-  pnda_private_network:
-    description: Private network for pnda deployment
-    type: string
-  pnda_private_subnet:
-    description: Private network for pnda deployment
-    type: string
-  pnda_security_group_pnda:
-    type: string
-  DatanodeVolumeSize:
-    type: number
-  LogVolumeSize:
-    type: number
-  stack_name:
-    type: string
+  flavor:
+    type: "string"
+  imageId:
+    type: "string"
+  keyName:
+    type: "string"
+  instanceName:
+    type: "string"
+  nodeIndex:
+    type: "number"
+  publicNetworkId:
+    type: "string"
+  publicSubnetId:
+    type: "string"
+  pndaSecurityGroupPnda:
+    type: "string"
+  datanodeVolumeSize:
+    type: "number"
+  logVolumeSize:
+    type: "number"
+  stackName:
+    type: "string"
 
 resources:
-  dn_port:
+  dnPort:
     type: OS::Neutron::Port
     properties:
-      network: { get_param: pnda_private_network }
+      network: { get_param: publicNetworkId }
       fixed_ips:
-        - subnet_id: { get_param: pnda_private_subnet }
-      security_groups: [{ get_param: pnda_security_group_pnda }]
+        - subnet_id: { get_param: publicSubnetId }
+      security_groups: [{ get_param: pndaSecurityGroupPnda }]
 
-  dn_server:
+  dnServer:
     type: OS::Nova::Server
-    depends_on: [ dn_port ]
+    depends_on: [ dnPort ]
     properties:
-      name: { get_param: name }
-      image: { get_param: Image }
-      flavor: { get_param: Flavor }
-      key_name: { get_param: KeyName }
+      name: { get_param: instanceName }
+      image: { get_param: imageId }
+      flavor: { get_param: flavor }
+      key_name: { get_param: keyName }
       metadata: {'node_type': 'hadoop-dn',
-                 'pnda_cluster': {get_param: stack_name},
-                 'node_idx': {get_param: NodeIndex},
-                 'Name': {get_param: name}}
+                 'pnda_cluster': {get_param: stackName},
+                 'node_idx': {get_param: nodeIndex},
+                 'Name': {get_param: instanceName}}
       networks:
-        - port: { get_resource: dn_port }
+        - port: { get_resource: dnPort }
 
-  pnda_volume_data:
+  pndaVolumeData:
     type: OS::Cinder::Volume
     properties:
-      size: { get_param: DatanodeVolumeSize }
-      description: Volume for datanode
-  pnda_volume_attachment_data:
-    type: OS::Cinder::VolumeAttachment
-    depends_on: pnda_volume_attachment_log_data
-    properties:
-      volume_id: { get_resource: pnda_volume_data }
-      instance_uuid: { get_resource: dn_server }
+      size: { get_param: datanodeVolumeSize }
+      description: "Volume for datanode"
 
-  pnda_volume_log_data:
+  pndaVolumeAttachmentData:
+    type: OS::Cinder::VolumeAttachment
+    depends_on: pndaVolumeAttachmentLogData
+    properties:
+      volume_id: { get_resource: pndaVolumeData }
+      instance_uuid: { get_resource: dnServer }
+
+  pndaVolumeLogData:
     type: OS::Cinder::Volume
     properties:
-      size: { get_param: LogVolumeSize }
-      description: Volume for datanode logs
-  pnda_volume_attachment_log_data:
-    depends_on: dn_server
+      size: { get_param: logVolumeSize }
+      description: "Volume for datanode logs"
+
+  pndaVolumeAttachmentLogData:
+    depends_on: dnServer
     type: OS::Cinder::VolumeAttachment
     properties:
-      volume_id: { get_resource: pnda_volume_log_data }
-      instance_uuid: { get_resource: dn_server }
+      volume_id: { get_resource: pndaVolumeLogData }
+      instance_uuid: { get_resource: dnServer }
 
 outputs:
-  port_resource:
-    description: Heat resource handle for the Neutron port
+  portResource:
+    description: "Heat resource handle for the Neutron port"
     value:
-      { get_resource: dn_port }
-  server_resource:
-    description: Heat resource handle for the Nova compute server
+      { get_resource: dnPort }
+  serverResource:
+    description: "Heat resource handle for the Nova compute server"
     value:
-      {get_resource: dn_server}
-  hosts_entry:
+      {get_resource: dnServer}
+  hostsEntry:
     description: >
-      Server's IP address and hostname in the /etc/hosts format
+      "Server's IP address and hostname in the /etc/hosts format"
     value:
       str_replace:
         template: |
           PRIMARYIP PRIMARYHOST
         params:
-          PRIMARYIP: {get_attr: [dn_server, first_address]}
-          PRIMARYHOST: {get_attr: [dn_server, name]}
+          PRIMARYIP: {get_attr: [dnServer, first_address]}
+          PRIMARYHOST: {get_attr: [dnServer, name]}

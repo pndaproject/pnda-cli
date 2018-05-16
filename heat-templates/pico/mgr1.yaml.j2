@@ -2,68 +2,64 @@
 heat_template_version: 2015-04-30
 
 parameters:
-  Flavor:
-    description: Flavor of the manager1 server
-    type: string
-  KeyName:
-    description: Name of an existing ssh keypair
-    type: string
-  pnda_private_network:
-    description: Private network for pnda deployment
-    type: string
-  pnda_private_subnet:
-    description: Private network for pnda deployment
-    type: string
-  pnda_security_group_pnda:
-    type: string
-  Image:
-    type: string
-  name:
-    type: string
-  LogVolumeSize:
-    type: number
-  stack_name:
-    type: string
+  flavor:
+    type: "string"
+  keyName:
+    type: "string"
+  publicNetworkId:
+    type: "string"
+  publicSubnetId:
+    type: "string"
+  pndaSecurityGroupPnda:
+    type: "string"
+  imageId:
+    type: "string"
+  instanceName:
+    type: "string"
+  logVolumeSize:
+    type: "number"
+  stackName:
+    type: "string"
 
 resources:
-  mgr1_port:
+  mgr1Port:
     type: OS::Neutron::Port
     properties:
-      network: { get_param: pnda_private_network }
+      network: { get_param: publicNetworkId }
       fixed_ips:
-        - subnet_id: { get_param: pnda_private_subnet }
-      security_groups: [{ get_param: pnda_security_group_pnda }]
+        - subnet_id: { get_param: publicSubnetId }
+      security_groups: [{ get_param: pndaSecurityGroupPnda }]
 
-  logvolume:
+  logVolume:
     type: OS::Cinder::Volume
     properties:
-      size: { get_param: LogVolumeSize }
-      description: Volume for manager1 logs
+      size: { get_param: logVolumeSize }
+      description: "Volume for manager1 logs"
 
   logvolume_attachment:
     type: OS::Cinder::VolumeAttachment
-    depends_on: [ mgr1_server ]
+    depends_on: [ mgr1Server ]
     properties:
-      volume_id: { get_resource: logvolume }
-      instance_uuid: { get_resource: mgr1_server }
+      volume_id: { get_resource: logVolume }
+      instance_uuid: { get_resource: mgr1Server }
 
-  mgr1_server:
+  mgr1Server:
     type: OS::Nova::Server
-    depends_on: [ mgr1_port ]
+    depends_on: [ mgr1Port ]
     properties:
-      name: { get_param: name }
-      image: { get_param: Image }
-      flavor: { get_param: Flavor}
-      key_name: { get_param: KeyName }
+      name: { get_param: instanceName }
+      image: { get_param: imageId }
+      flavor: { get_param: flavor}
+      key_name: { get_param: keyName }
       metadata: {'node_type': 'hadoop-mgr',
-                 'pnda_cluster': {get_param: stack_name},
+                 'pnda_cluster': {get_param: stackName},
                  'node_idx':'',
-                 'Name': {get_param: name}}
+                 'Name': {get_param: instanceName}}
       networks:
-        - port: { get_resource: mgr1_port }
+        - port: { get_resource: mgr1Port }
 
 outputs:
-  server_resource:
-    description: Heat resource handle for the Nova compute server
+  serverResource:
+    description: "Heat resource handle for the Nova compute server"
     value:
-      {get_resource: mgr1_server}
+      {get_resource: mgr1Server}
