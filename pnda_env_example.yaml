@@ -187,7 +187,7 @@ security:
   # - 'disabled': The security material will be ignored.  
   # - 'permissive': The security material will be used if present.
   # - 'enforced': The security material will be required to be present and conforment to the associated requirements.
-  SECURITY_MODE: 'permissive'
+  SECURITY_MODE: 'enforced'
 
   # The path were to find the security material (certificate/key).
   # The directory should be structured as defined in this' repo's directory structure with the same name.
@@ -199,6 +199,13 @@ features:
   # Include experimental features. 
   # Set to "NO", omit setting or omit features section entirely to turn off experimental features
   EXPERIMENTAL_FEATURES: "NO"
+
+domain:
+  # Top-level domain
+  TLD: pnda.local
+
+  # Second-level domain
+  SLD: dc1
 
 dataset_compaction:
   # Enable/Disable compaction on datasets.
