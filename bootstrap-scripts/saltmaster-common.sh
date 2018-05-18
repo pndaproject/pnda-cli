@@ -84,7 +84,7 @@ if [ "x$SECURITY_CERTS_TARBALL" != "x" ]; then
     cert_file="/srv/salt/platform-salt/pillar/certs.sls"
     if [ -e cert_file ]; then rm cert_file; fi
     for i in `find /srv/security-certs/ -maxdepth 1 -mindepth 1 -type d -exec basename {} \;`; do
-      for j in `find /srv/security-certs/$i -maxdepth 1 -mindepth 1 -type f -name '*.pem'`; do
+      for j in `find /srv/security-certs/$i -maxdepth 1 -mindepth 1 -type f -name '*.crt'`; do
         echo -e "$i:\n  cert: |" >> $cert_file
         sed  's/^/    /' $j >> $cert_file
         break
@@ -99,7 +99,11 @@ if [ "x$SECURITY_CERTS_TARBALL" != "x" ]; then
         break;
       done;
     done;
-    #salt '*' saltutil.refresh_pillar
+    for i in `find /srv/security-certs/ -maxdepth 1 -mindepth 1 -type f -name '*.crt'`; do
+        echo -e "CA:\n  cert: |" >> $cert_file
+        sed  's/^/    /' $i >> $cert_file
+        break
+    done;
   fi
 fi
 
@@ -150,6 +154,11 @@ mine_functions:
 
 security:
   security: $SECURITY_MODE
+
+consul:
+  domain: $TOP_LEVEL_DOMAIN
+  data_center: $SECOND_LEVEL_DOMAIN
+
 EOF
 
 if [ "x$NTP_SERVERS" != "x" ] ; then
