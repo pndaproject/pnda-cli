@@ -1,7 +1,7 @@
 # Creating PNDA on an existing server cluster
 
 ## What does this mean
-PNDA can be installed using the PNDA CLI onto pre-existing machines. In this mode the Cloud Formation parts of the pnda-cli are disabled and it runs only the bootstrap and saltstack stages of PNDA creation.
+PNDA can be installed using the PNDA CLI onto pre-existing machines. In this mode the Cloud Formation and Openstack parts of the pnda-cli are disabled and it runs only the bootstrap and saltstack stages of PNDA creation.
 
 The bootstrap stage involves running [shell scripts](../bootstrap-scripts) on each machine to install a saltstack cluster with each minion having the correct set of salt roles.
 
