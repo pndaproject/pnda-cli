@@ -106,11 +106,11 @@ fi
 # Push pillar config into platform-salt for environment specific config
 cat << EOF >> /srv/salt/platform-salt/pillar/env_parameters.sls
 os_user: $OS_USER
-keystone.user: ''
-keystone.password: ''
-keystone.tenant: ''
-keystone.auth_url: ''
-keystone.region_name: ''
+keystone.user: '$KEYSTONE_USER'
+keystone.password: '$KEYSTONE_PASSWORD'
+keystone.tenant: '$KEYSTONE_TENANT'
+keystone.auth_url: '$KEYSTONE_AUTH_URL'
+keystone.region_name: '$KEYSTONE_REGION_NAME'
 aws.apps_region: '$PNDA_APPS_REGION'
 aws.apps_key: '$PNDA_APPS_ACCESS_KEY_ID'
 aws.apps_secret: '$PNDA_APPS_SECRET_ACCESS_KEY'
