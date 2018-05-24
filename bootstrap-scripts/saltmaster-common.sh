@@ -104,7 +104,6 @@ if [ "x$SECURITY_CERTS_TARBALL" != "x" ]; then
         sed  's/^/    /' $i >> $cert_file
         break
     done;
-    #salt '*' saltutil.refresh_pillar
   fi
 fi
 
@@ -157,8 +156,8 @@ security:
   security: $SECURITY_MODE
 
 consul:
-  domain: $TLD
-  data_center: $SLD
+  domain: $TOP_LEVEL_DOMAIN
+  data_center: $SECOND_LEVEL_DOMAIN
 
 EOF
 

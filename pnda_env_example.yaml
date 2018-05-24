@@ -202,10 +202,10 @@ features:
 
 domain:
   # Top-level domain
-  TLD: pnda.local
+  TOP_LEVEL_DOMAIN: pnda.local
 
   # Second-level domain
-  SLD: dc1
+  SECOND_LEVEL_DOMAIN: dc1
 
 dataset_compaction:
   # Enable/Disable compaction on datasets.

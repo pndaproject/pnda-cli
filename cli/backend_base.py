@@ -30,8 +30,8 @@ import glob
 
 from threading import Thread
 
-import requests
 import yaml
+import requests
 import pnda_cli_utils as utils
 from pnda_cli_utils import PNDAConfigException
 from pnda_cli_utils import MILLI_TIME
@@ -202,9 +202,10 @@ class BaseBackend(object):
                 self._ensure_certs()
             with tarfile.open(platform_certs_tarball, mode='w:gz') as archive:
                 # Exclude CA's private key
-                keys = glob.glob(os.path.join(local_certs_path,'*.key'))
+                keys = glob.glob(os.path.join(local_certs_path, '*.key'))
                 if len(keys) == 1:
-                    filter_function = lambda tarinfo: None if os.path.normpath(tarinfo.name) == os.path.normpath(os.path.join('security-certs',os.path.basename(keys[0]))) else tarinfo
+                    skip = os.path.normpath(os.path.join('security-certs', os.path.basename(keys[0])))
+                    filter_function = lambda tarinfo: None if os.path.normpath(tarinfo.name) == skip else tarinfo
                 else:
                     filter_function = None
 
@@ -226,8 +227,8 @@ class BaseBackend(object):
         subprocess_to_log.call(cmd.split(' '), LOG)
 
     def _ensure_certs(self):
-        local_certs_path = self._pnda_env['security']['SECURITY_MATERIAL_PATH'] 
-        exts = [ 'key', 'crt' ]
+        local_certs_path = self._pnda_env['security']['SECURITY_MATERIAL_PATH']
+        exts = ['key', 'crt']
         if self._has_certs(local_certs_path, exts):
             if self._has_all_certs(local_certs_path, exts):
                 # Proceed with the provided security material
@@ -241,49 +242,55 @@ class BaseBackend(object):
             self._generate_host_certs(local_certs_path, cakey, cacert)
 
     def _ensure_ca_cert(self, local_certs_path):
-        keys = glob.glob(os.path.join(local_certs_path,'*.key'))
-        certs = glob.glob(os.path.join(local_certs_path,'*.crt'))
+        keys = glob.glob(os.path.join(local_certs_path, '*.key'))
+        certs = glob.glob(os.path.join(local_certs_path, '*.crt'))
         if len(keys) == 1 and len(certs) == 1:
             return (keys[0], certs[0])
-        if os.path.isfile(cert):
-            raise Exception("Security material is missing: %s" % key)
+        if certs and not keys:
+            raise Exception("Security material is missing a key in %s" % local_certs_path)
         keyout = os.path.join(local_certs_path, PNDAPROJECTCA+'.key')
         out = os.path.join(local_certs_path, PNDAPROJECTCA+'.crt')
-        config = file_name = os.path.join(path, PNDAPROJECTCA+'.cfg')
+        config = os.path.join(local_certs_path, PNDAPROJECTCA+'.cfg')
         self._generate_ca_conf(config)
-        self._call('openssl req -new -x509 -extensions v3_ca -keyout {} -out {} -days 3650 -newkey rsa:2048 -sha512 -passout pass:pnda -config {}'.format(keyout, out, config))
+        self._call('openssl req -new -x509 -extensions v3_ca -keyout {} -out {} \
+-days 3650 -newkey rsa:2048 -sha512 -passout pass:pnda -config {}'.format(keyout, out, config))
         return (keyout, out)
 
     def _generate_host_certs(self, local_certs_path, cakey, cacert):
-        services = [service for service in os.listdir('./platform-certificates') if os.path.isdir(os.path.join('./platform-certificates',service))]
+        services = [service for service in os.listdir('./platform-certificates') if os.path.isdir(os.path.join('./platform-certificates', service))]
         for service in services:
-            sdir = os.path.join(local_certs_path,service)
+            sdir = os.path.join(local_certs_path, service)
             if not os.path.isdir(sdir):
                 os.makedirs(sdir)
-            fqdn = self._get_FQDN_for_service(service)
-            key_f = os.path.join(sdir,fqdn)
+            fqdn = self._get_fqdn_for_service(service)
+            key_f = os.path.join(sdir, fqdn)
             self._generate_host_conf(key_f+'.cfg', fqdn)
             self._generate_host_ext_conf(key_f+'.ext', fqdn)
             self._call('openssl genrsa -out {key_f}.key 2048'.format(key_f=key_f))
             self._call('openssl req -new -key {key_f}.key -out {key_f}.csr -config {key_f}.cfg'.format(key_f=key_f))
-            self._call('openssl x509 -req -days 365 -in {key_f}.csr -extfile {key_f}.ext -CA {cacert} -CAkey {cakey} -set_serial 01 -out {key_f}.crt -sha512 -passin pass:pnda'.format(key_f=key_f, cacert=cacert, cakey=cakey))
+            self._call('openssl x509 -req -days 365 -in {key_f}.csr -extfile {key_f}.ext -CA {cacert} -CAkey {cakey} \
+-set_serial 01 -out {key_f}.crt -sha512 -passin pass:pnda'.format(key_f=key_f, cacert=cacert, cakey=cakey))
 
     def _get_role_for_service(self, service):
+        role = None
         service_to_role_descriptor = self._get_service_to_role_descriptor()
         if service in service_to_role_descriptor:
-            return service_to_role_descriptor[service]['role']
-        return None;
+            role = service_to_role_descriptor[service]['role']
+        return role
 
-    def _get_FQDN_for_service(self, service):
-        domain = self._pnda_env['domain']['SLD'] + '.' + self._pnda_env['domain']['TLD']
+    def _get_fqdn_for_service(self, service):
+        fqdn = None
+        domain = self._pnda_env['domain']['SECOND_LEVEL_DOMAIN'] + '.' + self._pnda_env['domain']['TOP_LEVEL_DOMAIN']
         role = self._get_role_for_service(service)
-        if not role == None:
-            return service + '.service.' + domain
+        if not role is None:
+            fqdn = service + '.service.' + domain
         # FIXME: all services should be registered in the long run. Remove the following line when done.
-        return self._cluster + '-gateway' + '.node.' + domain
-  
+        else:
+            fqdn = self._cluster + '-gateway' + '.node.' + domain
+        return fqdn
+
     def _generate_ca_conf(self, path):
-        with open(file_name , 'w') as config_file:
+        with open(path, 'w') as config_file:
             config_file.write('''
 [req]
 default_bits=2048
@@ -315,9 +322,9 @@ OU=Community
 emailAddress=info@pndaproject.io
 ''')
             config_file.write('CN=%s\n' % fqdn)
-    
+
     def _generate_host_ext_conf(self, path, fqdn):
-         with open(path, 'w') as config_file:
+        with open(path, 'w') as config_file:
             config_file.write('''
 authorityKeyIdentifier=keyid,issuer
 basicConstraints = CA:FALSE
@@ -329,22 +336,22 @@ subjectAltName = @alt_names
 
     def _has_all_certs(self, local_certs_path, exts):
         ret = True
-        roles = [role for role in os.listdir('./platform-certificates') if os.path.isdir(os.path.join('./platform-certificates',role))]
+        roles = [role for role in os.listdir('./platform-certificates') if os.path.isdir(os.path.join('./platform-certificates', role))]
         for role in roles:
             for ext in exts:
-                file_name = os.path.join(local_certs_path,role,'*.'+ext)
+                file_name = os.path.join(local_certs_path, role, '*.'+ext)
                 files = glob.glob(file_name)
-                if len( files ) == 0:
-                    print ("Missing " + file_name)
+                if not files:
+                    CONSOLE.debug('Missing %s', file_name)
                     ret = False
         return ret
 
     def _has_certs(self, local_certs_path, exts):
-        # Ensure each directoru has a private key and public cert
+        # Ensure each directory has a private key and public cert
         for ext in exts:
-          if len(glob.glob(os.path.join(local_certs_path,'*','*.'+ext))) > 0:
-            return True
-        return False
+            if not glob.glob(os.path.join(local_certs_path, '*', '*.'+ext)):
+                return False
+        return True
 
     def _get_volume_info(self, node_type, config_file):
         volumes = None
