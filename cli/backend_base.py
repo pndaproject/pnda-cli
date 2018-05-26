@@ -228,7 +228,7 @@ class BaseBackend(object):
 
     def _ensure_certs(self):
         local_certs_path = self._pnda_env['security']['SECURITY_MATERIAL_PATH']
-        exts = ['key', 'crt']
+        exts = ['key', 'crt', 'yaml']
         if self._has_certs(local_certs_path, exts):
             if self._has_all_certs(local_certs_path, exts):
                 # Proceed with the provided security material
@@ -262,7 +262,16 @@ class BaseBackend(object):
             sdir = os.path.join(local_certs_path, service)
             if not os.path.isdir(sdir):
                 os.makedirs(sdir)
-            fqdn = self._get_fqdn_for_service(service)
+            ymls = glob.glob(os.path.join(local_certs_path, '*.yaml'))
+            fqdn = None
+            if ymls:
+                if 'fqdn' in ymls.keys():
+                    fqdn = self._load_host_yaml(ymls[0])['fqdn']
+                else:
+                    raise Exception("Missing 'fqdn' setting in %s" % ymls[0])
+            else:
+                fqdn = self._get_fqdn_for_service(service)
+                self._generate_host_yaml(os.path.join(local_certs_path, fqdn, '.yaml'), fqdn)
             key_f = os.path.join(sdir, fqdn)
             self._generate_host_conf(key_f+'.cfg', fqdn)
             self._generate_host_ext_conf(key_f+'.ext', fqdn)
@@ -308,6 +317,17 @@ basicConstraints=critical,CA:true
 keyUsage=cRLSign,keyCertSign
 ''')
 
+    def _generate_host_yaml(self, path, fqdn):
+        with open(path, 'w') as config_file:
+            data = dict(
+                fqdn=fqdn
+                )
+            yaml.dump(data, config_file, default_flow_style=False)
+
+    def _load_host_yaml(self, path):
+        with open(path, 'r') as config_file:
+            return yaml.load(config_file)
+
     def _generate_host_conf(self, path, fqdn):
         with open(path, 'w') as config_file:
             config_file.write('''
@@ -333,6 +353,7 @@ subjectAltName = @alt_names
 [ alt_names ]
 ''')
             config_file.write('DNS.1 = %s\n' % fqdn)
+
 
     def _has_all_certs(self, local_certs_path, exts):
         ret = True
