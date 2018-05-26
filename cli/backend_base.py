@@ -230,6 +230,7 @@ class BaseBackend(object):
         local_certs_path = self._pnda_env['security']['SECURITY_MATERIAL_PATH']
         exts = ['key', 'crt']
         if self._has_certs(local_certs_path, exts):
+            exts = ['key', 'crt', 'yaml']
             if self._has_all_certs(local_certs_path, exts):
                 # Proceed with the provided security material
                 return
@@ -262,7 +263,18 @@ class BaseBackend(object):
             sdir = os.path.join(local_certs_path, service)
             if not os.path.isdir(sdir):
                 os.makedirs(sdir)
-            fqdn = self._get_fqdn_for_service(service)
+            ymls = glob.glob(os.path.join(sdir, '*.yaml'))
+            fqdn = None
+            if ymls:
+                cfgs = self._load_host_yaml(ymls[0])
+                if 'fqdn' in cfgs.keys():
+                    fqdn = cfgs['fqdn']
+                    CONSOLE.debug('Using detected fqdn:%s', fqdn)
+                else:
+                    raise Exception("Missing 'fqdn' setting in %s" % ymls[0])
+            else:
+                fqdn = self._get_fqdn_for_service(service)
+                self._generate_host_yaml(os.path.join(sdir, fqdn+'.yaml'), fqdn)
             key_f = os.path.join(sdir, fqdn)
             self._generate_host_conf(key_f+'.cfg', fqdn)
             self._generate_host_ext_conf(key_f+'.ext', fqdn)
@@ -308,6 +320,17 @@ basicConstraints=critical,CA:true
 keyUsage=cRLSign,keyCertSign
 ''')
 
+    def _generate_host_yaml(self, path, fqdn):
+        with open(path, 'w') as config_file:
+            data = dict(
+                fqdn=fqdn
+                )
+            yaml.dump(data, config_file, default_flow_style=False)
+
+    def _load_host_yaml(self, path):
+        with open(path, 'r') as config_file:
+            return yaml.load(config_file)
+
     def _generate_host_conf(self, path, fqdn):
         with open(path, 'w') as config_file:
             config_file.write('''
@@ -334,6 +357,7 @@ subjectAltName = @alt_names
 ''')
             config_file.write('DNS.1 = %s\n' % fqdn)
 
+
     def _has_all_certs(self, local_certs_path, exts):
         ret = True
         roles = [role for role in os.listdir('./platform-certificates') if os.path.isdir(os.path.join('./platform-certificates', role))]
@@ -347,11 +371,13 @@ subjectAltName = @alt_names
         return ret
 
     def _has_certs(self, local_certs_path, exts):
-        # Ensure each directory has a private key and public cert
         for ext in exts:
-            if not glob.glob(os.path.join(local_certs_path, '*', '*.'+ext)):
-                return False
-        return True
+            files = glob.glob(os.path.join(local_certs_path, '*', '*.'+ext))
+            if files:
+                CONSOLE.debug('Security material was detected: %s', files[0])
+                return True
+        CONSOLE.debug('No security material was detected')
+        return False
 
     def _get_volume_info(self, node_type, config_file):
         volumes = None
