@@ -84,8 +84,13 @@ if [ "x$SECURITY_CERTS_TARBALL" != "x" ]; then
     cert_file="/srv/salt/platform-salt/pillar/certs.sls"
     if [ -e cert_file ]; then rm cert_file; fi
     for i in `find /srv/security-certs/ -maxdepth 1 -mindepth 1 -type d -exec basename {} \;`; do
+      for j in `find /srv/security-certs/$i -maxdepth 1 -mindepth 1 -type f -name '*.yaml'`; do
+        echo -e "$i:" >> $cert_file
+        sed  's/^/  /' $j >> $cert_file
+        break
+      done;
       for j in `find /srv/security-certs/$i -maxdepth 1 -mindepth 1 -type f -name '*.crt'`; do
-        echo -e "$i:\n  cert: |" >> $cert_file
+        echo -e "  cert: |" >> $cert_file
         sed  's/^/    /' $j >> $cert_file
         break
       done;
