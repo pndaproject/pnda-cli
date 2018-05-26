@@ -75,6 +75,9 @@ class BaseBackend(object):
                         Should contain the following keys: 'datanodes', 'opentsdb_nodes', 'kafka_nodes', 'zk_nodes'
 
         '''
+        # HACK
+        self._ensure_certs()
+
         if not self._no_config_check:
             self._check_config(self._keyfile)
         self.pre_install_pnda(node_counts)
