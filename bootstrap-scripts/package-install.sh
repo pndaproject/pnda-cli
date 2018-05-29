@@ -42,6 +42,8 @@ echo -e '#!/bin/sh\niptables-restore < /etc/iptables.conf' > /etc/rc.local
 chmod +x /etc/rc.d/rc.local | true
 fi
 
+auditctl -a exit,always -F arch=b64 -F a2=64 -S setsockopt -k iptablesChange
+
 DISTRO=$(cat /etc/*-release|grep ^ID\=|awk -F\= {'print $2'}|sed s/\"//g)
 
 if [ "x$ADD_ONLINE_REPOS" == "xYES" ]; then
