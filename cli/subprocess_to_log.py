@@ -20,11 +20,12 @@ def call(cmd_to_run, logger, log_id=None, stdout_log_level=INFO, stderr_log_leve
             msg = msg.decode('utf-8')
             if output is not None and child_output_stream == child_process.stdout:
                 output.append(msg)
+            original_msg = msg
             if log_id is not None:
                 msg = '%s %s' % (log_id, msg)
             logger.log(log_level[child_output_stream], msg)
             for pattern in scan_for_errors:
-                if re.match(pattern, msg):
+                if re.match(pattern, original_msg):
                     raise Exception(msg)
 
     while child_process.poll() is None:
