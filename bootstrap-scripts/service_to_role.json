@@ -1,7 +1,6 @@
 {
     "hadoop-manager": {"role": "hadoop_manager", "port": "8080"},
     "console-frontend": {"role": "console_frontend", "port": "80"},
-    "deployment-manager": {"role": "knox", "port": "8843"},
     "deployment-manager-internal": {"role": "deployment_manager", "port": "5000"},
     "package-repository": {"role": "package_repository", "port": "8888"},
     "data-service": {"role": "data_service", "port": "7000"},
@@ -9,5 +8,6 @@
     "kafka": {"role": "kafka", "port": "9092"},
     "kafka-manager": {"role": "kafka_manager", "port": "10900"},
     "logserver": {"role": "logserver", "port": "5601"},
-    "opentsdb": {"role": "opentsdb", "port": "4242"}
+    "opentsdb": {"role": "opentsdb", "port": "4242"},
+    "knox": {"role": "knox", "port": "8443"}
 }
