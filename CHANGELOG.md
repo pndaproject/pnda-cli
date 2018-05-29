@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4450: Set name tags for CFN resources
 - PNDA-4398: Support Spark 2 for Oozie jobs
 - PNDA-4131: Heat backend to provision PNDA on OpenStack via pnda-cli
+- PNDA-4588: Enable TLS on Knox if certificate is supplied
 
 ### Changed
 - PNDA-4394: Remove Anaconda CDH parcel mirror as this is now installed from a bundle
@@ -23,6 +24,9 @@ All notable changes to this project will be documented in this file.
 - PNDA-4558: Modify topology to use gateway instead of bastion
 - PNDA-4603: Don't indiscriminately assign every node in the cluster a public address
 - PNDA-4559: Services ending in -internal will use internal IP addresses
+- PNDA-4588: Add pnda-env.yaml settings for consul domains so they can be used to build the TLS certificates
+- PNDA-4588: Default SECURITY_MODE to enforced to generate TLS certificates if not supplied by the user
+
 
 ### Fixed
 - PNDA-4415: Update PyYAML and requests
