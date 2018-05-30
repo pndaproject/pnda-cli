@@ -37,6 +37,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4441: Removed "extra-index-url" and "find_links" directives from pip and easy_install configurations
 - PNDA-4624: Fix expand operation
 - PNDA-4658: Fix cmd2 at version compatible with python2
+- PNDA-4444: Detect "Failures:" in salt output to fail fast on error
 
 ## [1.1.0] 2018-02-10
 ### Added
