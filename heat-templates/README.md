@@ -19,11 +19,11 @@ Please refer [PNDA Guide on Openstack](https://github.com/pndaproject/pnda-guide
 
 3. Edit pnda_env.yaml and set `infrastructure.INFRASTRUCTURE_TYPE: openstack`.
 
-4. Edit pnda_env.yaml with a CentOS or Redhat Enterprise Linux 7 image ID (`openstack_parameters.IMAGE_ID`). This image should be available through OpenStack Image Service. If using a CentOS image set `infrastructure.OS_USER` to "centos"; for a Redhat image set `infrastructure.OS_USER` to "cloud-user".
+4. Edit pnda_env.yaml with a CentOS or Redhat Enterprise Linux 7 image ID (`openstack_parameters.imageId`). This image should be available through OpenStack Image Service. If using a CentOS image set `infrastructure.OS_USER` to "centos"; for a Redhat image set `infrastructure.OS_USER` to "cloud-user".
 
 5. Edit pnda_env.yaml with Openstack credentials under section `openstack_parameters` .
 
-6. Edit pnda_env.yaml and set `openstack_parameters.PUBLIC_NETWORK_ID` with ID of network which provides FloatingIP.
+6. Edit pnda_env.yaml and set `openstack_parameters.externalPublicNetworkId` with ID of network which provides FloatingIP.
 
 7. Edit pnda_env.yaml with a version of platform-salt to use. Platform-salt installs PNDA software on the cloud instances created by the PNDA CLI. There are two main options:
    - A local copy of platform-salt can be used by setting (`platform_salt.PLATFORM_SALT_LOCAL`) to the path to the platform-salt folder on the local machine running pnda-cli.py.
