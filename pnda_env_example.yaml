@@ -60,19 +60,19 @@ openstack_parameters:
   # under the Access & Security section.
   KEYSTONE_REGION_NAME: RegionOne
 
-  # IMAGE_ID: Base image to use for the created instances. It should be created by
+  # imageId: Base image to use for the created instances. It should be created by
   # following the guide in https://github.com/pndaproject/pnda-dib-elements
   #
-  IMAGE_ID: 858abfc7-799e-44fe-8681-1cc38d36fde9
+  imageId: 858abfc7-799e-44fe-8681-1cc38d36fde9
 
   # CIDR specifying the address range that may access the created PNDA instances
   whitelistSshAccess: 0.0.0.0/0
 
   # UUID of the public network in openstack to use
-  PUBLIC_NETWORK_ID: 5982b761-802a-4af3-9c0b-c3b457559179
+  externalPublicNetworkId: 5982b761-802a-4af3-9c0b-c3b457559179
 
-  #name_servers: DNS server(s) to use, this should be provided in the environment
-  dns_nameservers: '8.8.8.8'
+  #nameServers: DNS server(s) to use, this should be provided in the environment
+  nameServers: '8.8.8.8'
 
   # CIDR specifying the address range for the public subnet (bastion access)
   publicSubnetCidr: 10.0.0.0/24
