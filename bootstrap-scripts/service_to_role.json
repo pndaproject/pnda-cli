@@ -2,7 +2,6 @@
     "hadoop-manager": {"role": "hadoop_manager", "port": "8080"},
     "console-frontend": {"role": "console_frontend", "port": "80"},
     "deployment-manager-internal": {"role": "deployment_manager", "port": "5000"},
-    "package-repository": {"role": "package_repository", "port": "8888"},
     "data-service": {"role": "data_service", "port": "7000"},
     "jupyter": {"role": "jupyter", "port": "8000"},
     "kafka": {"role": "kafka", "port": "9092"},
