@@ -225,7 +225,9 @@ class BaseBackend(object):
         return platform_certs_tarball
 
     def _call(self, cmd):
-        subprocess_to_log.call(cmd.split(' '), LOG)
+        ret_val = subprocess_to_log.call(cmd.split(' '), LOG)
+        if ret_val != 0:
+            raise Exception("Error running %s" % cmd)
 
     def _ensure_certs(self):
         local_certs_path = self._pnda_env['security']['SECURITY_MATERIAL_PATH']
