@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4398: Support Spark 2 for Oozie jobs
 - PNDA-4131: Heat backend to provision PNDA on OpenStack via pnda-cli
 - PNDA-4588: Enable TLS on Knox if certificate is supplied
+- PNDA-4075: Add settings in pnda-env.yaml to control the number and names of disks used for hadoop datanodes
 
 ### Changed
 - PNDA-4394: Remove Anaconda CDH parcel mirror as this is now installed from a bundle
