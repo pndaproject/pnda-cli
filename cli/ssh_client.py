@@ -101,6 +101,7 @@ fi\n''')
         cmd = "scp -F cli/ssh_config-%s %s %s:%s" % (self._cluster, ' '.join(files), host, '/tmp')
         CONSOLE.debug(cmd)
         ret_val = subprocess_to_log.call(cmd.split(' '), LOG, log_id=host)
+        CONSOLE.debug("scp result: %s", ret_val)
         if ret_val != 0:
             raise Exception("Error transferring files to new host %s via SCP. See debug log (%s) for details." % (host, LOG_FILE_NAME))
 
@@ -113,6 +114,7 @@ fi\n''')
         ret_val = subprocess_to_log.call(parts, LOG, log_id=host, output=output, scan_for_errors=[r'lost connection',
                                                                                                   r'\s*Failed:\s*[1-9].*',
                                                                                                   r'\s*Failures:'])
+        CONSOLE.debug("ssh result: %s", ret_val)
         if ret_val != 0:
             raise Exception("Error running ssh commands on host %s. See debug log (%s) for details." % (host, LOG_FILE_NAME))
 
