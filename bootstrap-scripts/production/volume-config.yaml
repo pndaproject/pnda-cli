@@ -1,36 +1,19 @@
 classes:
   datanode:
     volumes:
-      - /data00 xfs
-      - /data01 xfs
-      - /data02 xfs
-      - /data03 xfs
-      - /data04 xfs
-      - /data05 xfs
-      - /data06 xfs
-      - /data07 xfs
-      - /data08 xfs
-      - /data09 xfs
-      - /data10 xfs
-      - /data11 xfs
-      - /data12 xfs
-      - /data13 xfs
-      - /data14 xfs
-      - /data15 xfs
-      - /data16 xfs
-      - /data17 xfs
-      - /data18 xfs
-      - /data19 xfs
-      - /data20 xfs
-      - /data21 xfs
-      - /data22 xfs
-      - /data23 xfs
-      - /dev/xvdb2 /mnt xfs
-      - /dev/xvdb1 /var/log/pnda xfs
+{%- for n in range(pnda_env['datanode']['DATA_VOLUME_COUNT']) %}
+    {%- if pnda_env['datanode']['DATA_VOLUME_COUNT'] > 10 and n < 10 %}
+      - /data0{{ n }} xfs
+    {%- else %}
+      - /data{{ n }} xfs
+    {%- endif %}
+{%- endfor %}
+      - /dev/{{ pnda_env['datanode']['DEVICE_ROOT'] }}2 /mnt xfs
+      - /dev/{{ pnda_env['datanode']['DEVICE_ROOT'] }}1 /var/log/pnda xfs
       - tmpfs /tmp tmpfs nodev,nosuid
     partitions:
-      - /dev/xvdb msdos /dev/xvdb1 0GB 120GB
-      - /dev/xvdb msdos /dev/xvdb2 120GB 100%
+      - /dev/{{ pnda_env['datanode']['DEVICE_ROOT'] }} msdos /dev/{{ pnda_env['datanode']['DEVICE_ROOT'] }}1 0GB 120GB
+      - /dev/{{ pnda_env['datanode']['DEVICE_ROOT'] }} msdos /dev/{{ pnda_env['datanode']['DEVICE_ROOT'] }}2 120GB 100%
 
   generic:
     volumes:
