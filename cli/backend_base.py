@@ -295,11 +295,8 @@ class BaseBackend(object):
         fqdn = None
         domain = self._pnda_env['domain']['SECOND_LEVEL_DOMAIN'] + '.' + self._pnda_env['domain']['TOP_LEVEL_DOMAIN']
         role = self._get_role_for_service(service)
-        if not role is None:
+        if role:
             fqdn = service + '.service.' + domain
-        # FIXME: all services should be registered in the long run. Remove the following line when done.
-        else:
-            fqdn = self._cluster + '-gateway' + '.node.' + domain
         return fqdn
 
     def _generate_ca_conf(self, path):
