@@ -1,7 +1,9 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.1.1] 2018-06-11
+### Fixed
+- PNDA-4441: Removed "extra-index-url" and "find_links" directives so pip and easy_install use mirror only
 
 ## [1.1.0] 2018-02-10
 ### Added
