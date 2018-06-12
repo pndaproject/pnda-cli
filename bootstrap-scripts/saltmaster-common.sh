@@ -39,8 +39,8 @@ top_file_merging_strategy: same
 reactor:
   - 'minion_start':
     - salt://reactor/sync_all.sls
-  - 'fqdn/updated/jupyter':
-    - salt://reactor/fqdn_update.sls
+  - 'user/login':
+    - salt://reactor/user_login.sls
 ## end of specific PNDA saltmaster config
 file_recv: True
 
