@@ -27,6 +27,7 @@ import tarfile
 import Queue
 import StringIO
 import glob
+import random
 
 from threading import Thread
 
@@ -284,7 +285,7 @@ class BaseBackend(object):
             self._call('openssl genrsa -out {key_f}.key 2048'.format(key_f=key_f))
             self._call('openssl req -new -key {key_f}.key -out {key_f}.csr -config {key_f}.cfg'.format(key_f=key_f))
             self._call('openssl x509 -req -days 365 -in {key_f}.csr -extfile {key_f}.ext -CA {cacert} -CAkey {cakey} \
--set_serial 01 -out {key_f}.crt -sha512 -passin pass:pnda'.format(key_f=key_f, cacert=cacert, cakey=cakey))
+-set_serial {serial} -out {key_f}.crt -sha512 -passin pass:pnda'.format(key_f=key_f, cacert=cacert, cakey=cakey, serial=random.getrandbits(20*8)))
 
     def _get_role_for_service(self, service):
         role = None
