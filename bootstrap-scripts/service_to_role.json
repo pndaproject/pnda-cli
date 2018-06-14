@@ -8,5 +8,6 @@
     "kafka-manager": {"role": "kafka_manager", "port": "10900"},
     "logserver": {"role": "logserver", "port": "5601"},
     "opentsdb": {"role": "opentsdb", "port": "4242"},
-    "knox": {"role": "knox", "port": "8443"}
+    "knox": {"role": "knox", "port": "8443"},
+    "haproxy": {"role": "haproxy", "port": "8443"}
 }
