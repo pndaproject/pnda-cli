@@ -159,6 +159,8 @@ mine_functions:
 
 security:
   security: $SECURITY_MODE
+  ldap_server: $LDAP_SERVER
+  ldap_base_dn: $LDAP_BASE_DN
 
 consul:
   domain: $TOP_LEVEL_DOMAIN
