@@ -1,12 +1,14 @@
 {
-    "hadoop-manager": {"role": "hadoop_manager", "port": "8080"},
-    "console-frontend": {"role": "console_frontend", "port": "80"},
-    "package-repository": {"role": "package_repository", "port": "8888"},
-    "data-service": {"role": "data_service", "port": "7000"},
-    "jupyter": {"role": "jupyter", "port": "8000"},
+    "hadoop-manager": {"role": "knox", "port": "8443"},
+    "console-frontend": {"role": "knox", "port": "8443"},
+    "package-repository": {"role": "knox", "port": "8443"},
+    "data-service": {"role": "knox", "port": "8443"},
     "kafka": {"role": "kafka", "port": "9092"},
-    "kafka-manager": {"role": "kafka_manager", "port": "10900"},
-    "logserver": {"role": "logserver", "port": "5601"},
-    "opentsdb": {"role": "opentsdb", "port": "4242"},
-    "knox": {"role": "knox", "port": "8443"}
+    "kafka-manager": {"role": "knox", "port": "8443"},
+    "logserver": {"role": "knox", "port": "8443"},
+    "opentsdb": {"role": "knox", "port": "8443"},
+    "knox": {"role": "knox", "port": "8443"},
+    "haproxy": {"role": "haproxy", "port": "8443"},
+    "jupyter": {"role": "haproxy", "port": "8443"},
+    "graphana": {"role": "haproxy", "port": "8443"}
 }

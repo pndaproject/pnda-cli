@@ -13,4 +13,6 @@ set -e
 cat >> /etc/salt/grains <<EOF
 roles:
   - knox
+roles:
+  - haproxy
 EOF
