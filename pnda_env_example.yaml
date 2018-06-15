@@ -196,6 +196,14 @@ security:
   # the containing sub dorectory.
   SECURITY_MATERIAL_PATH: ./platform-certificates/
 
+  # Address of LDAP server
+  # All instances will have PAM configured to authenticate with this LDAP server if set
+  # Leave blank to disable LDAP-PAM integration
+  LDAP_SERVER:
+  
+  # Base DN for LDAP server to use when enabling client PAM integration with LDAP
+  LDAP_BASE_DN: nodomain
+
 features:
   # Include experimental features. 
   # Set to "NO", omit setting or omit features section entirely to turn off experimental features
