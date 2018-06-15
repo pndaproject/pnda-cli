@@ -199,7 +199,7 @@ security:
   # Address of LDAP server
   # All instances will have PAM configured to authenticate with this LDAP server if set
   # Leave blank to disable LDAP-PAM integration
-  LDAP_SERVER:
+  LDAP_SERVER: '34.247.216.225'
   
   # Base DN for LDAP server to use when enabling client PAM integration with LDAP
   LDAP_BASE_DN: nodomain
