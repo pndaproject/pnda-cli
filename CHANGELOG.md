@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4588: Enable TLS on Knox if certificate is supplied
 - PNDA-4075: Add settings in pnda-env.yaml to control the number and names of disks used for hadoop datanodes
 - PNDA-4598: Add LDAP_SERVER to pnda-env.yaml
+- PNDA-4416: Better example of how to configure NTP servers in example pnda-env-example.yaml
 
 ### Changed
 - PNDA-4394: Remove Anaconda CDH parcel mirror as this is now installed from a bundle
