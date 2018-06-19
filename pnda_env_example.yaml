@@ -143,7 +143,10 @@ ntp:
   #For REJECT_OUTBOUND="YES" then NTP server/s must.
   NTP_SERVERS:
     - ntp.ubuntu.com
+  # - 91.189.89.198
   # - 91.189.89.199
+  # - 91.189.89.200
+  # - 91.189.89.201
 
 mirrors:
   # Mirror of resources required for provisioning PNDA, see PNDA guide for instructions on how to set this up
