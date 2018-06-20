@@ -22,6 +22,11 @@
       "Default" : "0.0.0.0/0",
       "Description" : "Whitelist for external access to Kafka"
     },
+    "whitelistUserAccess" : {
+      "Type" : "String",
+      "Default" : "0.0.0.0/0",
+      "Description" : "Whitelist for external access to Gateway"
+    },
     "imageId" : {
       "Type" : "String",
       "Default" : "ami-f95ef58a",
@@ -367,23 +372,23 @@
       }
     },
 
-    "sshSg": {
+    "gatewaySg": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "GroupDescription": "access to pnda instances",
         "VpcId": {"Ref": "VPC"},
         "Tags" : [
-          { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "sshSg" ] ]} },
+          { "Key" : "Name", "Value" :  {"Fn::Join" : [ "-", [ {"Ref": "AWS::StackName"}, "gatewaySg" ] ]} },
           { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } }
         ]
       }
     },
 
-    "ingressSsh1": {
+    "ingressGWSsh": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
         "GroupId": {
-          "Ref": "sshSg"
+          "Ref": "gatewaySg"
         },
         "IpProtocol": "tcp",
         "FromPort": "22",
@@ -392,6 +397,32 @@
       }
     },
 
+    "ingressGWKnox": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupId": {
+          "Ref": "gatewaySg"
+        },
+        "IpProtocol": "tcp",
+        "FromPort": "8443",
+        "ToPort": "8443",
+        "CidrIp": { "Ref" : "whitelistUserAccess" }
+      }
+    },
+
+    "ingressGWHAProxy": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupId": {
+          "Ref": "gatewaySg"
+        },
+        "IpProtocol": "tcp",
+        "FromPort": "8444",
+        "ToPort": "8444",
+        "CidrIp": { "Ref" : "whitelistUserAccess" }
+      }
+    },
+    
     "pndaSg": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
@@ -404,7 +435,7 @@
       }
     },
 
-    "ingressSsh2": {
+    "ingressPndaSsh": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
         "GroupId": {
@@ -417,7 +448,7 @@
       }
     },
 
-    "ingressInternal": {
+    "ingressPndaPnda": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
         "GroupId": {
@@ -430,20 +461,7 @@
       }
     },
 
-    "ingressInternal2": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "GroupId": {
-          "Ref": "sshSg"
-        },
-        "IpProtocol": "-1",
-        "FromPort": "0",
-        "ToPort": "65535",
-        "SourceSecurityGroupId": { "Ref" : "pndaSg" }
-      }
-    },
-
-    "ingressInternal3": {
+    "ingressPndaGateway": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
         "GroupId": {
@@ -452,7 +470,20 @@
         "IpProtocol": "-1",
         "FromPort": "0",
         "ToPort": "65535",
-        "SourceSecurityGroupId": { "Ref" : "sshSg" }
+        "SourceSecurityGroupId": { "Ref" : "gatewaySg" }
+      }
+    },
+
+    "ingressGatewayPnda": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupId": {
+          "Ref": "gatewaySg"
+        },
+        "IpProtocol": "-1",
+        "FromPort": "0",
+        "ToPort": "65535",
+        "SourceSecurityGroupId": { "Ref" : "pndaSg" }
       }
     },
 

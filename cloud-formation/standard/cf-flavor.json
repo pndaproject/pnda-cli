@@ -141,7 +141,7 @@
             "Description": "Primary network interface",
             "DeviceIndex": 0,
             "SubnetId": {"Ref": "PublicSubnet"},
-            "GroupSet": [{"Ref": "sshSg"}],
+            "GroupSet": [{"Ref": "gatewaySg"}],
             "AssociatePublicIpAddress": "true"
           }
         ]
@@ -289,7 +289,7 @@
             "Description": "Primary network interface",
             "DeviceIndex": 0,
             "SubnetId": {"Ref": "PublicSubnet"},
-            "GroupSet": [{"Ref": "pndaSg"}],
+            "GroupSet": [{"Ref": "pndaSg"}, {"Ref": "kafkaSg"}],
             "AssociatePublicIpAddress": "true"
           }
         ]
