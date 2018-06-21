@@ -699,9 +699,9 @@ subjectAltName = @alt_names
             port = service_to_role_descriptor[service]['port']
             hosts_for_role = self._get_hosts_for_role(saltmaster_ip, role)
             # Get the addresses for those hosts
-            def ip_for_service(name, props):
+            def ip_for_service(props):
                 return 'private_ip_address' if not props['ip_address'] else 'ip_address'
-            addresses_for_service = [instances[host][ip_for_service(service, instances[host])] for host in hosts_for_role]
+            addresses_for_service = [instances[host][ip_for_service(instances[host])] for host in hosts_for_role]
             # Push records into registry mapping service->address
             affected_hosts.extend(hosts_for_role)
             self._service_registry.register_service_record(service, addresses_for_service, port)
