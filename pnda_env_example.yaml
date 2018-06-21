@@ -34,6 +34,9 @@ aws_parameters:
   # CIDR specifying the address range that may access the created PNDA instances
   whitelistSshAccess: 0.0.0.0/0
 
+  # CIDR specifying the address range that may access the gateway
+  whitelistUserAccess: 0.0.0.0/0
+
   # CIDR specifying the address range for the public subnet (bastion access)
   publicSubnetCidr: 10.0.0.0/24
 
