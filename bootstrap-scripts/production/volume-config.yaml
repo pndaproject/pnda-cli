@@ -27,6 +27,7 @@ classes:
 instances:
   hadoop-dn: datanode
   build: generic
+  gateway: generic
   hadoop-cm: generic
   hadoop-edge: generic
   hadoop-mgr-1: generic

@@ -8,49 +8,53 @@
         "node_type": "hadoop-mgr-2"
     },
     "hadoop-mgr-3": {
-        "ip_address": "10.2.1.102",
+        "ip_address": "10.2.1.103",
         "node_type": "hadoop-mgr-3"
     },
     "hadoop-mgr-4": {
-        "ip_address": "10.2.1.103",
+        "ip_address": "10.2.1.104",
         "node_type": "hadoop-mgr-4"
     },
     "hadoop-dn-0": {
-        "ip_address": "10.2.1.109",
+        "ip_address": "10.2.1.105",
         "node_type": "hadoop-dn"
     },
     "hadoop-dn-1": {
-        "ip_address": "10.2.1.110",
+        "ip_address": "10.2.1.106",
         "node_type": "hadoop-dn"
     },
     "hadoop-dn-2": {
-        "ip_address": "10.2.1.111",
+        "ip_address": "10.2.1.107",
         "node_type": "hadoop-dn"
     },
     "hadoop-edge": {
-        "ip_address": "10.2.1.112",
+        "ip_address": "10.2.1.108",
         "node_type": "hadoop-edge",
         "is_console": true
     },
     "hadoop-cm": {
-        "ip_address": "10.2.1.115",
+        "ip_address": "10.2.1.109",
         "node_type": "hadoop-cm"
     },
     "kafka-0": {
-        "ip_address": "10.2.1.106",
+        "ip_address": "10.2.1.110",
         "node_type": "kafka"
     },
     "zk-0": {
-        "ip_address": "10.2.1.107",
+        "ip_address": "10.2.1.111",
         "node_type": "zk"
     },
     "tools": {
-        "ip_address": "10.2.1.108",
+        "ip_address": "10.2.1.112",
         "node_type": "tools",
         "is_saltmaster": true
     },
     "opentsdb-0": {
         "ip_address": "10.2.1.113",
         "node_type": "opentsdb"
+    },
+    "gateway": {
+        "node_type": "gateway",
+        "ip_address": "10.2.1.114"
     }
 }
