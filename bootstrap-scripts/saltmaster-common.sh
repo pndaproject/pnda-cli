@@ -231,4 +231,11 @@ datanode:
 EOF
 fi
 
+if [ "x$KAFKA_DATA_DIRS" != "x" ] ; then
+cat << EOF >> /srv/salt/platform-salt/pillar/env_parameters.sls
+kafka:
+  data_dirs: $KAFKA_DATA_DIRS
+EOF
+fi
+
 /tmp/saltmaster-gen-keys.sh

@@ -15,6 +15,15 @@ classes:
       - /dev/{{ pnda_env['datanode']['DEVICE_ROOT'] }} msdos /dev/{{ pnda_env['datanode']['DEVICE_ROOT'] }}1 0GB 120GB
       - /dev/{{ pnda_env['datanode']['DEVICE_ROOT'] }} msdos /dev/{{ pnda_env['datanode']['DEVICE_ROOT'] }}2 120GB 100%
 
+  kafka:
+    volumes:
+      - /dev/{{ pnda_env['kafka']['KAFKA_DEVICE_ROOT'] }}2 /mnt xfs
+      - /dev/{{ pnda_env['kafka']['KAFKA_DEVICE_ROOT'] }}1 /var/log/pnda xfs
+      - tmpfs /tmp tmpfs nodev,nosuid
+    partitions:
+      - /dev/{{ pnda_env['kafka']['KAFKA_DEVICE_ROOT'] }} msdos /dev/{{ pnda_env['kafka']['KAFKA_DEVICE_ROOT'] }}1 0GB 120GB
+      - /dev/{{ pnda_env['kafka']['KAFKA_DEVICE_ROOT'] }} msdos /dev/{{ pnda_env['kafka']['KAFKA_DEVICE_ROOT'] }}2 120GB 100%
+
   generic:
     volumes:
       - /dev/xvdb2 /mnt xfs
@@ -34,7 +43,7 @@ instances:
   hadoop-mgr-2: generic
   hadoop-mgr-3: generic
   hadoop-mgr-4: generic
-  kafka: generic
+  kafka: kafka
   opentsdb: generic
   tools: generic
   zk: generic

@@ -233,3 +233,10 @@ datanode:
   DATA_VOLUME_COUNT: 1
   # DEVICE_ROOT sets the disk device root name
   DEVICE_ROOT: xvdb
+
+kafka:
+  # DATA_DIRS sets the data dirs on kafka node
+  KAFKA_DATA_DIRS:
+    - /var/kafka-logs
+  # DEVICE_ROOT sets the disk device root name
+  KAFKA_DEVICE_ROOT: xvdb
