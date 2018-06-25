@@ -7,7 +7,7 @@ The PNDA CLI is able to create PNDA on [Amazon Web Services](https://aws.amazon.
 
 - The blocks in green are provided by this repository.
 - Cloud formation templates are used to create the instances and other cloud infrastructure in EC2.
-- PNDA is launched in a private network in a custom VPC as specified by the cloud formation templates. For security reasons all access is then controlled via a bastion node, the only one with a public IP address. The CLI generates some sample ssh configuration files to help with accessing the cluster via the bastion.
+- PNDA is launched in a custom VPC as specified by the cloud formation templates. For security reasons user access is then controlled via a gateway node running secure gateway software. The CLI generates some sample ssh configuration files to help with accessing the cluster via the gateway.
 - The instances are bootstrapped to install the saltstack provisioning system.
 - The platform-salt salt scripts are used to install PNDA from PNDA components and third party components.
 

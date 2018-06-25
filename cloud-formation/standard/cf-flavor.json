@@ -128,7 +128,7 @@
         "BlockDeviceMappings" : [
           {
               "DeviceName" : "/dev/sda1",
-              "Ebs" : { "VolumeSize" : "30" }
+              "Ebs" : { "VolumeSize" : "50" }
           },
           {
               "DeviceName" : "/dev/sdc",
