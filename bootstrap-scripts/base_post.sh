@@ -11,6 +11,13 @@
 
 set -e
 
+if [ "x$LDAP_SERVER" != "x" ]; then
+  # Install and configure LDAP
+  # This code needs to run before the minion is started!
+  yum install -y nss-pam-ldapd openldap-clients
+  authconfig --enableldap --enableldapauth --ldapserver=$LDAP_SERVER --ldapbasedn="dc=$LDAP_BASE_DN" --enablemkhomedir --update
+fi
+
 # The minion_id file is placed onto the minion by saltmaster-gen-keys.sh
 # along with the minion.pem and minion.pub keys that it can use
 # to register as a minion with that specific ID.
