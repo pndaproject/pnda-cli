@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4588: Add pnda-env.yaml settings for consul domains so they can be used to build the TLS certificates
 - PNDA-4588: Default SECURITY_MODE to enforced to generate TLS certificates if not supplied by the user
 - PNDA-4386: Remove internal services from pnda-cli
+- PNDA-4599: Remove unused bastion bootstrap script and Correct OS volume size on gateway
 
 ### Fixed
 - PNDA-4415: Update PyYAML and requests
