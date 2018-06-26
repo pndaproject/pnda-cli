@@ -666,26 +666,7 @@ subjectAltName = @alt_names
         time.sleep(30)
 
         CONSOLE.info('Running salt to install software. Expect this to take 45 minutes or more, check the debug log for progress (%s).', LOG_FILE_NAME)
-        # Consul is installed first, before restarting the minion to pick up
-        # changes to resolv.conf (see https://github.com/saltstack/salt/issues/21397)
-        # We then wait 60 seconds before continuing with highstate to allow the minions to restart
-        # An improvement would be running a test.ping and waiting for all expected minions to be ready
-        CONSOLE.info('Installing Consul')
-        self._ssh_client.ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" state.sls consul,consul.dns queue=True 2>&1)'
-                              ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR], saltmaster_ip)
-        CONSOLE.info('Restarting minions')
-        self._restart_minions([instance_map[h]['private_ip_address'] for h in instance_map], bastion_ip is not None)
-        CONSOLE.info('Refreshing salt mines')
-        self._ssh_client.ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" mine.update 2>&1) | tee -a pnda-salt.log; %s'
-                              % THROW_BASH_ERROR], saltmaster_ip)
-
-        self._register_services(saltmaster_ip)
-
-        CONSOLE.info('Continuing with installation of PNDA')
-        self._ssh_client.ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*"'
-                              ' state.highstate queue=True 2>&1) | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR,
-                              '(sudo CLUSTER=%s salt-run --log-level=debug state.orchestrate orchestrate.pnda 2>&1) | tee -a pnda-salt.log; %s'
-                              % (self._cluster, THROW_BASH_ERROR)], saltmaster_ip)
+        self._run_salt_installation('pnda', saltmaster_ip, bastion_ip is not None)
 
     def _register_services(self, saltmaster_ip):
         CONSOLE.info('Populating %s with services', self._service_registry.name)
@@ -752,32 +733,35 @@ subjectAltName = @alt_names
         time.sleep(30)
 
         CONSOLE.info('Running salt to install software. Expect this to take 10 - 20 minutes, check the debug log for progress. (%s)', LOG_FILE_NAME)
+        self._run_salt_installation('pnda-expand' if do_orchestrate else None, saltmaster_ip, bastion_ip is not None)
 
+    def _run_salt_installation(self, orchestrate_runner, saltmaster_ip, bastion_used):
+        instance_map = self.get_instance_map(True)
         # Consul is installed first, before restarting the minion to pick up
         # changes to resolv.conf (see https://github.com/saltstack/salt/issues/21397)
         # We then wait 60 seconds before continuing with highstate to allow the minions to restart
         # An improvement would be running a test.ping and waiting for all expected minions to be ready
         CONSOLE.info('Installing Consul')
         self._ssh_client.ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed'
-                              ' -C "G@pnda:is_new_node" state.sls consul,consul.dns queue=True 2>&1)'
+                              ' -C "G@pnda:is_new_node" state.sls base-services queue=True 2>&1)'
                               ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR], saltmaster_ip)
         CONSOLE.info('Restarting minions')
-        self._restart_minions([instance_map[h]['private_ip_address'] for h in instance_map], bastion_ip is not None)
+        self._restart_minions([instance_map[h]['private_ip_address'] for h in instance_map], bastion_used)
         CONSOLE.info('Refreshing salt mines')
         self._ssh_client.ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" mine.update 2>&1) | tee -a pnda-salt.log; %s'
                               % THROW_BASH_ERROR], saltmaster_ip)
 
-        self._register_public_services(saltmaster_ip)
+        self._register_services(saltmaster_ip)
 
         CONSOLE.info('Continuing with installation of PNDA')
-        expand_commands = ['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed -C "G@pnda:is_new_node" state.highstate queue=True 2>&1)' +
-                           ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR]
-        if do_orchestrate:
+        salt_commands = ['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed -C "G@pnda:is_new_node" state.highstate queue=True 2>&1)' +
+                         ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR]
+        if orchestrate_runner:
             CONSOLE.info('Including orchestrate because new Hadoop datanodes are being added')
-            expand_commands.append('(sudo CLUSTER=%s salt-run --log-level=debug state.orchestrate orchestrate.pnda-expand 2>&1)' % self._cluster +
-                                   ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR)
+            salt_commands.append('(sudo CLUSTER=%s salt-run --log-level=debug state.orchestrate orchestrate.%s 2>&1)' % (self._cluster, orchestrate_runner) +
+                                 ' | tee -a pnda-salt.log; %s' % THROW_BASH_ERROR)
 
-        self._ssh_client.ssh(expand_commands, saltmaster_ip)
+        self._ssh_client.ssh(salt_commands, saltmaster_ip)
 
     def _destroy_pnda(self):
         CONSOLE.info('Removing ssh access scripts')
