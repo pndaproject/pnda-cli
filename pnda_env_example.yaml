@@ -190,16 +190,10 @@ cli:
   MAX_SIMULTANEOUS_OUTBOUND_CONNECTIONS: 100
 
 security:
-  # The security mode to be enforced. Options are:
-  # - 'disabled': The security material will be ignored.  
-  # - 'permissive': The security material will be used if present.
-  # - 'enforced': The security material will be required to be present and conforment to the associated requirements.
-  SECURITY_MODE: 'enforced'
-
   # The path were to find the security material (certificate/key).
   # The directory should be structured as defined in this' repo's directory structure with the same name.
-  # If present, the security material should conform to the guidelines defined in the README.md file in
-  # the containing sub dorectory.
+  # The security material should conform to the guidelines defined in the README.md file in
+  # the containing sub directory.
   SECURITY_MATERIAL_PATH: ./platform-certificates/
 
   # Address of LDAP server

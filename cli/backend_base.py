@@ -200,8 +200,7 @@ class BaseBackend(object):
         try:
             local_certs_path = self._pnda_env['security']['SECURITY_MATERIAL_PATH']
             platform_certs_tarball = '%s.tar.gz' % str(uuid.uuid1())
-            if self._pnda_env['security']['SECURITY_MODE'] == 'enforced':
-                self._ensure_certs()
+            self._ensure_certs()
             with tarfile.open(platform_certs_tarball, mode='w:gz') as archive:
                 # Exclude CA's private key
                 keys = glob.glob(os.path.join(local_certs_path, '*.key'))
@@ -213,12 +212,8 @@ class BaseBackend(object):
 
                 archive.add(local_certs_path, arcname='security-certs', recursive=True, filter=filter_function)
         except Exception as exception:
-            if self._pnda_env['security']['SECURITY_MODE'] == 'permissive':
-                LOG.warning(exception)
-                return None
-            else:
-                CONSOLE.error(exception)
-                raise PNDAConfigException("Error: %s must contain certificates" % local_certs_path)
+            CONSOLE.error(exception)
+            raise PNDAConfigException("Error: %s must contain certificates" % local_certs_path)
 
         self._ssh_client.scp([platform_certs_tarball], saltmaster_ip)
         os.remove(platform_certs_tarball)
@@ -637,8 +632,7 @@ subjectAltName = @alt_names
             os.remove(platform_salt_tarball)
 
         platform_certs_tarball = None
-        if self._pnda_env['security']['SECURITY_MODE'] != 'disabled':
-            platform_certs_tarball = self._ship_certs(saltmaster_ip)
+        platform_certs_tarball = self._ship_certs(saltmaster_ip)
 
         bootstrap_threads = []
         bootstrap_errors = Queue.Queue()
