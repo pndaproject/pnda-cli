@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4588: Default SECURITY_MODE to enforced to generate TLS certificates if not supplied by the user
 - PNDA-4386: Remove internal services from pnda-cli
 - PNDA-4599: Remove unused bastion bootstrap script and Correct OS volume size on gateway
+- PNDA-4370: Refactor salt commands for both install and expand into a single function
 
 ### Fixed
 - PNDA-4415: Update PyYAML and requests
