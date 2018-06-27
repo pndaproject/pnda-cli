@@ -32,6 +32,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4386: Remove internal services from pnda-cli
 - PNDA-4599: Remove unused bastion bootstrap script and Correct OS volume size on gateway
 - PNDA-4370: Refactor salt commands for both install and expand into a single function
+- PNDA-4732: Remove security mode options so it is always 'enforced'
 
 ### Fixed
 - PNDA-4415: Update PyYAML and requests
