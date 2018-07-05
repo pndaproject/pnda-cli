@@ -4,6 +4,7 @@ infrastructure :
   #   - aws
   #   - openstack
   #   - existing-machines
+  #   - terraform
   INFRASTRUCTURE_TYPE: aws
 
   # The user name to use when logging into the  instances
@@ -79,6 +80,47 @@ openstack_parameters:
 
   # CIDR specifying the address range for the public subnet (bastion access)
   publicSubnetCidr: 10.0.0.0/24
+
+terraform_parameters:
+  # Username to log into vSphere
+  VS_USER: username
+  
+  # Password to log into vSphere
+  VS_PASSWORD: password
+  
+  # Cluster to create PNDA VMs in
+  VS_PARENT_CLUSTER: pnda
+  
+  # Datacenter to create PNDA VMs in
+  VS_DATACENTER: Datacenter
+  
+  # Datastore name to use when creating PNDA
+  VS_DS: pnda_01
+  
+  # Public network create PNDA VMs on
+  VS_PUBLIC_NETWORK: abc123
+  
+  # vSphere server
+  VS_SERVER: esx.pnda.io:443
+
+  # Folder to create VMS in
+  VS_FOLDER: Virtual Machines
+
+  # vSphere guest ID
+  VS_GUEST_ID: centos7_64Guest
+
+  # Image to use for the datanode instances
+  VS_TEMPLATE_DATANODE: centos_base
+
+  # Image to use for the kafka instances
+  VS_TEMPLATE_KAFKA: centos_base
+
+  # Image to use for other instances
+  VS_TEMPLATE_BASE: centos_base
+
+  # Root user and password for the base images
+  TF_ROOT_USER: root
+  TF_ROOT_PASSWORD: root
 
 platform_salt:
   # Use either PLATFORM_GIT_REPO_URI + PLATFORM_GIT_BRANCH or PLATFORM_SALT_LOCAL

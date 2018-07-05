@@ -229,12 +229,6 @@ class CloudFormationBackend(BaseBackend):
                     LOG.debug(message)
             page_token = event_page.next_token
 
-    def _keyname_from_keyfile(self, keyfile):
-        return keyfile[:-4]
-
-    def _keyfile_from_keyname(self, keyname):
-        return '%s.pem' % keyname
-
     def _save_cf_resources(self, context, cluster_name, params, template):
         params_file = 'cli/logs/%s_%s_cloud-formation-parameters.json' % (cluster_name, context)
         CONSOLE.info('Writing Cloud Formation parameters for %s to %s', cluster_name, params_file)

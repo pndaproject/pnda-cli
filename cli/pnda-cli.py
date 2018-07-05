@@ -28,6 +28,7 @@ from validation import UserInputValidator
 from backend_cloud_formation import CloudFormationBackend
 from backend_existing_machines import ExistingMachinesBackend
 from backend_heat_templates import HeatBackend
+from backend_terraform import TerraformBackend
 
 utils.init_logging()
 CONSOLE = utils.CONSOLE_LOGGER
@@ -114,6 +115,10 @@ def select_deployment_target_impl(fields):
     elif PNDA_ENV['infrastructure']['INFRASTRUCTURE_TYPE'] == 'openstack':
         exclude_sections = ['aws_parameters']
         deployment_target = HeatBackend(
+            PNDA_ENV, fields['pnda_cluster'], fields["no_config_check"], fields['flavor'], fields['keyname'], fields['branch'], fields['dry_run'])
+    elif PNDA_ENV['infrastructure']['INFRASTRUCTURE_TYPE'] == 'terraform':
+        exclude_sections = ['aws_parameters', 'openstack_parameters']
+        deployment_target = TerraformBackend(
             PNDA_ENV, fields['pnda_cluster'], fields["no_config_check"], fields['flavor'], fields['keyname'], fields['branch'], fields['dry_run'])
     else:
         CONSOLE.error('Invalid cloud infra type')

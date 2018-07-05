@@ -6,3 +6,4 @@ python-heatclient==1.14.0
 ruamel.yaml==0.15.37
 python-novaclient==3.3.0
 Jinja2==2.10
+python-terraform==0.10.0
