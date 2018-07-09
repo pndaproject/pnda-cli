@@ -108,10 +108,37 @@ resources:
           port_range_max: 65535
           remote_mode: remote_group_id
 
+  # Create security group for Kafka
+  pndaSecurityGroupKafka:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: "Add security group rules for pnda deployment"
+      name:
+        str_replace:
+          template: '%stackname%_securityGroupKafka'
+          params:
+            '%stackname%': { get_param: 'OS::stack_name' }
+      rules:
         - protocol: tcp
           port_range_min: 9090
           port_range_max: 9100
           remote_ip_prefix: { get_param: whitelistKafkaAccess }
+
+  # Create security group for Gateway
+  pndaSecurityGroupGateway:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: "Add security group rules for pnda deployment"
+      name:
+        str_replace:
+          template: '%stackname%_securityGroupGateway'
+          params:
+            '%stackname%': { get_param: 'OS::stack_name' }
+      rules:
+        - protocol: tcp
+          port_range_min: 8443
+          port_range_max: 8444
+          remote_ip_prefix: { get_param: whitelistSshAccess }
 
 outputs:
   deploymentID:

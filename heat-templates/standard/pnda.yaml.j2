@@ -84,6 +84,8 @@ resources:
       publicSubnetId: { get_resource: publicSubnet }
       externalPublicNetworkId: { get_param: externalPublicNetworkId  }
       pndaSecurityGroupPnda: { get_resource: pndaSecurityGroupPnda }
+      pndaSecurityGroupKafka: { get_resource: pndaSecurityGroupKafka }
+      pndaSecurityGroupGateway: { get_resource: pndaSecurityGroupGateway }
       
       gatewayFlavor: { get_param: gatewayFlavor }
       edgeFlavor: { get_param: edgeFlavor }
