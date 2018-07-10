@@ -80,6 +80,10 @@ parameters:
     type: string
   pndaSecurityGroupPnda:
     type: string
+  pndaSecurityGroupKafka:
+    type: string
+  pndaSecurityGroupGateway:
+    type: string
   stackName:
     type: string
 
@@ -95,6 +99,7 @@ resources:
       publicSubnetId: { get_param: publicSubnetId }
       externalPublicNetworkId: { get_param: externalPublicNetworkId }
       pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+      pndaSecurityGroupGateway: { get_param: pndaSecurityGroupGateway }
       logVolumeSize: { get_param: logVolumeSize }
       instanceName:
         str_replace:
@@ -304,6 +309,7 @@ resources:
           publicNetworkId: { get_param: publicNetworkId }
           publicSubnetId: { get_param: publicSubnetId }
           pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+          pndaSecurityGroupKafka: { get_param: pndaSecurityGroupKafka }
           nodeIndex: '%index%'
           logVolumeSize: { get_param: logVolumeSize }
           instanceName:

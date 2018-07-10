@@ -36,6 +36,10 @@ parameters:
     type: string
   pndaSecurityGroupPnda:
     type: string
+  pndaSecurityGroupGateway:
+    type: string
+  pndaSecurityGroupKafka:
+    type: string
   stackName:
     type: string
 
@@ -56,6 +60,7 @@ resources:
       publicSubnetId: { get_param: publicSubnetId }
       externalPublicNetworkId: { get_param: externalPublicNetworkId }
       pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+      pndaSecurityGroupGateway: { get_param: pndaSecurityGroupGateway }
       logVolumeSize : { get_param: logVolumeSize }
 
   dn:
@@ -101,6 +106,7 @@ resources:
           publicNetworkId: { get_param: publicNetworkId }
           publicSubnetId: { get_param: publicSubnetId }
           pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
+          pndaSecurityGroupKafka: { get_param: pndaSecurityGroupKafka }
           logVolumeSize : { get_param: logVolumeSize }
 
   manager1:
