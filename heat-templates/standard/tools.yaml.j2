@@ -20,6 +20,9 @@ parameters:
     type: string
   pndaSecurityGroupPnda:
     type: string
+  externalPublicNetworkId:
+    description: Private network for pnda deployment
+    type: string
 
 resources:
   toolsPort:
@@ -30,8 +33,16 @@ resources:
         - subnet_id: { get_param: publicSubnetId }
       security_groups: [{ get_param: pndaSecurityGroupPnda }]
 
+  floatingIP:
+    type: OS::Neutron::FloatingIP
+    depends_on: [ toolsPort ]
+    properties:
+      floating_network_id: { get_param: externalPublicNetworkId }
+      port_id: { get_resource: toolsPort}
+
   toolsServer:
     type: OS::Nova::Server
+    depends_on: floatingIP
     properties:
       name: { get_param: instanceName }
       image: { get_param: imageId }
