@@ -15,5 +15,4 @@ cat >> /etc/salt/grains <<EOF
 roles:
   - kafka_manager
   - platform_testing_general
-  - elk
 EOF
