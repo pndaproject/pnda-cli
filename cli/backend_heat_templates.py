@@ -372,8 +372,10 @@ class HeatBackend(BaseBackend):
         os.makedirs(dest_dir)
 
         include_sections = ['infrastructure', 'openstack_parameters']
+        nameservers = ','.join(map(str, self._pnda_env['dns']['nameServers']))
         with open(dest_dir + '/pnda_env_openstack.yaml', 'w') as pnda_env_openstack:
             pnda_env_openstack.write('parameters:\n')
+            pnda_env_openstack.write('  %s: %s\n' % ('nameServers', nameservers))
             for section in self._pnda_env:
                 if section in include_sections:
                     for setting in self._pnda_env[section]:

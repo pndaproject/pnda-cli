@@ -74,9 +74,6 @@ openstack_parameters:
   # UUID of the public network in openstack to use
   externalPublicNetworkId: 5982b761-802a-4af3-9c0b-c3b457559179
 
-  #nameServers: DNS server(s) to use, this should be provided in the environment
-  nameServers: '8.8.8.8'
-
   # CIDR specifying the address range for the public subnet (bastion access)
   publicSubnetCidr: 10.0.0.0/24
 
@@ -150,6 +147,12 @@ ntp:
   # - 91.189.89.199
   # - 91.189.89.200
   # - 91.189.89.201
+
+dns:
+  # External DNS servers list
+  nameServers: 
+    - 8.8.8.8
+  # - 8.8.4.4
 
 mirrors:
   # Mirror of resources required for provisioning PNDA, see PNDA guide for instructions on how to set this up
