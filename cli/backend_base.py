@@ -580,6 +580,9 @@ class BaseBackend(object):
         saltmaster = instance_map[self._cluster + '-' + self._node_config['salt-master-instance']]
         saltmaster_ip = saltmaster['private_ip_address']
 
+        self._wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], bastion_ip is not None)
+        CONSOLE.info('Bootstrapping new instances. Expect this to take a few minutes, check the debug log for progress. (%s)', LOG_FILE_NAME)
+        
         self._ssh_client.ssh(['rm -rf /tmp/%s || true' % self._keyfile], saltmaster_ip)
         self._ssh_client.scp([self._keyfile, 'cli/pnda_env_%s.sh' % self._cluster, 'bootstrap-scripts/saltmaster-gen-keys.sh'], saltmaster_ip)
         self._ssh_client.ssh(['echo \'%s\' | tee /tmp/minions_list' % '\n'.join(self._get_minions_to_bootstrap()),
@@ -587,8 +590,6 @@ class BaseBackend(object):
                               'sudo chmod a+x /tmp/saltmaster-gen-keys.sh',
                               'sudo -E /tmp/saltmaster-gen-keys.sh'], saltmaster_ip)
 
-        self._wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], bastion_ip is not None)
-        CONSOLE.info('Bootstrapping new instances. Expect this to take a few minutes, check the debug log for progress. (%s)', LOG_FILE_NAME)
         bootstrap_threads = []
         bootstrap_errors = Queue.Queue()
         for _, instance in instance_map.iteritems():
