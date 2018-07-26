@@ -62,7 +62,7 @@ class HeatBackend(BaseBackend):
 
     def load_node_config(self):
         '''
-        Load a node config descriptor from a config.json file in the cloud-formation flavor specific directory
+        Load a node config descriptor from a config.json file in the heat-templates flavor specific directory
         '''
         node_config_file = file('heat-templates/%s/config.json' % self._flavor)
         config = json.load(node_config_file)

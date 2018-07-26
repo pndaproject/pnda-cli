@@ -27,7 +27,6 @@ import tarfile
 import Queue
 import StringIO
 import glob
-import random
 
 from threading import Thread
 
@@ -272,7 +271,7 @@ class BaseBackend(object):
                                           os.path.abspath(self._keyfile))
 
     def _write_pnda_env_sh(self, cluster):
-        client_only = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'PLATFORM_GIT_BRANCH']
+        client_only = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'PLATFORM_GIT_BRANCH', 'VS_USER', 'VS_PASSWORD']
         with open('cli/pnda_env_%s.sh' % cluster, 'w') as pnda_env_sh_file:
             for section in self._pnda_env:
                 for setting in self._pnda_env[section]:
@@ -455,6 +454,7 @@ class BaseBackend(object):
                     'saltmaster':self._node_config['salt-master-instance']})
 
         instance_map = self.get_instance_map()
+
         bastion_ip = self._get_bastion_ip()
 
         CONSOLE.debug('The PNDA console will come up on: http://%s',
@@ -710,3 +710,9 @@ class BaseBackend(object):
         if data_volume_count == 0:
             CONSOLE.error('Datanode volume count should not be zero')
             sys.exit(1)
+
+    def _keyname_from_keyfile(self, keyfile):
+        return keyfile[:-4]
+
+    def _keyfile_from_keyname(self, keyname):
+        return '%s.pem' % keyname

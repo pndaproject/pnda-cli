@@ -1,0 +1,5 @@
+{
+  "salt-master-instance":"hadoop-edge",
+  "bastion-instance":"none",
+  "console-instance":"hadoop-edge"
+}

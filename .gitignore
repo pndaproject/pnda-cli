@@ -13,3 +13,11 @@ pnda_env*.sh
 .DS_Store
 cli/logs/*cloud-formation-template*.json
 cli/logs/*cloud-formation-parameters*.json
+tf-*/
+platform-certificates/*.*
+platform-certificates/knox/*
+!platform-certificates/knox/README.md
+platform-certificates/haproxy/*
+!platform-certificates/haproxy/README.md
+terraform/scripts/*.pub
+*.pub
