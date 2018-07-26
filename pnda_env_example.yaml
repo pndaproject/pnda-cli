@@ -240,3 +240,7 @@ kafka:
     - /var/kafka-logs
   # DEVICE_ROOT sets the disk device root name
   KAFKA_DEVICE_ROOT: xvdb
+
+generic:
+  #GENERIC_DEVICE_ROOT sets the disk device root name for generic instances.
+  GENERIC_DEVICE_ROOT: xvdb
