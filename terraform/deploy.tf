@@ -109,8 +109,7 @@ resource "vsphere_virtual_machine" "datanode" {
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
       "rm -rf /tmp/scripts",
-      "passwd -d root",
-      "userdel -r centos"
+      "passwd -d root"
     ],
     connection {
       type     = "ssh"
@@ -196,8 +195,7 @@ resource "vsphere_virtual_machine" "kafka" {
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
       "rm -rf /tmp/scripts",
-      "passwd -d root",
-      "userdel -r centos"
+      "passwd -d root"
     ],
     connection {
       type     = "ssh"
@@ -276,8 +274,7 @@ resource "vsphere_virtual_machine" "zookeeper" {
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
       "rm -rf /tmp/scripts",
-      "passwd -d root",
-      "userdel -r centos"
+      "passwd -d root"
     ],
     connection {
       type     = "ssh"
@@ -356,8 +353,7 @@ resource "vsphere_virtual_machine" "management" {
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
       "rm -rf /tmp/scripts",
-      "passwd -d root",
-      "userdel -r centos"
+      "passwd -d root"
     ],
     connection {
       type     = "ssh"
@@ -436,8 +432,7 @@ resource "vsphere_virtual_machine" "cm" {
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
       "rm -rf /tmp/scripts",
-      "passwd -d root",
-      "userdel -r centos"
+      "passwd -d root"
     ],
     connection {
       type     = "ssh"
@@ -516,8 +511,7 @@ resource "vsphere_virtual_machine" "edge" {
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
       "rm -rf /tmp/scripts",
-      "passwd -d root",
-      "userdel -r centos"
+      "passwd -d root"
     ],
     connection {
       type     = "ssh"
@@ -596,8 +590,7 @@ resource "vsphere_virtual_machine" "tools" {
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
       "rm -rf /tmp/scripts",
-      "passwd -d root",
-      "userdel -r centos"
+      "passwd -d root"
     ],
     connection {
       type     = "ssh"
@@ -676,8 +669,7 @@ resource "vsphere_virtual_machine" "saltmaster" {
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
       "rm -rf /tmp/scripts",
-      "passwd -d root",
-      "userdel -r centos"
+      "passwd -d root"
     ],
     connection {
       type     = "ssh"
@@ -756,8 +748,7 @@ resource "vsphere_virtual_machine" "jupyter" {
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
       "rm -rf /tmp/scripts",
-      "passwd -d root",
-      "userdel -r centos"
+      "passwd -d root"
     ],
     connection {
       type     = "ssh"
@@ -836,8 +827,7 @@ resource "vsphere_virtual_machine" "gateway" {
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
       "rm -rf /tmp/scripts",
-      "passwd -d root",
-      "userdel -r centos"
+      "passwd -d root"
     ],
     connection {
       type     = "ssh"
@@ -916,8 +906,7 @@ resource "vsphere_virtual_machine" "logserver" {
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
       "rm -rf /tmp/scripts",
-      "passwd -d root",
-      "userdel -r centos"
+      "passwd -d root"
     ],
     connection {
       type     = "ssh"
@@ -996,8 +985,7 @@ resource "vsphere_virtual_machine" "opentsdb" {
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
       "rm -rf /tmp/scripts",
-      "passwd -d root",
-      "userdel -r centos"
+      "passwd -d root"
     ],
     connection {
       type     = "ssh"
