@@ -49,6 +49,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4658: Fix cmd2 at version compatible with python2
 - PNDA-4444: Detect "Failures:" in salt output to fail fast on error
 - PNDA-4554: Remove centos user deletion from provisioners
+- PNDA-4819: Wait for host connectivity before starting expand operation
 
 ## [1.1.0] 2018-02-10
 ### Added
