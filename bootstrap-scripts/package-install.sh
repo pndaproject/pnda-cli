@@ -30,6 +30,9 @@ if [ "x$NTP_SERVERS" != "x" ]; then
 NTP_SERVERS=$(echo "$NTP_SERVERS" | sed -e 's|[]"'\''\[ ]||g')
 iptables -A LOGGING -d  $NTP_SERVERS -j ACCEPT # NTP server
 fi
+if [ "$LDAP_SERVER" != '' ]; then
+iptables -A LOGGING -d  $LDAP_SERVER -j ACCEPT # LDAP server
+fi
 if [ "x$networkCidr" != "x" ]; then
 iptables -A LOGGING -d  ${networkCidr} -j ACCEPT
 fi
