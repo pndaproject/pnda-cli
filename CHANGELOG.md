@@ -51,6 +51,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4554: Remove centos user deletion from provisioners
 - PNDA-4819: Wait for host connectivity before starting expand operation
 - PNDA-4831 Failed to connect to LDAP server 
+- PNDA-4741 Added floating ip to nodes other than data nodes for OpenStack
 
 ## [1.1.0] 2018-02-10
 ### Added
