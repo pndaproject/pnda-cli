@@ -52,6 +52,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4819: Wait for host connectivity before starting expand operation
 - PNDA-4831 Failed to connect to LDAP server 
 - PNDA-4741 Added floating ip to nodes other than data nodes for OpenStack
+- PNDA-4797: ELK deployed twice in PICO Setup
 
 ## [1.1.0] 2018-02-10
 ### Added
