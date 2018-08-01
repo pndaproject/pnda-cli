@@ -108,6 +108,7 @@ resources:
           pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
           pndaSecurityGroupKafka: { get_param: pndaSecurityGroupKafka }
           logVolumeSize : { get_param: logVolumeSize }
+          externalPublicNetworkId: { get_param: externalPublicNetworkId }
 
   manager1:
     type: OS::Pnda::manager1
@@ -125,6 +126,7 @@ resources:
       publicSubnetId: { get_param: publicSubnetId }
       pndaSecurityGroupPnda: { get_param: pndaSecurityGroupPnda }
       logVolumeSize : { get_param: logVolumeSize }
+      externalPublicNetworkId: { get_param: externalPublicNetworkId }
 
   edge:
     type: OS::Pnda::edge
@@ -142,3 +144,4 @@ resources:
           template: '%stackname%-hadoop-edge'
           params:
             '%stackname%': { get_param: stackName  }
+      externalPublicNetworkId: { get_param: externalPublicNetworkId }

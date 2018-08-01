@@ -24,6 +24,8 @@ parameters:
     type: "number"
   stackName:
     type: "string"
+  externalPublicNetworkId:
+    type: string
 
 resources:
   kafkaPort:
@@ -33,6 +35,13 @@ resources:
       fixed_ips:
         - subnet_id: { get_param: publicSubnetId }
       security_groups: [{ get_param: pndaSecurityGroupPnda } , { get_param: pndaSecurityGroupKafka }]
+
+  floatingIP:
+    type: OS::Neutron::FloatingIP
+    depends_on: [ kafkaPort ]
+    properties:
+      floating_network_id: { get_param: externalPublicNetworkId }
+      port_id: { get_resource: kafkaPort}
 
   logVolume:
     type: OS::Cinder::Volume
@@ -49,7 +58,7 @@ resources:
 
   kafkaServer:
     type: OS::Nova::Server
-    depends_on: [ kafkaPort]
+    depends_on: floatingIP
     properties:
       name: { get_param: instanceName }
       image: { get_param: imageId }
