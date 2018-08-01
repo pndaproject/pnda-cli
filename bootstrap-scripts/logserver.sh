@@ -13,7 +13,6 @@ set -e
 
 cat >> /etc/salt/grains <<EOF
 roles:
-  - elk
   - logserver
   - kibana_dashboard
 EOF

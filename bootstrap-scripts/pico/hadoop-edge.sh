@@ -31,7 +31,6 @@ roles:
   - platform_testing_cdh
   - mysql_connector
   - jupyter
-  - elk
   - logserver
   - kibana_dashboard
   - impala-shell
