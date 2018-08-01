@@ -38,7 +38,6 @@ from pnda_cli_utils import PNDAConfigException
 from pnda_cli_utils import MILLI_TIME
 from pnda_cli_utils import to_runfile
 from ssh_client import SshClient
-from service_registry_consul import ServiceRegistryConsul
 import subprocess_to_log
 
 utils.init_logging()
@@ -65,7 +64,6 @@ class BaseBackend(object):
             self._node_config = self.load_node_config()
         self._cached_instance_map = None
         self._set_up_env_conf()
-        self._service_registry = ServiceRegistryConsul(self._ssh_client)
 
     ### Public interface
     def create(self, node_counts):
@@ -538,32 +536,6 @@ class BaseBackend(object):
         CONSOLE.info('Running salt to install software. Expect this to take 45 minutes or more, check the debug log for progress (%s).', LOG_FILE_NAME)
         self._run_salt_installation('pnda', saltmaster_ip, bastion_ip is not None)
 
-    def _register_services(self, saltmaster_ip):
-        CONSOLE.info('Populating %s with services', self._service_registry.name)
-        # Read descriptor
-        service_to_role_descriptor = self._get_service_to_role_descriptor()
-        # Find hosts with those roles using grains
-        instances = self.get_instance_map()
-        affected_hosts = []
-        for service in service_to_role_descriptor:
-            role = service_to_role_descriptor[service]['role']
-            port = service_to_role_descriptor[service]['port']
-            hosts_for_role = self._get_hosts_for_role(saltmaster_ip, role)
-            # Get the addresses for those hosts
-            def ip_for_service(props):
-                return 'private_ip_address' if not props['ip_address'] else 'ip_address'
-            addresses_for_service = [instances[host][ip_for_service(instances[host])] for host in hosts_for_role]
-            # Push records into registry mapping service->address
-            affected_hosts.extend(hosts_for_role)
-            self._service_registry.register_service_record(service, addresses_for_service, port)
-        self._service_registry.commit([instances[host]['private_ip_address'] for host in set(affected_hosts)])
-
-    def _get_service_to_role_descriptor(self):
-        rts_filepath = 'bootstrap-scripts/service_to_role.json'
-        with open(rts_filepath, 'r') as mapping_file:
-            mapping_data = json.loads(mapping_file.read())
-        return mapping_data
-
     def _get_hosts_for_role(self, saltmaster_ip, role):
         output = []
         self._ssh_client.ssh(['(sudo salt-call pnda.get_hosts_for_role %s 2>&1) | tee -a pnda-salt.log; %s' % (role, THROW_BASH_ERROR)], saltmaster_ip, output)
@@ -621,8 +593,6 @@ class BaseBackend(object):
         CONSOLE.info('Refreshing salt mines')
         self._ssh_client.ssh(['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed "*" mine.update 2>&1) | tee -a pnda-salt.log; %s'
                               % THROW_BASH_ERROR], saltmaster_ip)
-
-        self._register_services(saltmaster_ip)
 
         CONSOLE.info('Continuing with installation of PNDA')
         salt_commands = ['(sudo salt -v --log-level=debug --timeout=120 --state-output=mixed -C "G@pnda:is_new_node" state.highstate queue=True 2>&1)' +
