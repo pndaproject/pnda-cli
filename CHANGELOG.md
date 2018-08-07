@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4416: Better example of how to configure NTP servers in example pnda-env-example.yaml
 - PNDA-4536: Make data directories used by Kafka configurable in pnda-env.yaml
 - PNDA-4554: Support for ESXi vSphere deployment using Terraform
+- PNDA-4853: Check public key exists for terraform deployments
 
 ### Changed
 - PNDA-4394: Remove Anaconda CDH parcel mirror as this is now installed from a bundle
