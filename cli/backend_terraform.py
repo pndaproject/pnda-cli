@@ -50,6 +50,7 @@ class TerraformBackend(BaseBackend):
         '''
         Check Terraform specific configuration has been entered correctly
         '''
+        self._check_public_key_exists()
         self._check_terraform_installed()
 
     def load_node_config(self):
@@ -153,7 +154,7 @@ class TerraformBackend(BaseBackend):
 
     def _check_terraform_installed(self):
         '''
-        Check Terraform specific configuration has been entered correctly
+        Check Terraform can be used
         '''
         try:
             Terraform().show()
@@ -161,6 +162,16 @@ class TerraformBackend(BaseBackend):
             CONSOLE.error(traceback.format_exc())
             CONSOLE.error('Terraform does not appear to be installed. Please ensure the "terraform" command can be run from a command prompt')
             sys.exit(1)
+
+    def _check_public_key_exists(self):
+        '''
+        Check public key is present and named correctly
+        '''
+        if not os.path.isfile(self._keyfile_pub):
+            CONSOLE.info('Public key....... ERROR')
+            CONSOLE.error('Did not find local file named %s', self._keyfile_pub)
+            sys.exit(1)
+        CONSOLE.info('Public key....... OK')
 
     def _node_type_from_output_name(self, name, idx):
         # look at using metadata to carry this information like with the other

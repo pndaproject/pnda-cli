@@ -554,7 +554,7 @@ class BaseBackend(object):
 
         self._wait_for_host_connectivity([instance_map[h]['private_ip_address'] for h in instance_map], bastion_ip is not None)
         CONSOLE.info('Bootstrapping new instances. Expect this to take a few minutes, check the debug log for progress. (%s)', LOG_FILE_NAME)
-        
+
         self._ssh_client.ssh(['rm -rf /tmp/%s || true' % self._keyfile], saltmaster_ip)
         self._ssh_client.scp([self._keyfile, 'cli/pnda_env_%s.sh' % self._cluster, 'bootstrap-scripts/saltmaster-gen-keys.sh'], saltmaster_ip)
         self._ssh_client.ssh(['echo \'%s\' | tee /tmp/minions_list' % '\n'.join(self._get_minions_to_bootstrap()),
@@ -648,10 +648,10 @@ class BaseBackend(object):
 
     def _check_private_key_exists(self, keyfile):
         if not os.path.isfile(keyfile):
-            CONSOLE.info('Keyfile.......... ERROR')
+            CONSOLE.info('Private Key...... ERROR')
             CONSOLE.error('Did not find local file named %s', keyfile)
             sys.exit(1)
-        CONSOLE.info('Keyfile.......... OK')
+        CONSOLE.info('Private Key...... OK')
 
 
     def _check_pnda_mirror(self):
