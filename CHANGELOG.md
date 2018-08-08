@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4732: Remove security mode options so it is always 'enforced'
 - PNDA-4733: Externalize cert generation into a helper tool
 - PNDA-4818: Update Ambari to 2.7.0.0 and HDP to 2.6.5.0
+- PNDA-4845: Add Public IP for pnda standard cluster in openstack
 
 ### Fixed
 - PNDA-4415: Update PyYAML and requests
