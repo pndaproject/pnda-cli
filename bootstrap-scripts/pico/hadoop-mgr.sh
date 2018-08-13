@@ -19,6 +19,7 @@ hadoop:
   role: MGR01
 roles:
   - oozie_database
+  - oozie_server
   - mysql_connector
   - opentsdb
   - grafana
