@@ -55,6 +55,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4831 Failed to connect to LDAP server 
 - PNDA-4741 Added floating ip to nodes other than data nodes for OpenStack
 - PNDA-4797: ELK deployed twice in PICO Setup
+- PNDA-4873: Increase root volume storage to 250GB for datanode instances
 
 ## [1.1.0] 2018-02-10
 ### Added
