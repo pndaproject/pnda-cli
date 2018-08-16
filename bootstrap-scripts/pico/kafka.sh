@@ -25,7 +25,6 @@ if [ $1 = 0 ]; then
 cat >> /etc/salt/grains <<EOF
   - platform_testing_general
   - kafka_manager
-  - kafka_tool
 EOF
 fi
 
