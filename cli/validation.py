@@ -38,12 +38,12 @@ class RangeValidator(object):
         self._load(flavor)
 
     def _load(self, flavor):
-        path = '../cloud-formation/%s/validation.json' % flavor
+        path = './validation.json'
         if os.path.isfile(path):
             with open(path) as validation_file:
                 rules = json.load(validation_file)
                 # apply transformation applied by argparse so rules are addressable
-                for field, rule in rules.iteritems():
+                for field, rule in rules[flavor].iteritems():
                     self._rules[field.replace('-', '_')] = rule
 
     def _check_validation(self, restriction, value): #pylint: disable=R0911
