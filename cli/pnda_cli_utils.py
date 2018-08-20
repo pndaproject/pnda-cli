@@ -65,5 +65,12 @@ def init_logging():
         CONSOLE_LOGGER.addHandler(logging.StreamHandler())
         CONSOLE_LOGGER.handlers[0].setFormatter(log_formatter)
 
+def create_keys(d, key_path, value):
+    keys = key_path.split(".")
+    for k in keys[:-1]:
+        if not k in d: d[k] = {}
+        d = d[k]
+    d[keys[-1]] = value
+
 if __name__ == "__main__":
     pass

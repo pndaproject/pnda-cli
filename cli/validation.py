@@ -179,6 +179,13 @@ class UserInputValidator(object):
     def _range_validate_field(self, field, val):
         return self._range_validator.validate_field(field, val) if self._range_validator is not None else True
 
+    def _key_value_pair(self, field):
+        try:
+            k, v = field.split('=')
+            return (k, v)
+        except ValueError:
+            raise argparse.ArgumentTypeError('key=value')
+
     def _validate_user_input(self, args):
 
         # gather arguments via raw_input and run validation and actions in similar fashion to argparse
@@ -267,6 +274,10 @@ class UserInputValidator(object):
                             type=argparse.FileType('r'),
                             default='../pnda_env.yaml',
                             help='PNDA deployment configuration file (default: ../pnda_env.yaml)')
+        parser.add_argument('--set',
+                            type=self._key_value_pair, action='append',
+                            default=[],
+                            help='Override a specific field in PNDA configuration file (--set mirrors.PNDA_MIRROR=http://example.com:9090)')
         parser.add_argument('-e', '--pnda-cluster',
                             type=self._field_validator_func("pnda_cluster"),
                             help='Namespaced environment for machines in this cluster')

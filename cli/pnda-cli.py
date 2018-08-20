@@ -149,6 +149,9 @@ def main():
     global PNDA_ENV
     PNDA_ENV = yaml.load(fields['config'])
 
+    for override_path, value in fields['set']:
+        utils.create_keys(PNDA_ENV, override_path, value)
+
     # Branch defaults to master
     # but may be overridden by pnda_env.yaml
     # and both of those are overridden by --branch
