@@ -263,6 +263,10 @@ class UserInputValidator(object):
         parser.add_argument('command',
                             help='Mode of operation',
                             choices=['create', 'expand', 'destroy'])
+        parser.add_argument('-c', '--config',
+                            type=argparse.FileType('r'),
+                            default='../pnda_env.yaml',
+                            help='PNDA deployment configuration file (default: ../pnda_env.yaml)')
         parser.add_argument('-e', '--pnda-cluster',
                             type=self._field_validator_func("pnda_cluster"),
                             help='Namespaced environment for machines in this cluster')
