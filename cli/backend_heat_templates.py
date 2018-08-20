@@ -83,9 +83,13 @@ class HeatBackend(BaseBackend):
 
             private_ip_address = None
             public_ip_address = None
+            net_name = '{}_publicNetwork'.format(self._cluster)
+
+            if self._pnda_env['openstack_parameters']['useExistingNetwork']:
+                net_name = self._pnda_env['openstack_parameters']['existingNetworkId']
 
             for net, net_details in instance.addresses.items():
-                if net != '{}_publicNetwork'.format(self._cluster):
+                if net != net_name:
                     continue
                 private_ip_address = None
                 public_ip_address = None
