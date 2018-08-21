@@ -76,11 +76,6 @@ def get_node_counts(deployment_target, live_only):
                 node_counts[instance['node_type']] = current_count + 1
     return node_counts
 
-def check_config_file():
-    if not os.path.exists('pnda_env.yaml'):
-        CONSOLE.error('Missing required pnda_env.yaml config file, make a copy of pnda_env_example.yaml named pnda_env.yaml, fill it out and try again.')
-        sys.exit(1)
-
 def valid_flavors():
     cfn_dirs = [dir_name for dir_name in os.listdir('../cloud-formation') if  os.path.isdir(os.path.join('../cloud-formation', dir_name))]
     bootstap_dirs = [dir_name for dir_name in os.listdir('../bootstrap-scripts') if  os.path.isdir(os.path.join('../bootstrap-scripts', dir_name))]
@@ -107,7 +102,7 @@ def select_deployment_target_impl(fields):
             with open('git.pem', 'w') as git_key_file:
                 git_key_file.write('If authenticated access to the platform-salt git repository is required then' +
                                    ' replace this file with a key that grants access to the git server.\n\n' +
-                                   'Set PLATFORM_GIT_REPO_HOST and PLATFORM_GIT_REPO_URI in pnda_env.yaml, for example:\n' +
+                                   'Set PLATFORM_GIT_REPO_HOST and PLATFORM_GIT_REPO_URI in yaml configuration file, for example:\n' +
                                    'PLATFORM_GIT_REPO_HOST: github.com\n' +
                                    'PLATFORM_GIT_REPO_URI: git@github.com:pndaproject/platform-salt.git\n')
         deployment_target = CloudFormationBackend(
@@ -152,9 +147,7 @@ def main():
     ###
 
     global PNDA_ENV
-    check_config_file()
-    with open('pnda_env.yaml', 'r') as infile:
-        PNDA_ENV = yaml.load(infile)
+    PNDA_ENV = yaml.load(fields['config'])
 
     # Branch defaults to master
     # but may be overridden by pnda_env.yaml
