@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4536: Make data directories used by Kafka configurable in pnda-env.yaml
 - PNDA-4554: Support for ESXi vSphere deployment using Terraform
 - PNDA-4853: Check public key exists for terraform deployments
+- PNDA-4904: Add a new command line parameter to specify an alternate configuration file
 
 ### Changed
 - PNDA-4394: Remove Anaconda CDH parcel mirror as this is now installed from a bundle
