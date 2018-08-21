@@ -40,12 +40,12 @@ resources:
     properties:
       stackName: { get_param: 'OS::stack_name' }
       externalPublicNetworkId: { get_param: externalPublicNetworkId }
-{% if useExistingNetwork is equalto true %}
-      publicNetworkId: { get_param: existingNetworkId }
-      publicSubnetId: { get_param: existingSubnetId }
-{% else %}
+{% if useExistingNetwork is equalto false %}
       publicNetworkId: { get_resource: publicNetwork }
       publicSubnetId: { get_resource: publicSubnet }
+{% else %}
+      publicNetworkId: { get_param: existingNetworkId }
+      publicSubnetId: { get_param: existingSubnetId }
 {% endif %}
       pndaSecurityGroupPnda: { get_resource: pndaSecurityGroupPnda }
       pndaSecurityGroupGateway: { get_resource: pndaSecurityGroupGateway }

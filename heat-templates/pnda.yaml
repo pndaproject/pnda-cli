@@ -18,11 +18,11 @@ parameters:
   existingNetworkId:
     type: string
     description: >
-      ID or name of existing network
+      ID of the existing network
   existingSubnetId:
     type: string
     description: >
-      ID or name of the existing network subnet
+      ID of the existing network subnet
   whitelistSshAccess:
     type: string
     description: "Whitelist for external access to ssh"
