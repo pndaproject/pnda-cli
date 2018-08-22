@@ -175,6 +175,13 @@ ntp:
 EOF
 fi
 
+if [ "x$nameServers" != "x" ] ; then
+cat << EOF >> /srv/salt/platform-salt/pillar/env_parameters.sls
+nameserver:
+  servers: $nameServers
+EOF
+fi
+
 if [ "$PR_FS_TYPE" == "swift" ] ; then
 cat << EOF >> /srv/salt/platform-salt/pillar/env_parameters.sls
 package_repository:
