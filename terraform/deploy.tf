@@ -108,8 +108,7 @@ resource "vsphere_virtual_machine" "datanode" {
       "chmod +x /tmp/scripts/*.sh",
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
-      "rm -rf /tmp/scripts",
-      "passwd -d root"
+      "rm -rf /tmp/scripts"
     ],
     connection {
       type     = "ssh"
@@ -194,8 +193,7 @@ resource "vsphere_virtual_machine" "kafka" {
       "chmod +x /tmp/scripts/*.sh",
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
-      "rm -rf /tmp/scripts",
-      "passwd -d root"
+      "rm -rf /tmp/scripts"
     ],
     connection {
       type     = "ssh"
@@ -273,8 +271,7 @@ resource "vsphere_virtual_machine" "zookeeper" {
       "chmod +x /tmp/scripts/*.sh",
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
-      "rm -rf /tmp/scripts",
-      "passwd -d root"
+      "rm -rf /tmp/scripts"
     ],
     connection {
       type     = "ssh"
@@ -352,8 +349,7 @@ resource "vsphere_virtual_machine" "management" {
       "chmod +x /tmp/scripts/*.sh",
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
-      "rm -rf /tmp/scripts",
-      "passwd -d root"
+      "rm -rf /tmp/scripts"
     ],
     connection {
       type     = "ssh"
@@ -431,8 +427,7 @@ resource "vsphere_virtual_machine" "cm" {
       "chmod +x /tmp/scripts/*.sh",
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
-      "rm -rf /tmp/scripts",
-      "passwd -d root"
+      "rm -rf /tmp/scripts"
     ],
     connection {
       type     = "ssh"
@@ -510,8 +505,7 @@ resource "vsphere_virtual_machine" "edge" {
       "chmod +x /tmp/scripts/*.sh",
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
-      "rm -rf /tmp/scripts",
-      "passwd -d root"
+      "rm -rf /tmp/scripts"
     ],
     connection {
       type     = "ssh"
@@ -589,8 +583,7 @@ resource "vsphere_virtual_machine" "tools" {
       "chmod +x /tmp/scripts/*.sh",
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
-      "rm -rf /tmp/scripts",
-      "passwd -d root"
+      "rm -rf /tmp/scripts"
     ],
     connection {
       type     = "ssh"
@@ -668,8 +661,7 @@ resource "vsphere_virtual_machine" "saltmaster" {
       "chmod +x /tmp/scripts/*.sh",
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
-      "rm -rf /tmp/scripts",
-      "passwd -d root"
+      "rm -rf /tmp/scripts"
     ],
     connection {
       type     = "ssh"
@@ -747,8 +739,7 @@ resource "vsphere_virtual_machine" "jupyter" {
       "chmod +x /tmp/scripts/*.sh",
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
-      "rm -rf /tmp/scripts",
-      "passwd -d root"
+      "rm -rf /tmp/scripts"
     ],
     connection {
       type     = "ssh"
@@ -826,8 +817,7 @@ resource "vsphere_virtual_machine" "gateway" {
       "chmod +x /tmp/scripts/*.sh",
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
-      "rm -rf /tmp/scripts",
-      "passwd -d root"
+      "rm -rf /tmp/scripts"
     ],
     connection {
       type     = "ssh"
@@ -905,8 +895,7 @@ resource "vsphere_virtual_machine" "logserver" {
       "chmod +x /tmp/scripts/*.sh",
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
-      "rm -rf /tmp/scripts",
-      "passwd -d root"
+      "rm -rf /tmp/scripts"
     ],
     connection {
       type     = "ssh"
@@ -984,8 +973,7 @@ resource "vsphere_virtual_machine" "opentsdb" {
       "chmod +x /tmp/scripts/*.sh",
       "/tmp/scripts/ssh_conf.sh",
       "/tmp/scripts/authorized_keys.sh",
-      "rm -rf /tmp/scripts",
-      "passwd -d root"
+      "rm -rf /tmp/scripts"
     ],
     connection {
       type     = "ssh"
