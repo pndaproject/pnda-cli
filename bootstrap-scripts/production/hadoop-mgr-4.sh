@@ -16,5 +16,6 @@ hadoop:
   role: MGR04
 roles:
   - oozie_database
+  - oozie_server
   - mysql_connector
 EOF
