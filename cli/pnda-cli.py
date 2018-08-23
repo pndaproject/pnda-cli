@@ -119,7 +119,8 @@ def select_deployment_target_impl(fields):
         CONSOLE.error('Invalid cloud infra type')
         sys.exit(1)
     for section in exclude_sections:
-        del PNDA_ENV[section]
+        if section in PNDA_ENV:
+            del PNDA_ENV[section]
     return deployment_target
 
 def main():
