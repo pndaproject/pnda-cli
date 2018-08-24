@@ -197,7 +197,7 @@ class BaseBackend(object):
         try:
             local_certs_path = self._pnda_env['security']['SECURITY_MATERIAL_PATH']
             platform_certs_tarball = '%s.tar.gz' % str(uuid.uuid1())
-            self._ensure_certs()
+            self._check_security_material()
             with tarfile.open(platform_certs_tarball, mode='w:gz') as archive:
                 # Exclude CA's private key
                 keys = glob.glob(os.path.join(local_certs_path, '*.key'))
@@ -222,7 +222,7 @@ class BaseBackend(object):
         if ret_val != 0:
             raise Exception("Error running %s" % cmd)
 
-    def _ensure_certs(self):
+    def _check_security_material(self):
         local_certs_path = self._pnda_env['security']['SECURITY_MATERIAL_PATH']
         exts = ['key', 'crt', 'yaml']
         if self._has_leaf_certs(local_certs_path, exts) and self._has_ca_cert(local_certs_path):
@@ -645,6 +645,7 @@ class BaseBackend(object):
         self._check_pnda_mirror()
         self.check_target_specific_config()
         self._check_data_volume_count()
+        self._check_security_material()
 
     def _check_private_key_exists(self, keyfile):
         if not os.path.isfile(keyfile):
