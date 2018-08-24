@@ -186,8 +186,6 @@ class HeatBackend(BaseBackend):
             CONSOLE.error('Stack did not come up, status is: %s', stack_status)
             sys.exit(1)
 
-        self.fill_instance_map()
-
     def pre_expand_pnda(self, node_counts):
         ''' Use the Openstack heatclient API to expand a stack '''
 
