@@ -30,7 +30,9 @@ import subprocess_to_log
 
 LOG = None
 CONSOLE = None
-PNDA_ENV = None
+PNDA_ENV_SECURITY_MATERIAL_PATH = None
+PNDA_ENV_SECOND_LEVEL_DOMAIN = None
+PNDA_ENV_TOP_LEVEL_DOMAIN = None
 LOG_FILE_NAME = None
 PNDAPROJECTCA = "pndaproject-ca"
 JINJA_ENV = None
@@ -41,24 +43,23 @@ def _call(cmd):
         raise Exception("Error running %s" % cmd)
 
 def _ensure_certs():
-    local_certs_path = PNDA_ENV['security']['SECURITY_MATERIAL_PATH']
     exts = ['crt']
-    if _missing_material(local_certs_path, exts) is None:
+    if _missing_material(PNDA_ENV_SECURITY_MATERIAL_PATH, exts) is None:
         # A CA certificate was provided
         exts = ['key', 'crt', 'yaml']
-        missing = _missing_leaf_material(local_certs_path, exts)
+        missing = _missing_leaf_material(PNDA_ENV_SECURITY_MATERIAL_PATH, exts)
         if missing is None:
             CONSOLE.warning('All certificates are already present. Nothing to generate.')
             return
         else:
-            missing = _missing_material(local_certs_path, ['key'])
+            missing = _missing_material(PNDA_ENV_SECURITY_MATERIAL_PATH, ['key'])
             if missing is not None:
                 # Some security material is missing
                 raise Exception("Security material is missing: %s" % missing)
 
     # Generate the security material
-    cakey, cacert = _ensure_ca_cert(local_certs_path)
-    _generate_host_certs(local_certs_path, cakey, cacert)
+    cakey, cacert = _ensure_ca_cert(PNDA_ENV_SECURITY_MATERIAL_PATH)
+    _generate_host_certs(PNDA_ENV_SECURITY_MATERIAL_PATH, cakey, cacert)
 
 def _ensure_ca_cert(local_certs_path):
     keys = glob.glob(os.path.join(local_certs_path, '*.key'))
@@ -107,13 +108,13 @@ def _generate_host_certs(local_certs_path, cakey, cacert):
 -set_serial {serial} -out {key_f}.crt -sha512 -passin pass:pnda'.format(key_f=key_f, cacert=cacert, cakey=cakey, serial=random.getrandbits(20*8)))
 
 def _internal_fqdn_for_service(service):
-    domain = PNDA_ENV['domain']['SECOND_LEVEL_DOMAIN'] + '.' + PNDA_ENV['domain']['TOP_LEVEL_DOMAIN']
+    domain = PNDA_ENV_SECOND_LEVEL_DOMAIN + '.' + PNDA_ENV_TOP_LEVEL_DOMAIN
     return service + '.service.' + domain
 
 def _generate_ca_conf(path):
     with open(path, 'w') as config_file:
         config_file.write(JINJA_ENV.get_template('pndaproject-ca.cfg').render())
- 
+
 def _generate_host_yaml(path, fqdn):
     with open(path, 'w') as config_file:
         data = dict(
@@ -160,6 +161,9 @@ def check_config_file():
                         fill it out and try again.')
         sys.exit(1)
 
+def usage():
+    CONSOLE.error('Usage: %s [<SECURITY_MATERIAL_PATH> <SECOND_LEVEL_DOMAIN> <TOP_LEVEL_DOMAIN>]')
+
 def main():
 
     global CONSOLE, LOG_FILE_NAME, LOG
@@ -183,13 +187,27 @@ def main():
 
     global JINJA_ENV
     JINJA_ENV = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.abspath('templates')))
+    global PNDA_ENV_SECURITY_MATERIAL_PATH
+    global PNDA_ENV_SECOND_LEVEL_DOMAIN
+    global PNDA_ENV_TOP_LEVEL_DOMAIN
     os.chdir('../')
-    global PNDA_ENV
     CONSOLE.warning('DO NOT USE THIS TOOL IN PRODUCTION DEPLOYMENTS!')
-    check_config_file()
     try:
-        with open('pnda_env.yaml', 'r') as infile:
-            PNDA_ENV = yaml.load(infile)
+        if len(sys.argv) == 4:
+            PNDA_ENV_SECURITY_MATERIAL_PATH = sys.argv[1]
+            PNDA_ENV_SECOND_LEVEL_DOMAIN = sys.argv[2]
+            PNDA_ENV_TOP_LEVEL_DOMAIN = sys.argv[3]
+        elif len(sys.argv) == 1:
+            check_config_file()
+            with open('pnda_env.yaml', 'r') as infile:
+                pnda_env = yaml.load(infile)
+                PNDA_ENV_SECURITY_MATERIAL_PATH=pnda_env['security']['SECURITY_MATERIAL_PATH']
+                PNDA_ENV_SECOND_LEVEL_DOMAIN=pnda_env['domain']['SECOND_LEVEL_DOMAIN']
+                PNDA_ENV_TOP_LEVEL_DOMAIN=pnda_env['domain']['TOP_LEVEL_DOMAIN']
+        else:
+            usage()
+            sys.exit(1)
+
         _ensure_certs()
     except Exception as exception:
         CONSOLE.error(exception)
