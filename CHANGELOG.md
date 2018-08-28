@@ -41,7 +41,7 @@ All notable changes to this project will be documented in this file.
 - PNDA-4733: Externalize cert generation into a helper tool
 - PNDA-4818: Update Ambari to 2.7.0.0 and HDP to 2.6.5.0
 - PNDA-4845: Add Public IP for pnda standard cluster in openstack
-- PNDA-4765:Remove REJECT_OUTBOUND config. The PNDA mirror must be used for all dependencies
+- PNDA-4765: Remove REJECT_OUTBOUND config. The PNDA mirror must be used for all dependencies
 - PNDA-4892: Remove kafkat
 
 ### Fixed
@@ -56,8 +56,8 @@ All notable changes to this project will be documented in this file.
 - PNDA-4444: Detect "Failures:" in salt output to fail fast on error
 - PNDA-4554: Remove centos user deletion from provisioners
 - PNDA-4819: Wait for host connectivity before starting expand operation
-- PNDA-4831 Failed to connect to LDAP server 
-- PNDA-4741 Added floating ip to nodes other than data nodes for OpenStack
+- PNDA-4831: Failed to connect to LDAP server 
+- PNDA-4741: Added floating ip to nodes other than data nodes for OpenStack
 - PNDA-4797: ELK deployed twice in PICO Setup
 - PNDA-4873: Increase root volume storage to 250GB for datanode instances
 - PNDA-4775: Internet not reached from deployed online cluster
