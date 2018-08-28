@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+## [2.0.0] 2018-08-28
 ### Added
 - PNDA-3127: Post ingress compaction for Kafka datasets
 - PNDA-4449: Add a consul_server grain
