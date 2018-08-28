@@ -2,6 +2,7 @@
 
 set -ex
 
+if [ "x$REJECT_OUTBOUND" == "xYES" ]; then
 PNDA_MIRROR_IP=$(echo $PNDA_MIRROR | awk -F'[/:]' '/http:\/\//{print $4}')
 
 # Log the global scope IP connection.
@@ -42,6 +43,7 @@ iptables -A LOGGING -j REJECT --reject-with icmp-net-unreachable
 iptables-save > /etc/iptables.conf
 echo -e '#!/bin/sh\niptables-restore < /etc/iptables.conf' > /etc/rc.local
 chmod +x /etc/rc.d/rc.local | true
+fi
 
 DISTRO=$(cat /etc/*-release|grep ^ID\=|awk -F\= {'print $2'}|sed s/\"//g)
 
