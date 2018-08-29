@@ -1,4 +1,4 @@
-# This flavor specific pnda.yaml 
+# This flavor specific pnda.yaml
 
 parameters:
   gatewayFlavor:
@@ -71,22 +71,22 @@ resources:
       stackName: { get_param: 'OS::stack_name' }
       keyName: { get_param: keyName }
       imageId: { get_param: imageId }
-      
+
       zookeeperNodes: { get_param: zookeeperNodes }
       kafkaNodes: { get_param: kafkaNodes }
       dataNodes: { get_param: dataNodes }
       opentsdbNodes: { get_param: opentsdbNodes }
-      
+
       datanodeVolumeSize : { get_param: datanodeVolumeSize }
       logVolumeSize: { get_param: logVolumeSize }
-      
+
       publicNetworkId: { get_resource: publicNetwork }
       publicSubnetId: { get_resource: publicSubnet }
       externalPublicNetworkId: { get_param: externalPublicNetworkId  }
       pndaSecurityGroupPnda: { get_resource: pndaSecurityGroupPnda }
       pndaSecurityGroupKafka: { get_resource: pndaSecurityGroupKafka }
       pndaSecurityGroupGateway: { get_resource: pndaSecurityGroupGateway }
-      
+
       gatewayFlavor: { get_param: gatewayFlavor }
       edgeFlavor: { get_param: edgeFlavor }
       cmFlavor: { get_param: cmFlavor }
@@ -94,16 +94,14 @@ resources:
       manager2Flavor: { get_param: manager2Flavor }
       manager3Flavor: { get_param: manager3Flavor }
       manager4Flavor: { get_param: manager4Flavor }
-      
+
       jupyterFlavor: { get_param: jupyterFlavor }
       saltmasterFlavor: { get_param: saltmasterFlavor }
       logserverFlavor: { get_param: logserverFlavor }
       toolsFlavor: { get_param: toolsFlavor }
-      
+
       datanodeFlavor: { get_param: datanodeFlavor }
       kafkaFlavor: { get_param: kafkaFlavor }
       opentsdbFlavor: { get_param: opentsdbFlavor }
       zookeeperFlavor: { get_param: zookeeperFlavor }
-
-
-
+      

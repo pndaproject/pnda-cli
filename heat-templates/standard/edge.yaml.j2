@@ -36,7 +36,7 @@ resources:
       fixed_ips:
         - subnet_id: { get_param: publicSubnetId }
       security_groups: [{ get_param: pndaSecurityGroupPnda }]
-      
+
   floatingIP:
     type: OS::Neutron::FloatingIP
     depends_on: [ edgePort ]
