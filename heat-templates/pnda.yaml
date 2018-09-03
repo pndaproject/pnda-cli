@@ -146,3 +146,7 @@ outputs:
     description: |
       "Last deploymentID used. To trigger a scaling, the stack shall be updated using a different value passed as a parameter.
       Otherwise, orchestration steps necessary to properly the scale the clusters will not be executed"
+
+  networkID:
+    value: { get_resource: publicNetwork }
+    description: Network ID of the network used by PNDA instances
