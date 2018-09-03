@@ -75,35 +75,56 @@ class HeatBackend(BaseBackend):
         '''
         nova_session = self._get_nova_session()
         instances = nova_session.servers.list()
+
+        from neutronclient.v2_0 import client as nclient
+
+        neutronclient = nclient.Client(session=self._get_keystone_session()['session'])
+
+        def get_addresses(server, network_id):
+            interfaces = server.interface_list()
+            interface = [i for i in interfaces if i.net_id == network_id][0]
+            floatingips = neutronclient.list_floatingips(port_id=interface.port_id)['floatingips']
+            fixed_ip_address = None
+            floating_ip_address = None
+            if floatingips:
+                fixed_ip_address = floatingips[0]['fixed_ip_address']
+                floating_ip_address = floatingips[0]['floating_ip_address']
+            else:
+                fixed_ip_address = neutronclient.list_ports(id=interface.port_id)['ports'][0]['fixed_ips'][0]['ip_address']
+                floating_ip_address = None
+
+            return {
+                'fixed_ip_address': fixed_ip_address,
+                'floating_ip_address': floating_ip_address
+            }
+
+        net_id = None
+        if 'useExistingNetwork' in self._pnda_env['openstack_parameters'] and \
+            self._pnda_env['openstack_parameters']['useExistingNetwork']:
+            net_id = self._pnda_env['openstack_parameters']['existingNetworkId']
+        else:
+            # Get the network id created during PNDA installation
+            heatclient = self._get_heat_session()
+            try:
+                stack = heatclient.stacks.list(filters={'stack_name' : self._cluster}).next()
+                net_id = stack.output_show('networkID')['output']['output_value']
+            except StopIteration:
+                # If previous steps fails to find network_id, let's try one last thing ...
+                # This should be soon deprecated
+                net_id = '{}_publicNetwork'.format(self._cluster)
+
         instance_map = {}
         for instance in instances:
 
             if not('pnda_cluster' in instance.metadata and instance.metadata['pnda_cluster'] == self._cluster and instance.status == "ACTIVE"):
                 continue
 
-            private_ip_address = None
-            public_ip_address = None
-            net_name = '{}_publicNetwork'.format(self._cluster)
-
-            if self._pnda_env['openstack_parameters']['useExistingNetwork']:
-                net_name = self._pnda_env['openstack_parameters']['existingNetworkId']
-
-            for net, net_details in instance.addresses.items():
-                if net != net_name:
-                    continue
-                private_ip_address = None
-                public_ip_address = None
-                for interface in net_details:
-                    if interface["OS-EXT-IPS:type"] == "fixed":
-                        private_ip_address = interface["addr"]
-                    if interface["OS-EXT-IPS:type"] == "floating":
-                        public_ip_address = interface["addr"]
-
+            addresses = get_addresses(instance, net_id)
             instance_map[instance.metadata['Name']] = {
                 "bootstrapped": False,
-                "public_ip_address": public_ip_address,
-                "ip_address": public_ip_address,
-                "private_ip_address": private_ip_address,
+                "public_ip_address": addresses['floating_ip_address'],
+                "ip_address": addresses['floating_ip_address'],
+                "private_ip_address": addresses['fixed_ip_address'],
                 "name": instance.metadata['Name'],
                 "node_idx": instance.metadata['node_idx'],
                 "node_type": instance.metadata['node_type']
