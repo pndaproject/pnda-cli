@@ -47,43 +47,61 @@ fi
 
 DISTRO=$(cat /etc/*-release|grep ^ID\=|awk -F\= {'print $2'}|sed s/\"//g)
 
-if [ "x$ADD_ONLINE_REPOS" == "xYES" ]; then
-  yum install -y yum-utils
-  RPM_EXTRAS=$RPM_EXTRAS_REPO_NAME
-  RPM_OPTIONAL=$RPM_OPTIONAL_REPO_NAME
-  yum-config-manager --enable $RPM_EXTRAS $RPM_OPTIONAL
-  yum install -y yum-plugin-priorities
-  PNDA_REPO=${PNDA_MIRROR/http\:\/\//}
-  PNDA_REPO=${PNDA_REPO/\//_mirror_rpm}
-  yum-config-manager --add-repo $PNDA_MIRROR/mirror_rpm
-  yum-config-manager --setopt="$PNDA_REPO.priority=1" --enable $PNDA_REPO
-else
-  mkdir -p /etc/yum.repos.d.backup/
-  mv /etc/yum.repos.d/* /etc/yum.repos.d.backup/
-  
-  cat << EOF > /etc/yum.repos.d/pnda_mirror.repo
+[[ -n ${ADDITIONAL_REPOS} ]] && echo "${ADDITIONAL_REPOS}" > /etc/yum.repos.d/pnda.repo
 
-[pnda_mirror]
-name=added from: $PNDA_MIRROR/mirror_rpm
-baseurl=$PNDA_MIRROR/mirror_rpm
-enabled=1
-priority = 1
-gpgcheck = 1
-keepcache = 0
+yum install -y yum-utils deltarpm
 
-EOF
+# From versions.sh
+export ANACONDA_VERSION="5.1.0"
+export SALTSTACK_VERSION="2015.8.11"
+export SALTSTACK_REPO="2015.8"
+export LOGSTASH_VERSION="6.2.1"
+export NODE_VERSION="6.10.2"
+export JE_VERSION="5.0.73"
+export CLOUDERA_MANAGER_VERSION="5.12.1"
+export CLOUDERA_CDH_VERSION="5.12.1"
+export CLOUDERA_CDH_PARCEL_VERSION="CDH-5.12.1-1.cdh5.12.1.p0.3"
+export CLOUDERA_MANAGER_PACKAGE_VERSION="5.12.1-1.cm5121.p0.6"
+export AMBARI_VERSION="2.7.0.0"
+export AMBARI_PACKAGE_VERSION="2.7.0.0-897"
+export AMBARI_LEGACY_VERSION="2.6.1.0"
+export AMBARI_LEGACY_PACKAGE_VERSION="2.6.1.0-143"
+export HDP_VERSION="2.6.5.0"
+export HDP_UTILS_VERSION="1.1.0.22"
 
-fi
+RPM_EPEL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+RPM_EPEL_KEY=https://archive.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
+MY_SQL_REPO=https://repo.mysql.com/yum/mysql-5.5-community/el/7/x86_64/
+MY_SQL_REPO_KEY=https://repo.mysql.com/RPM-GPG-KEY-mysql
+CLOUDERA_MANAGER_REPO=http://archive.cloudera.com/cm5/redhat/7/x86_64/cm/${CLOUDERA_MANAGER_VERSION}/
+CLOUDERA_MANAGER_REPO_KEY=https://archive.cloudera.com/cm5/redhat/7/x86_64/cm/RPM-GPG-KEY-cloudera
+SALT_REPO=https://repo.saltstack.com/yum/redhat/7/x86_64/archive/${SALTSTACK_VERSION}
+SALT_REPO_KEY=https://repo.saltstack.com/yum/redhat/7/x86_64/archive/${SALTSTACK_VERSION}/SALTSTACK-GPG-KEY.pub
+SALT_REPO_KEY2=http://repo.saltstack.com/yum/redhat/7/x86_64/${SALTSTACK_REPO}/base/RPM-GPG-KEY-CentOS-7
+[[ -z ${AMBARI_REPO} ]] && export AMBARI_REPO=http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/${AMBARI_VERSION}/ambari.repo
+[[ -z ${AMBARI_LEGACY_REPO} ]] && export AMBARI_LEGACY_REPO=http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/${AMBARI_LEGACY_VERSION}/ambari.repo
+[[ -z ${AMBARI_REPO_KEY} ]] && export AMBARI_REPO_KEY=http://public-repo-1.hortonworks.com/ambari/centos7/RPM-GPG-KEY/RPM-GPG-KEY-Jenkins
 
-if [ "x$DISTRO" == "xrhel" ]; then
-  rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-redhat-release
-fi
-rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-mysql
-rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-cloudera
-rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-EPEL-7
-rpm --import $PNDA_MIRROR/mirror_rpm/SALTSTACK-GPG-KEY.pub
-rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-CentOS-7
-rpm --import $PNDA_MIRROR/mirror_rpm/RPM-GPG-KEY-Jenkins
+yum install -y $RPM_EPEL || true
+
+RPM_EXTRAS=$RPM_EXTRAS_REPO_NAME
+RPM_OPTIONAL=$RPM_OPTIONAL_REPO_NAME
+yum-config-manager --enable $RPM_EXTRAS $RPM_OPTIONAL
+yum-config-manager --add-repo $MY_SQL_REPO
+yum-config-manager --add-repo $CLOUDERA_MANAGER_REPO
+yum-config-manager --add-repo $SALT_REPO
+yum-config-manager --add-repo $AMBARI_REPO
+curl -LJ -o /etc/yum.repos.d/ambari-legacy.repo $AMBARI_LEGACY_REPO
+
+mkdir -p /tmp/reposkeys
+cd /tmp/reposkeys
+curl -LOJf $RPM_EPEL_KEY
+curl -LOJf $MY_SQL_REPO_KEY
+curl -LOJf $CLOUDERA_MANAGER_REPO_KEY
+curl -LOJf $SALT_REPO_KEY
+curl -LOJf $SALT_REPO_KEY2
+curl -LOJf $AMBARI_REPO_KEY
+rpm --import *
 
 PIP_INDEX_URL="$PNDA_MIRROR/mirror_python/simple"
 TRUSTED_HOST=$(echo $PIP_INDEX_URL | awk -F'[/:]' '/http:\/\//{print $4}')
