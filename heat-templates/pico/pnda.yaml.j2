@@ -34,12 +34,19 @@ parameters:
 resources:
   pndaCluster:
     type: OS::Pnda::cluster
+{% if useExistingNetwork is equalto false %}
     depends_on: [ publicNetworkRouterInterface ]
+{% endif %}
     properties:
       stackName: { get_param: 'OS::stack_name' }
       externalPublicNetworkId: { get_param: externalPublicNetworkId }
+{% if useExistingNetwork is equalto false %}
       publicNetworkId: { get_resource: publicNetwork }
       publicSubnetId: { get_resource: publicSubnet }
+{% else %}
+      publicNetworkId: { get_param: existingNetworkId }
+      publicSubnetId: { get_param: existingSubnetId }
+{% endif %}
       pndaSecurityGroupPnda: { get_resource: pndaSecurityGroupPnda }
       pndaSecurityGroupGateway: { get_resource: pndaSecurityGroupGateway }
       pndaSecurityGroupKafka: { get_resource: pndaSecurityGroupKafka }

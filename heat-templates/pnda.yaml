@@ -11,7 +11,18 @@ parameters:
   publicSubnetCidr:
     type: string
     default: "10.0.0.0/24"
-    description: "CIDR specifying the address range for the public subnet"
+  useExistingNetwork:
+    type: string
+    description: >
+      Use an existing Openstack network instead of creating a PNDA network
+  existingNetworkId:
+    type: string
+    description: >
+      ID of the existing network
+  existingSubnetId:
+    type: string
+    description: >
+      ID of the existing network subnet
   whitelistSshAccess:
     type: string
     description: "Whitelist for external access to ssh"
@@ -37,6 +48,7 @@ parameters:
     type: comma_delimited_list
 
 resources:
+{% if useExistingNetwork is equalto false %}
   pndaRouter:
     type: OS::Neutron::Router
     properties:
@@ -73,7 +85,7 @@ resources:
     properties:
       router_id: { get_resource: pndaRouter }
       subnet_id: { get_resource: publicSubnet }
-
+{% endif %}
   # Create security group for pnda
   pndaSecurityGroupPnda:
     type: OS::Neutron::SecurityGroup
