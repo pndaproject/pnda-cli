@@ -274,9 +274,8 @@ class BaseBackend(object):
             for section in self._pnda_env:
                 for setting in self._pnda_env[section]:
                     if setting not in client_only:
-                        val = '"%s"' % self._pnda_env[section][setting] if isinstance(
-                            self._pnda_env[section][setting], (list, tuple)) else self._pnda_env[section][setting]
-                        pnda_env_sh_file.write('export %s=%s\n' % (setting, val))
+                        val = self._pnda_env[section][setting]
+                        pnda_env_sh_file.write("export %s='%s'\n" % (setting, val))
 
     def _bootstrap(self, instance, saltmaster, cluster, flavor, branch,
                    salt_tarball, certs_tarball, error_queue,
@@ -303,12 +302,12 @@ class BaseBackend(object):
             volume_config = 'bootstrap-scripts/%s/%s' % (flavor, 'volume-config.yaml')
             requested_volumes = self._get_volume_info(node_type, volume_config)
             cmds_to_run = ['source /tmp/pnda_env_%s.sh' % cluster,
-                           'export PNDA_SALTMASTER_IP=%s' % saltmaster,
-                           'export PNDA_CLUSTER=%s' % cluster,
-                           'export PNDA_FLAVOR=%s' % flavor,
-                           'export PLATFORM_GIT_BRANCH=%s' % branch,
-                           'export PLATFORM_SALT_TARBALL=%s' % salt_tarball if salt_tarball is not None else ':',
-                           'export SECURITY_CERTS_TARBALL=%s' % certs_tarball if certs_tarball is not None else ':',
+                           "export PNDA_SALTMASTER_IP='%s'" % saltmaster,
+                           "export PNDA_CLUSTER='%s'" % cluster,
+                           "export PNDA_FLAVOR='%s'" % flavor,
+                           "export PLATFORM_GIT_BRANCH='%s'" % branch,
+                           "export PLATFORM_SALT_TARBALL='%s'" % salt_tarball if salt_tarball is not None else ':',
+                           "export SECURITY_CERTS_TARBALL='%s'" % certs_tarball if certs_tarball is not None else ':',
                            'sudo chmod a+x /tmp/package-install.sh',
                            'sudo chmod a+x /tmp/base.sh',
                            'sudo chmod a+x /tmp/base_post.sh',
@@ -466,8 +465,8 @@ class BaseBackend(object):
                             'bootstrap-scripts/package-install.sh']
 
             cmds_to_run = ['source /tmp/pnda_env_%s.sh' % self._cluster,
-                           'export PNDA_CLUSTER=%s' % self._cluster,
-                           'export PNDA_FLAVOR=%s' % self._flavor,
+                           "export PNDA_CLUSTER='%s'" % self._cluster,
+                           "export PNDA_FLAVOR='%s'" % self._flavor,
                            'sudo chmod a+x /tmp/package-install.sh',
                            'sudo -E /tmp/package-install.sh',
                            'sudo yum install -y nc']

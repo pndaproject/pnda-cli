@@ -2,8 +2,9 @@ boto==2.48.0
 cmd2==0.8.5
 PyYAML==3.12
 requests==2.14.2
-python-heatclient==1.14.0
+python-heatclient==1.16.1
+python-neutronclient==6.9.0
 ruamel.yaml==0.15.37
-python-novaclient==3.3.0
+python-novaclient==11.0.0
 Jinja2==2.10
 python-terraform==0.10.0

@@ -232,6 +232,80 @@ connectivity:
   RPM_EXTRAS_REPO_NAME: rhui-REGION-rhel-server-optional
   # RPM Optional repository to enable when ADD_ONLINE_REPOS=YES
   RPM_OPTIONAL_REPO_NAME: rhui-REGION-rhel-server-extras
+  ADDITIONAL_REPOS: |
+    #[pnda_mirror]
+    #name=PNDA mirror
+    #baseurl=XXXX/mirror_rpm
+    #enabled=1
+    #priority = 1
+    #gpgcheck = 1
+    #keepcache = 0
+
+    [base]
+    name=CentOS-$releasever - Base
+    mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=os&infra=$infra
+    gpgcheck=1
+    gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+    
+    #released updates 
+    [updates]
+    name=CentOS-$releasever - Updates
+    mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=updates&infra=$infra
+    gpgcheck=1
+    gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+
+    #additional packages that may be useful
+    [extras]
+    name=CentOS-$releasever - Extras
+    mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=extras&infra=$infra
+    gpgcheck=1
+    gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+    
+    [epel]
+    name=Extra Packages for Enterprise Linux 7 - $basearch
+    metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch
+    gpgkey=https://archive.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
+    failovermethod=priority
+    enabled=1
+    gpgcheck=1
+
+    #VERSION_NUMBER=2.6.1.0-143
+    [ambari-2.6.1.0]
+    name=ambari Version - ambari-2.6.1.0
+    baseurl=http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.6.1.0
+    gpgcheck=1
+    gpgkey=http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.6.1.0/RPM-GPG-KEY/RPM-GPG-KEY-Jenkins
+    enabled=1
+    priority=1
+    
+    #VERSION_NUMBER=2.7.0.0-897
+    [ambari-2.7.0.0]
+    #json.url = http://public-repo-1.hortonworks.com/HDP/hdp_urlinfo.json
+    name=ambari Version - ambari-2.7.0.0
+    baseurl=http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.7.0.0
+    gpgcheck=1
+    gpgkey=http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.7.0.0/RPM-GPG-KEY/RPM-GPG-KEY-Jenkins
+    enabled=1
+    priority=1
+    
+    [archive.cloudera.com_cm5_redhat_7_x86_64_cm_5.12.1_]
+    name=added from: http://archive.cloudera.com/cm5/redhat/7/x86_64/cm/5.12.1/
+    baseurl=http://archive.cloudera.com/cm5/redhat/7/x86_64/cm/5.12.1/
+    gpgkey=https://archive.cloudera.com/cm5/redhat/7/x86_64/cm/RPM-GPG-KEY-cloudera
+    enabled=1
+    
+    
+    [repo.mysql.com_yum_mysql-5.5-community_el_7_x86_64_]
+    name=added from: https://repo.mysql.com/yum/mysql-5.5-community/el/7/x86_64/
+    baseurl=https://repo.mysql.com/yum/mysql-5.5-community/el/7/x86_64/
+    gpgkey=https://repo.mysql.com/RPM-GPG-KEY-mysql
+    enabled=1
+    
+    [repo.saltstack.com_yum_redhat_7_x86_64_archive_2015.8.11]
+    name=added from: https://repo.saltstack.com/yum/redhat/7/x86_64/archive/2015.8.11
+    baseurl=https://repo.saltstack.com/yum/redhat/7/x86_64/archive/2015.8.11
+    gpgkey=https://repo.saltstack.com/yum/redhat/7/x86_64/archive/2015.8.11/SALTSTACK-GPG-KEY.pub
+    enabled=1
 
 network_interfaces:
   PNDA_INTERNAL_NETWORK: eth0

@@ -60,7 +60,7 @@ resources:
       description: Volume for datanode
   pndaVolumeAttachmentData:
     type: OS::Cinder::VolumeAttachment
-    depends_on: pndaVolumeAttachmentLogData 
+    depends_on: pndaVolumeAttachmentLogData
     properties:
       volume_id: { get_resource: pndaVolumeData }
       instance_uuid: { get_resource: dnServer }
