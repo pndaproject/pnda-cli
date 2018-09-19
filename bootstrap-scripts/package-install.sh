@@ -47,9 +47,9 @@ fi
 
 DISTRO=$(cat /etc/*-release|grep ^ID\=|awk -F\= {'print $2'}|sed s/\"//g)
 
-[[ -n ${ADDITIONAL_REPOS} ]] && echo "${ADDITIONAL_REPOS}" > /etc/yum.repos.d/pnda.repo
+yum install -y yum-utils yum-plugin-priorities
 
-yum install -y yum-utils deltarpm
+[[ -n ${ADDITIONAL_REPOS} ]] && echo "${ADDITIONAL_REPOS}" > /etc/yum.repos.d/pnda.repo
 
 # From versions.sh
 export ANACONDA_VERSION="5.1.0"
@@ -82,26 +82,42 @@ SALT_REPO_KEY2=http://repo.saltstack.com/yum/redhat/7/x86_64/${SALTSTACK_REPO}/b
 [[ -z ${AMBARI_LEGACY_REPO} ]] && export AMBARI_LEGACY_REPO=http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/${AMBARI_LEGACY_VERSION}/ambari.repo
 [[ -z ${AMBARI_REPO_KEY} ]] && export AMBARI_REPO_KEY=http://public-repo-1.hortonworks.com/ambari/centos7/RPM-GPG-KEY/RPM-GPG-KEY-Jenkins
 
-yum install -y $RPM_EPEL || true
+OFFLINE_KEYS_LIST="${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-EPEL-7 \
+                   ${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-mysql \
+                   ${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-cloudera \
+                   ${PNDA_MIRROR}/mirror_rpm/SALTSTACK-GPG-KEY.pub \
+                   ${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-CentOS-7 \
+                   ${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-Jenkins"
+if [ "x$DISTRO" == "xrhel" ]; then
+  OFFLINE_KEYS_LIST="${OFFLINE_KEYS_LIST} ${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-redhat-release"
+fi
 
-RPM_EXTRAS=$RPM_EXTRAS_REPO_NAME
-RPM_OPTIONAL=$RPM_OPTIONAL_REPO_NAME
-yum-config-manager --enable $RPM_EXTRAS $RPM_OPTIONAL
-yum-config-manager --add-repo $MY_SQL_REPO
-yum-config-manager --add-repo $CLOUDERA_MANAGER_REPO
-yum-config-manager --add-repo $SALT_REPO
-yum-config-manager --add-repo $AMBARI_REPO
-curl -LJ -o /etc/yum.repos.d/ambari-legacy.repo $AMBARI_LEGACY_REPO
-
+# Guess if there is an rpm mirror
 mkdir -p /tmp/reposkeys
 cd /tmp/reposkeys
-curl -LOJf $RPM_EPEL_KEY
-curl -LOJf $MY_SQL_REPO_KEY
-curl -LOJf $CLOUDERA_MANAGER_REPO_KEY
-curl -LOJf $SALT_REPO_KEY
-curl -LOJf $SALT_REPO_KEY2
-curl -LOJf $AMBARI_REPO_KEY
+
+if ! curl -LOJf ${OFFLINE_KEYS_LIST};
+then
+  curl -LOJf "${RPM_EPEL_KEY}" \
+	     "${MY_SQL_REPO_KEY}" \
+	     "${CLOUDERA_MANAGER_REPO_KEY}" \
+	     "${SALT_REPO_KEY}" \
+	     "${SALT_REPO_KEY2}" \
+	     "${AMBARI_REPO_KEY}"
+
+  RPM_EXTRAS=$RPM_EXTRAS_REPO_NAME
+  RPM_OPTIONAL=$RPM_OPTIONAL_REPO_NAME
+  yum-config-manager --enable $RPM_EXTRAS $RPM_OPTIONAL
+  yum-config-manager --add-repo $MY_SQL_REPO
+  yum-config-manager --add-repo $CLOUDERA_MANAGER_REPO
+  yum-config-manager --add-repo $SALT_REPO
+  yum-config-manager --add-repo $AMBARI_REPO
+  curl -LJ -o /etc/yum.repos.d/ambari-legacy.repo $AMBARI_LEGACY_REPO
+  yum install -y $RPM_EPEL || true
+fi
 rpm --import *
+
+yum install -y deltarpm
 
 PIP_INDEX_URL="$PNDA_MIRROR/mirror_python/simple"
 TRUSTED_HOST=$(echo $PIP_INDEX_URL | awk -F'[/:]' '/http:\/\//{print $4}')
