@@ -49,6 +49,8 @@ DISTRO=$(cat /etc/*-release|grep ^ID\=|awk -F\= {'print $2'}|sed s/\"//g)
 
 yum install -y yum-utils yum-plugin-priorities
 
+yum-config-manager --setopt=\*.priority=50 --save \*
+
 [[ -n ${ADDITIONAL_REPOS} ]] && echo "${ADDITIONAL_REPOS}" > /etc/yum.repos.d/pnda.repo
 
 # From versions.sh
@@ -107,13 +109,14 @@ then
 
   RPM_EXTRAS=$RPM_EXTRAS_REPO_NAME
   RPM_OPTIONAL=$RPM_OPTIONAL_REPO_NAME
-  yum-config-manager --enable $RPM_EXTRAS $RPM_OPTIONAL
-  yum-config-manager --add-repo $MY_SQL_REPO
-  yum-config-manager --add-repo $CLOUDERA_MANAGER_REPO
-  yum-config-manager --add-repo $SALT_REPO
-  yum-config-manager --add-repo $AMBARI_REPO
+  yum-config-manager --setopt=\*.priority=50 --save --enable $RPM_EXTRAS $RPM_OPTIONAL
+  yum-config-manager --setopt=\*.priority=50 --save --add-repo $MY_SQL_REPO
+  yum-config-manager --setopt=\*.priority=50 --save --add-repo $CLOUDERA_MANAGER_REPO
+  yum-config-manager --setopt=\*.priority=50 --save --add-repo $SALT_REPO
+  yum-config-manager --setopt=\*.priority=50 --save --add-repo $AMBARI_REPO
   curl -LJ -o /etc/yum.repos.d/ambari-legacy.repo $AMBARI_LEGACY_REPO
   yum install -y $RPM_EPEL || true
+  yum-config-manager --setopt=\*.priority=50 --save \*epel\*
 fi
 rpm --import *
 
