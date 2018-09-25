@@ -66,7 +66,9 @@ parameters:
 resources:
   pndaCluster:
     type: OS::Pnda::cluster
+{% if useExistingNetwork is equalto false %}
     depends_on: [ publicNetworkRouterInterface ]
+{% endif %}
     properties:
       stackName: { get_param: 'OS::stack_name' }
       keyName: { get_param: keyName }
@@ -80,9 +82,14 @@ resources:
       datanodeVolumeSize : { get_param: datanodeVolumeSize }
       logVolumeSize: { get_param: logVolumeSize }
 
+      externalPublicNetworkId: { get_param: externalPublicNetworkId  }
+{% if useExistingNetwork is equalto false %}
       publicNetworkId: { get_resource: publicNetwork }
       publicSubnetId: { get_resource: publicSubnet }
-      externalPublicNetworkId: { get_param: externalPublicNetworkId  }
+{% else %}
+      publicNetworkId: { get_param: existingNetworkId }
+      publicSubnetId: { get_param: existingSubnetId }
+{% endif %}
       pndaSecurityGroupPnda: { get_resource: pndaSecurityGroupPnda }
       pndaSecurityGroupKafka: { get_resource: pndaSecurityGroupKafka }
       pndaSecurityGroupGateway: { get_resource: pndaSecurityGroupGateway }
