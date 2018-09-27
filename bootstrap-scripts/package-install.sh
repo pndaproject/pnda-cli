@@ -98,8 +98,20 @@ fi
 mkdir -p /tmp/reposkeys
 cd /tmp/reposkeys
 
-if ! curl -LOJf ${OFFLINE_KEYS_LIST};
+if curl -LOJf ${OFFLINE_KEYS_LIST};
 then
+
+  cat << EOF >> /etc/yum.repos.d/pnda.repo
+[pnda_mirror]
+name=added from: $PNDA_MIRROR/mirror_rpm
+baseurl=$PNDA_MIRROR/mirror_rpm
+enabled=1
+priority = 1
+gpgcheck = 1
+keepcache = 0
+EOF
+
+else
   curl -LOJf "${RPM_EPEL_KEY}" \
 	     "${MY_SQL_REPO_KEY}" \
 	     "${CLOUDERA_MANAGER_REPO_KEY}" \
