@@ -84,21 +84,21 @@ SALT_REPO_KEY2=http://repo.saltstack.com/yum/redhat/7/x86_64/${SALTSTACK_REPO}/b
 [[ -z ${AMBARI_LEGACY_REPO} ]] && export AMBARI_LEGACY_REPO=http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/${AMBARI_LEGACY_VERSION}/ambari.repo
 [[ -z ${AMBARI_REPO_KEY} ]] && export AMBARI_REPO_KEY=http://public-repo-1.hortonworks.com/ambari/centos7/RPM-GPG-KEY/RPM-GPG-KEY-Jenkins
 
-OFFLINE_KEYS_LIST="${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-EPEL-7 \
-                   ${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-mysql \
-                   ${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-cloudera \
-                   ${PNDA_MIRROR}/mirror_rpm/SALTSTACK-GPG-KEY.pub \
-                   ${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-CentOS-7 \
-                   ${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-Jenkins"
+OFFLINE_KEYS_LIST="-LOJf ${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-EPEL-7 \
+                   -LOJf ${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-mysql \
+                   -LOJf ${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-cloudera \
+                   -LOJf ${PNDA_MIRROR}/mirror_rpm/SALTSTACK-GPG-KEY.pub \
+                   -LOJf ${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-CentOS-7 \
+                   -LOJf ${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-Jenkins"
 if [ "x$DISTRO" == "xrhel" ]; then
-  OFFLINE_KEYS_LIST="${OFFLINE_KEYS_LIST} ${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-redhat-release"
+  OFFLINE_KEYS_LIST="${OFFLINE_KEYS_LIST} -LOJf ${PNDA_MIRROR}/mirror_rpm/RPM-GPG-KEY-redhat-release"
 fi
 
 # Guess if there is an rpm mirror
 mkdir -p /tmp/reposkeys
 cd /tmp/reposkeys
 
-if curl -LOJf ${OFFLINE_KEYS_LIST};
+if curl ${OFFLINE_KEYS_LIST};
 then
 
   cat << EOF >> /etc/yum.repos.d/pnda.repo
@@ -113,11 +113,11 @@ EOF
 
 else
   curl -LOJf "${RPM_EPEL_KEY}" \
-	     "${MY_SQL_REPO_KEY}" \
-	     "${CLOUDERA_MANAGER_REPO_KEY}" \
-	     "${SALT_REPO_KEY}" \
-	     "${SALT_REPO_KEY2}" \
-	     "${AMBARI_REPO_KEY}"
+	   -LOJf "${MY_SQL_REPO_KEY}" \
+	   -LOJf "${CLOUDERA_MANAGER_REPO_KEY}" \
+	   -LOJf "${SALT_REPO_KEY}" \
+	   -LOJf "${SALT_REPO_KEY2}" \
+	   -LOJf "${AMBARI_REPO_KEY}"
 
   RPM_EXTRAS=$RPM_EXTRAS_REPO_NAME
   RPM_OPTIONAL=$RPM_OPTIONAL_REPO_NAME
