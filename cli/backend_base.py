@@ -82,6 +82,8 @@ class BaseBackend(object):
         self.post_install_pnda()
 
         instance_map = self.get_instance_map()
+        with open('cli/instance_map_%s.json' % self._cluster, 'w') as out:
+            json.dump(instance_map, out, indent=4, separators=(',', ': '))
         return instance_map[self._cluster + '-' + self._node_config['console-instance']]['private_ip_address']
 
     def expand(self, node_counts, do_orchestrate):
